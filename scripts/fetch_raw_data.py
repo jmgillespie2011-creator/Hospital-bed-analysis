@@ -19,13 +19,14 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import os
 import re
 import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import unquote, urljoin, urlparse
+from urllib.parse import parse_qs, unquote, urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -103,65 +104,141 @@ SOURCES = [
 ]
 
 
-def session() -> requests.Session:
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": UA,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-GB,en;q=0.9",
-    })
-    return s
+class Fetcher:
+    """Fetch pages and files.
+
+    NHS England (AWS WAF) and NHS England Digital (Cloudflare) serve a
+    JavaScript challenge to plain HTTP clients, so pages are loaded in a real
+    Chromium browser (Playwright). Files are then downloaded through the same
+    browser context so the challenge cookies are reused. Falls back to plain
+    ``requests`` if Playwright is not installed.
+    """
+
+    def __init__(self, headless: bool = True):
+        self.s = requests.Session()
+        self.s.headers.update({
+            "User-Agent": UA,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-GB,en;q=0.9",
+        })
+        self.pw = self.browser = self.ctx = self.page = None
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError:
+            print("Playwright not installed; using plain requests", flush=True)
+            return
+        self.pw = sync_playwright().start()
+        self.browser = self.pw.chromium.launch(
+            headless=headless, args=["--disable-blink-features=AutomationControlled"],
+            executable_path=os.environ.get("CHROMIUM_PATH") or None)
+        self.ctx = self.browser.new_context(user_agent=UA, locale="en-GB",
+                                            accept_downloads=True,
+                                            viewport={"width": 1366, "height": 900})
+        self.ctx.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        self.page = self.ctx.new_page()
+
+    def close(self) -> None:
+        if self.pw:
+            self.ctx.close()
+            self.browser.close()
+            self.pw.stop()
+
+    @staticmethod
+    def _challenged(html: str) -> bool:
+        low = html[:5000].lower()
+        return ("just a moment" in low or "awswafintegration" in low
+                or "challenge-platform" in low or "cf-chl" in low
+                or ("<a " not in html.lower() and len(html) < 5000))
+
+    def get_html(self, url: str) -> tuple[int, str, str]:
+        if not self.page:
+            r = self.s.get(url, timeout=60)
+            return r.status_code, r.url, r.text
+        resp = self.page.goto(url, wait_until="domcontentloaded", timeout=90_000)
+        status = resp.status if resp else 0
+        html = self.page.content()
+        for _ in range(20):  # wait up to ~40 s for the challenge to clear
+            if not self._challenged(html):
+                break
+            self.page.wait_for_timeout(2000)
+            try:
+                self.page.wait_for_load_state("domcontentloaded", timeout=10_000)
+            except Exception:  # noqa: BLE001
+                pass
+            html = self.page.content()
+            status = 200 if not self._challenged(html) else status
+        return status, self.page.url, html
+
+    def download(self, url: str, dest: Path) -> tuple[int, str] | str:
+        if self.ctx:
+            try:
+                r = self.ctx.request.get(url, timeout=300_000)
+                body = r.body()
+                ctype = r.headers.get("content-type", "")
+                if r.status == 200 and not ("text/html" in ctype and self._challenged(body[:5000].decode("utf-8", "ignore"))):
+                    return _write(dest, body)
+            except Exception:  # noqa: BLE001
+                pass
+            try:  # navigate so the browser solves any challenge, then catch the download
+                with self.page.expect_download(timeout=180_000) as d:
+                    try:
+                        self.page.goto(url, timeout=180_000)
+                    except Exception:  # noqa: BLE001  (navigation aborts when a download starts)
+                        pass
+                tmp = dest.with_suffix(dest.suffix + ".part")
+                d.value.save_as(tmp)
+                body = tmp.read_bytes()
+                tmp.unlink()
+                return _write(dest, body)
+            except Exception as e:  # noqa: BLE001
+                return f"browser download failed: {e}"
+        with self.s.get(url, timeout=300) as r:
+            if r.status_code != 200:
+                return f"HTTP {r.status_code}"
+            return _write(dest, r.content)
 
 
-def save_debug(url: str, r: requests.Response) -> None:
-    """Keep a copy of each crawled page (status, headers, HTML) for diagnosis."""
+def _write(dest: Path, body: bytes) -> tuple[int, str] | str:
+    if len(body) > MAX_FILE_BYTES:
+        return f"too large ({len(body)} bytes)"
+    if body[:15].lower().startswith((b"<!doctype html", b"<html")):
+        return "got an HTML page instead of a file"
+    dest.write_bytes(body)
+    return len(body), hashlib.sha256(body).hexdigest()
+
+
+def save_debug(url: str, status: int, final: str, html: str) -> None:
+    """Keep a copy of each crawled page for diagnosis."""
     DEBUG_DIR.mkdir(parents=True, exist_ok=True)
     name = re.sub(r"[^A-Za-z0-9]+", "_", urlparse(url).netloc + urlparse(url).path)[-120:]
-    head = f"<!-- {url}\nstatus {r.status_code} final {r.url}\n{dict(r.headers)} -->\n"
-    (DEBUG_DIR / f"{name}.html").write_text(head + r.text[:300_000], errors="replace")
+    (DEBUG_DIR / f"{name}.html").write_text(
+        f"<!-- {url}\nstatus {status} final {final} -->\n" + html[:300_000], errors="replace")
 
 
-def get_links(s: requests.Session, url: str) -> list[tuple[str, str]]:
-    r = s.get(url, timeout=60)
-    save_debug(url, r)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
+def get_links(fx: Fetcher, url: str) -> list[tuple[str, str]]:
+    status, final, html = fx.get_html(url)
+    save_debug(url, status, final, html)
+    if Fetcher._challenged(html):
+        raise RuntimeError(f"bot challenge not cleared (status {status})")
+    soup = BeautifulSoup(html, "html.parser")
     out = []
     for a in soup.find_all("a", href=True):
-        href = urljoin(r.url, a["href"].strip())
+        href = urljoin(final, a["href"].strip())
         text = " ".join(a.get_text(" ").split())[:200]
         out.append((href.split("#")[0], text))
     return out
 
 
 def safe_name(url: str) -> str:
-    name = unquote(Path(urlparse(url).path).name) or "file"
+    u = urlparse(url)
+    q = parse_qs(u.query)
+    path = q["uri"][0] if "uri" in q else u.path  # ONS: /file?uri=/.../name.xlsx
+    name = unquote(Path(path).name) or "file"
     return re.sub(r"[^A-Za-z0-9._()+-]", "_", name)
 
 
-def download(s: requests.Session, url: str, dest: Path) -> tuple[int, str] | str:
-    with s.get(url, timeout=300, stream=True) as r:
-        if r.status_code != 200:
-            return f"HTTP {r.status_code}"
-        size = int(r.headers.get("Content-Length") or 0)
-        if size > MAX_FILE_BYTES:
-            return f"too large ({size} bytes)"
-        h, n = hashlib.sha256(), 0
-        tmp = dest.with_suffix(dest.suffix + ".part")
-        with open(tmp, "wb") as f:
-            for chunk in r.iter_content(1 << 16):
-                n += len(chunk)
-                if n > MAX_FILE_BYTES:
-                    f.close()
-                    tmp.unlink()
-                    return "too large (streamed)"
-                h.update(chunk)
-                f.write(chunk)
-        tmp.rename(dest)
-        return n, h.hexdigest()
-
-
-def crawl(s: requests.Session, src: Source, log) -> list[dict]:
+def crawl(s: Fetcher, src: Source, log) -> list[dict]:
     pages, seen, found = list(src.start), set(), {}
     level = {u: 0 for u in pages}
     while pages:
@@ -176,7 +253,7 @@ def crawl(s: requests.Session, src: Source, log) -> list[dict]:
             continue
         time.sleep(0.5)
         for href, text in links:
-            if DATA_EXT.search(urlparse(href).path):
+            if DATA_EXT.search(urlparse(href).path) or DATA_EXT.search(href):
                 found.setdefault(href, dict(source=src.name, page=page, url=href, link_text=text))
             elif (src.follow and level[page] < src.depth and re.search(src.follow, href)
                   and href not in seen and urlparse(href).netloc == urlparse(page).netloc):
@@ -190,9 +267,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", nargs="*")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--headed", action="store_true", help="run Chromium with a window (use under xvfb)")
     args = ap.parse_args()
     RAW.mkdir(parents=True, exist_ok=True)
-    s = session()
+    s = Fetcher(headless=not args.headed)
     log = lambda m: print(m, flush=True)  # noqa: E731
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
@@ -224,7 +302,7 @@ def main() -> int:
                     L["status"] = "dry run"
                 else:
                     try:
-                        res = download(s, L["url"], dest)
+                        res = s.download(L["url"], dest)
                     except Exception as e:  # noqa: BLE001
                         res = f"error {e}"
                     time.sleep(0.3)
@@ -251,6 +329,7 @@ def main() -> int:
         w = csv.DictWriter(f, fieldnames=["source", "page", "url", "link_text", "wanted", "status"])
         w.writeheader()
         w.writerows(inventory)
+    s.close()
     return 0
 
 
