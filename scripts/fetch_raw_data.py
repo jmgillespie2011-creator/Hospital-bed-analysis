@@ -263,6 +263,75 @@ def crawl(s: Fetcher, src: Source, log) -> list[dict]:
     return list(found.values())
 
 
+# ---------------------------------------------------------------- OHID Fingertips API
+FINGERTIPS = "https://fingertips.phe.org.uk/api"
+# Indicator names (regex, case-insensitive) for the public-health levers. England-level data,
+# including deprivation-decile breakdowns where Fingertips publishes them.
+FINGERTIPS_PATTERNS = {
+    "smoking_prevalence": r"smoking prevalence in adults.*current smokers",
+    "smoking_admissions": r"smoking attributable hospital admissions",
+    "obesity_prevalence": r"(adults|aged 18).*(classified as obese|living with obesity)|obesity prevalence.*adults",
+    "overweight_prevalence": r"(adults|aged 18).*overweight (or|and|including) obes",
+    "obesity_admissions": r"admissions.*obesity|obesity.*admissions",
+    "alcohol_admissions": r"admission episodes for alcohol.related conditions",
+    "alcohol_specific": r"alcohol.specific (conditions|hospital admissions)",
+    "emergency_admissions": r"^emergency (hospital )?admissions( for all causes)?(\s*\(|$|,)",
+    "inactivity": r"percentage of physically inactive adults",
+    "flu_vaccination": r"population vaccination coverage.*flu.*(65|aged 65)",
+    "copd_admissions": r"emergency hospital admissions for copd",
+    "falls_admissions": r"emergency hospital admissions due to falls in people aged 65",
+    "deprivation_score": r"deprivation score \(imd",
+}
+
+
+def fetch_fingertips(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
+    out = RAW / "fingertips"
+    out.mkdir(parents=True, exist_ok=True)
+    meta_url = f"{FINGERTIPS}/indicator_metadata/csv/all"
+    meta_path = out / "indicator_metadata.csv"
+    r = fx.s.get(meta_url, timeout=300)
+    if r.status_code != 200:
+        log(f"  ! Fingertips metadata HTTP {r.status_code}")
+        return
+    meta_path.write_bytes(r.content)
+    manifest[meta_url] = dict(source="fingertips", url=meta_url, page=FINGERTIPS, link_text="indicator metadata",
+                              path=str(meta_path.relative_to(ROOT)), bytes=len(r.content),
+                              sha256=hashlib.sha256(r.content).hexdigest(), fetched_at=stamp)
+    rows = list(csv.DictReader(r.content.decode("utf-8-sig", "replace").splitlines()))
+    id_col = next(c for c in rows[0] if c.lower().replace(" ", "") in ("indicatorid", "indicator_id"))
+    name_col = next(c for c in rows[0] if c.lower() in ("indicator", "indicator name", "indicatorname", "name"))
+    chosen = []
+    for key, pat in FINGERTIPS_PATTERNS.items():
+        hits = [x for x in rows if re.search(pat, x[name_col], re.I)]
+        for x in hits[:4]:
+            chosen.append((key, x[id_col], x[name_col]))
+        log(f"  {key}: {len(hits)} matching indicators" + (f" e.g. {hits[0][id_col]} {hits[0][name_col][:80]}" if hits else ""))
+    for key, iid, name in chosen:
+        url = (f"{FINGERTIPS}/all_data/csv/by_indicator_id?indicator_ids={iid}"
+               f"&child_area_type_id=15&parent_area_type_id=15")
+        dest = out / f"{key}__{iid}.csv"
+        if url in manifest and dest.exists():
+            continue
+        rr = fx.s.get(url, timeout=300)
+        time.sleep(0.3)
+        if rr.status_code != 200 or not rr.content:
+            log(f"  ! {iid} HTTP {rr.status_code}")
+            continue
+        dest.write_bytes(rr.content)
+        manifest[url] = dict(source="fingertips", url=url, page=FINGERTIPS, link_text=name[:200],
+                             path=str(dest.relative_to(ROOT)), bytes=len(rr.content),
+                             sha256=hashlib.sha256(rr.content).hexdigest(), fetched_at=stamp)
+        log(f"  downloaded {iid} {name[:70]}")
+
+
+def write_manifest(manifest: dict) -> None:
+    with open(RAW / "manifest.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["source", "url", "page", "link_text", "path",
+                                          "bytes", "sha256", "fetched_at"])
+        w.writeheader()
+        w.writerows(sorted(manifest.values(), key=lambda r: (r["source"], r["path"])))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", nargs="*")
@@ -280,6 +349,14 @@ def main() -> int:
         for row in csv.DictReader(open(man_path)):
             manifest[row["url"]] = row
     inventory = []
+
+    if not args.dry_run and (not args.only or "fingertips" in args.only):
+        log("[fingertips] OHID public health indicators (risk factors, deprivation)")
+        try:
+            fetch_fingertips(s, manifest, stamp, log)
+        except Exception as e:  # noqa: BLE001
+            log(f"  ! fingertips failed: {e}")
+        write_manifest(manifest)
 
     for src in SOURCES:
         if args.only and src.name not in args.only:
@@ -318,13 +395,8 @@ def main() -> int:
             inventory.append(L)
         n_ok = sum(1 for L in links if L["status"] in ("downloaded", "already downloaded"))
         log(f"  {n_ok}/{sum(L['wanted'] for L in links)} wanted files present")
-
-    if not args.dry_run:
-        with open(man_path, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=["source", "url", "page", "link_text", "path",
-                                              "bytes", "sha256", "fetched_at"])
-            w.writeheader()
-            w.writerows(sorted(manifest.values(), key=lambda r: (r["source"], r["path"])))
+        if not args.dry_run:
+            write_manifest(manifest)
     with open(inv_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["source", "page", "url", "link_text", "wanted", "status"])
         w.writeheader()
