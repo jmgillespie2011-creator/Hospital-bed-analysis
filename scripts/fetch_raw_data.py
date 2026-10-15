@@ -297,6 +297,18 @@ FINGERTIPS_PATTERNS = {
 }
 
 
+# Indicators needed for the effects analysis, fetched by ID (names found in indicator_metadata.csv).
+FINGERTIPS_IDS = {
+    "emergency_all_causes": 93227, "pneumonia_admissions": 93574, "respiratory_admissions": 93575,
+    "readmissions_30d": 41101, "chd_admissions": 93229, "stroke_admissions": 93231, "copd_admissions_all": 93233,
+    "hip_fracture_admissions": 93241, "overweight_prevalence": 93088, "obesity_qof": 94136,
+    "smoking_prevalence_aps": 92443, "obesity_prevalence_adj": 93881, "flu_vaccination": 30314,
+    "deprivation_score": 93553, "alcohol_admissions_narrow": 93764, "inactivity": 93015,
+    "falls_admissions": 22401, "dementia_admissions": 91281,
+}
+FINGERTIPS_AREA_TYPES = (15, 502, 402, 102, 501, 401, 101)
+
+
 def fetch_fingertips(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
     out = RAW / "fingertips"
     out.mkdir(parents=True, exist_ok=True)
@@ -319,9 +331,11 @@ def fetch_fingertips(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
         for x in hits[:8]:
             chosen.append((key, x[id_col], x[name_col]))
         log(f"  {key}: {len(hits)} matching indicators" + (f" e.g. {hits[0][id_col]} {hits[0][name_col][:80]}" if hits else ""))
-    # England (15) plus upper-tier local authorities (502: post-4/23, 402: 4/21-3/23, 102: pre-4/19)
+    names = {x[id_col]: x[name_col] for x in rows}
+    chosen += [(k, str(i), names.get(str(i), k)) for k, i in FINGERTIPS_IDS.items()]
+    # England (15), upper-tier (502/402/102) and lower-tier (501/401/101) local authorities,
     # so effects can be estimated from variation between areas and over time.
-    for (key, iid, name), at in [(c, a) for c in chosen for a in (15, 502, 402, 102)]:
+    for (key, iid, name), at in [(c, a) for c in chosen for a in FINGERTIPS_AREA_TYPES]:
         url = (f"{FINGERTIPS}/all_data/csv/by_indicator_id?indicator_ids={iid}"
                f"&child_area_type_id={at}&parent_area_type_id=15")
         dest = out / f"{key}__{iid}__at{at}.csv"
