@@ -1,0 +1,55 @@
+{
+ "_note": "TEMPORARY test file built from headline figures; replaced by scripts/build_baseline.mjs output",
+ "baseYear": 2024,
+ "national": {
+  "beds": 102423,
+  "emergPerYear": 6600000.0,
+  "electivePerYear": 1600000.0,
+  "occupancy": 0.92
+ },
+ "calibration": {
+  "A": {
+   "poolSize": 92,
+   "losMedianDays": 2.9876,
+   "delayMeanDays": 4.285
+  },
+  "B": {
+   "poolSize": 1000,
+   "losMedianDays": 3.07,
+   "delayMeanDays": 4.3
+  }
+ },
+ "ageBands": [
+  {
+   "band": "All ages",
+   "pop": {
+    "2005": 50600000.0,
+    "2008": 51460000.0,
+    "2010": 52600000.0,
+    "2015": 54800000.0,
+    "2024": 58600000.0
+   },
+   "emergAdm": 6600000.0,
+   "losMult": 1,
+   "delayMult": 1
+  }
+ ],
+ "conditions": [
+  {
+   "name": "Respiratory",
+   "share": 0.14,
+   "losMult": 1.1
+  }
+ ],
+ "otherConditionLosMult": 0.984,
+ "presets": [
+  {
+   "label": "2024/25",
+   "beds": 102423
+  },
+  {
+   "label": "2005/06",
+   "beds": 119730
+  }
+ ]
+}

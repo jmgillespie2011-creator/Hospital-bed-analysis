@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NHS Bed Occupancy Simulator</title>
+<meta name="description" content="Interactive simulation of NHS England general & acute bed occupancy. Change bed numbers, staffing, hospital processes, demographics and disease prevalence and see the effect on occupancy and waits for a bed.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script src="vendor/chart-4.4.1.umd.min.js"></script>
+</head>
+<body>
+<header class="site">
+  <h1>NHS bed occupancy simulator</h1>
+  <nav>
+    <a href="index.html" aria-current="page">Model</a>
+    <a href="methods.html">Methods</a>
+    <a href="data.html">Data &amp; sources</a>
+    <a href="validation.html">Validation</a>
+  </nav>
+</header>
+<main class="wrap">
+  <p class="intro">
+    A simulation of general &amp; acute (G&amp;A) hospital beds in England. Change any setting on the left
+    and the model re-runs a year of simulated patients in your browser. Results are compared with a
+    <strong>2024/25 baseline</strong> calibrated to published NHS data. Every assumption is explained on the
+    <a href="methods.html">Methods</a> page, and every input is listed with its source on
+    <a href="data.html">Data &amp; sources</a>.
+  </p>
+  <div class="layout">
+    <aside class="panel controls" id="controls" aria-label="Model settings">
+      <h2>Bed number presets</h2>
+      <div class="presets" id="presets"></div>
+      <div id="ctl-root"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button id="reset">Reset to 2024/25</button>
+        <button id="share">Copy link to this scenario</button>
+        <button id="download">Download results (JSON)</button>
+      </div>
+    </aside>
+    <section aria-live="polite">
+      <div class="status" id="status">Loading…</div>
+      <div class="kpis" id="kpis"></div>
+      <div class="chart-card">
+        <h3>Daily bed occupancy across the year</h3>
+        <p class="cap">Share of available G&amp;A beds occupied at midnight (as counted by NHS England's KH03 return), averaged across simulation runs. Year runs April to March.</p>
+        <div class="legend"><span style="--c:var(--series-scn)">This scenario</span><span style="--c:var(--series-base)">2024/25 baseline</span></div>
+        <div class="chart-box"><canvas id="dailyChart" aria-label="Daily occupancy chart"></canvas></div>
+        <details><summary>Show as table (monthly averages)</summary><div class="table-scroll" id="dailyTable"></div></details>
+      </div>
+      <div class="chart-card">
+        <h3>What the model is running</h3>
+        <p class="cap">The inputs your settings produce, next to the baseline. This is exactly what is fed to the simulation.</p>
+        <div class="table-scroll" id="inputsTable"></div>
+      </div>
+      <div class="chart-card">
+        <h3>How many beds? Sweep across bed numbers</h3>
+        <p class="cap">Runs the current scenario at a range of bed numbers (takes a few seconds). Two charts rather than one with two scales.</p>
+        <button class="primary" id="sweepBtn">Run bed-number sweep</button>
+        <div class="grid2" id="sweepCharts" style="margin-top:12px" hidden>
+          <div><div class="legend"><span style="--c:var(--series-scn)">Today's system</span><span style="--c:var(--series-b)">More flexible system</span></div><div class="chart-box"><canvas id="sweepOcc"></canvas></div></div>
+          <div><div class="legend"><span style="--c:var(--series-scn)">Today's system</span><span style="--c:var(--series-b)">More flexible system</span></div><div class="chart-box"><canvas id="sweepWait"></canvas></div></div>
+        </div>
+      </div>
+      <footer>
+        Code and data: <a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis">GitHub repository</a>.
+        This is a research model, not an official NHS statistic. Results are estimates; see <a href="validation.html">Validation</a> for where the model does and does not match reality.
+      </footer>
+    </section>
+  </div>
+</main>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

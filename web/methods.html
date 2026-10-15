@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulator Methods</title>
+<meta name="description" content="How the NHS bed occupancy simulator works: model structure, every assumption, calibration and limitations.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header class="site">
+  <h1>NHS bed occupancy simulator</h1>
+  <nav>
+    <a href="index.html">Model</a>
+    <a href="methods.html" aria-current="page">Methods</a>
+    <a href="data.html">Data &amp; sources</a>
+    <a href="validation.html">Validation</a>
+  </nav>
+</header>
+<main class="wrap doc">
+<h1>Methods</h1>
+<p>This page describes exactly what the simulator does. The full source code is in the
+<a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis">GitHub repository</a>;
+the model itself is a single file, <a href="js/model.js"><code>js/model.js</code></a>, which is the same code
+your browser runs and the code used for calibration.</p>
+
+<div class="callout"><strong>In one paragraph.</strong> The model simulates individual (synthetic) patients
+arriving at English general &amp; acute hospital beds over a year: emergency patients arriving through the day and
+night with seasonal and weekly patterns, and planned patients arriving on weekdays. Each patient needs a bed for a
+random length of time, some stay longer because their discharge is delayed after they are medically fit, and
+discharges only happen during the day. If no bed is free, emergency patients wait (the model's equivalent of a
+"trolley wait" in A&amp;E after a decision to admit) and planned admissions are lost. Unknown quantities are tuned so
+that the model reproduces published 2024/25 figures, then you change the inputs and see what happens.</div>
+
+<h2 id="why">Why a simulation rather than a formula?</h2>
+<p>A simple ratio, <em>occupancy = beds needed ÷ beds available</em>, gives the average occupancy but says nothing
+about how often hospitals run out of beds. Patients do not arrive evenly: demand varies by hour, weekday and season,
+and lengths of stay vary enormously. Running out of beds happens on the busy days, so the average hides the problem.
+A discrete-event simulation reproduces that variation and counts the consequences: waits for a bed and lost planned
+admissions. The simple ratio is still shown as a check on the <a href="validation.html">Validation</a> page.</p>
+
+<h2 id="structure">Model structure</h2>
+<h3>Beds</h3>
+<ul>
+  <li><strong>Physical beds</strong> (<code>B</code>): general &amp; acute beds open overnight in England (NHS England KH03 definition, which
+    excludes maternity, mental health, learning disability and day-only beds).</li>
+  <li><strong>Available beds</strong> = <code>B × min(1, staffing%)</code>. A bed without nurses to staff it cannot be used. At 100% staffing every
+    physical bed is available, which is the baseline assumption because KH03 counts beds that are open.</li>
+  <li><strong>Winter escalation</strong>: an extra percentage of beds open from 1 December to 31 March.</li>
+  <li><strong>Effective bed pools.</strong> In reality beds are divided between ~120 acute trusts, and within each trust between wards,
+    specialties and single-sex bays. A patient cannot use a free bed in another hospital, and often not in another ward. The model represents
+    this by splitting available beds into independent pools of size <code>S</code>; each simulation run models one pool with
+    <code>1/(B/S)</code> of national demand, and results are scaled back to England. Smaller pools mean less sharing, so more waiting at the same
+    average occupancy. <code>S</code> is not observable, so it is calibrated (see below). Results are shown for two values:
+    <strong>"today's system"</strong> (S fitted to 2024/25 waits) and a <strong>"more flexible system"</strong> (S = 1,000, which reproduces
+    2015/16's near-zero waits).</li>
+</ul>
+
+<h3>Emergency patients</h3>
+<ul>
+  <li><strong>Arrivals</strong>: a Poisson process whose rate in hour <code>h</code> of day <code>d</code> is
+    <pre>λ(d,h) = (A / 365 / pools) × season(d) × weekday(d) × hour(h) / 24
+season(d) = 1 + a × cos(2π (day-of-year − 15) / 365)    (peak mid-January; a = 4% × winter-peak setting)</pre>
+    where <code>A</code> is emergency admissions per year. The weekday profile is 1.10, 1.03, 1.00, 1.00, 1.02, 0.93, 0.92 (Mon to Sun) and the hour-of-day profile
+    peaks at midday-afternoon (both normalised to average 1; see <code>HOURLY</code> and <code>WEEKDAY</code> in the code). These shapes are assumptions informed by
+    typical A&amp;E patterns.</li>
+  <li><strong>Same-day patients</strong>: a share (default 30%) leave within 3 to 10 hours (same day emergency care) and are never in a bed at midnight.</li>
+  <li><strong>Length of stay</strong> for the rest: lognormal, <code>LOS = median × m<sub>age</sub> × m<sub>condition</sub> × (1 + LOS change) × e<sup>σZ</sup></code>
+    with σ = 1.0 (a long right tail: most stays are a few days, a few last weeks). The median is calibrated.</li>
+  <li><strong>Delayed discharge</strong>: once medically fit, a share of patients (default 20%, multiplied by an age factor) wait a further
+    Gamma(shape 1.5)-distributed time before leaving (for social care, community beds, transport, etc.). The mean delay is calibrated to
+    NHS England's count of patients who no longer meet the criteria to reside.</li>
+  <li><strong>Discharge timing</strong>: discharges only happen within the discharge window (default 10:00–20:00); a patient fit to leave at night
+    leaves the next day. At weekends only the chosen share (default 50%) are discharged; the rest wait until Monday.</li>
+  <li><strong>No bed free</strong>: the patient joins a first-come-first-served queue and is admitted when a bed frees. Waiting time from
+    arrival to bed is the model's equivalent of NHS England's "decision to admit to admission" wait.</li>
+</ul>
+
+<h3>Planned (elective) overnight patients</h3>
+<ul>
+  <li>Arrive on weekdays between 11:00 and 15:00 (Poisson). Length of stay lognormal, median 2 days, σ = 0.8.</li>
+  <li>If no bed is free they wait behind emergency patients; if still without a bed at 20:00, the admission is lost.
+    In reality hospitals plan fewer operations when beds are short, rather than cancelling on the day, so read the
+    "planned admissions lost" figure as <em>planned capacity lost</em>.</li>
+</ul>
+
+<h3 id="demographics">Demographics</h3>
+<p>Emergency demand is built up by age band. For each band <code>b</code>:</p>
+<pre>admissions(b, year) = admissions(b, base year) × population(b, year) / population(b, base year)</pre>
+<p>so admission rates per head are held at base-year levels and only the size and age structure of the population change.
+Each band has its own length-of-stay multiplier (from hospital episode statistics: bed days ÷ admissions, relative to the average) and
+delayed-discharge multiplier (older patients are much more likely to wait for social care). Population comes from ONS mid-year estimates
+(and projections where available). The "Other demand change" setting captures everything else, such as changes in admission thresholds.</p>
+
+<h3 id="conditions">Disease prevalence</h3>
+<p>Each condition group <code>i</code> has a base-year share <code>s<sub>i</sub></code> of emergency admissions and a length-of-stay multiplier
+<code>m<sub>i</sub></code> (its share of bed days ÷ its share of admissions). Changing prevalence by <code>Δ<sub>i</sub></code> changes its admissions
+proportionally:</p>
+<pre>weight(i) = s<sub>i</sub> × (1 + Δ<sub>i</sub>)        weight(other) = 1 − Σ s<sub>i</sub>
+emergency admissions = Σ<sub>b</sub> admissions(b, year) × Σ<sub>i</sub> weight(i) × (1 + other change)</pre>
+<p>Each simulated patient is given an age band and a condition group; their length of stay uses both multipliers. <strong>Assumption:</strong> age and
+condition are treated as independent (the condition mix is the same in every age band). In reality, conditions such as dementia, falls and
+pneumonia are concentrated in older people, so the model will slightly understate the length-of-stay effect of an older population with more of
+these conditions.</p>
+<p>A change in prevalence is assumed to change admissions proportionally (a 10% rise in prevalence gives 10% more admissions for that
+condition). Better management of a condition in the community would reduce admissions without changing prevalence; use a negative value
+to represent that.</p>
+
+<h3 id="staffing">Staffing</h3>
+<p>Staffing affects capacity only: available beds = physical beds × staffing % (capped at 100%). Adding physical beds therefore has no effect
+unless they can be staffed. The model does not represent the evidence that low nurse staffing can also lengthen stays and worsen outcomes,
+so staffing shortfalls are, if anything, understated.</p>
+
+<h2 id="calibration">Calibration</h2>
+<p>Three quantities cannot be observed directly and are tuned so the 2024/25 baseline reproduces published figures:</p>
+<table>
+<thead><tr><th>Unknown</th><th>Tuned to match</th><th>Method</th></tr></thead>
+<tbody>
+<tr><td>Median acute length of stay</td><td>Average G&amp;A occupancy (KH03)</td><td>Bisection</td></tr>
+<tr><td>Mean discharge delay</td><td>Patients occupying a bed who no longer meet the criteria to reside (acute discharge situation report)</td><td>Proportional update, iterated with the above</td></tr>
+<tr><td>Effective bed pool size</td><td>Share of emergency admissions waiting &gt;12 hours from decision to admit (A&amp;E statistics)</td><td>Grid search, interpolated</td></tr>
+</tbody></table>
+<p>The fitted values and the targets are listed on the <a href="data.html">Data &amp; sources</a> page. Calibration is run by
+<code>scripts/calibrate.mjs</code> using the same model code as this website.</p>
+
+<h2 id="randomness">Randomness and accuracy</h2>
+<p>Each result is the average of many simulated years (30 for "today's system", 6 for the "more flexible system", whose larger pools are
+less noisy). The same random seeds are used for the baseline and your scenario, so differences between them reflect your changes rather than
+chance. Small differences (under about half a percentage point of occupancy) should not be over-interpreted.</p>
+
+<h2 id="limitations">Main limitations</h2>
+<ul>
+  <li><strong>The pool-size abstraction.</strong> No single pool size reproduces both 2015/16 and 2024/25. Hospitals now generate far longer
+    waits at a given occupancy than a decade ago (see <a href="validation.html">Validation</a>), which is why two systems are shown. Occupancy
+    results barely depend on this; wait results depend on it a lot.</li>
+  <li><strong>Demand responds to supply in reality.</strong> With more beds, hospitals may admit patients they currently treat elsewhere,
+    which would use some of the extra capacity. The model holds admission rates fixed unless you change them.</li>
+  <li><strong>National, not local.</strong> All trusts are treated as identical. Real pressure is uneven: some trusts are far fuller than average.</li>
+  <li><strong>Simplified patient flow.</strong> No transfers between wards, no critical care, no outlying, no paediatric/adult split, no
+    infection-control bed closures.</li>
+  <li><strong>Assumed shapes.</strong> Hourly and weekday arrival profiles, the lognormal LOS shape and the delay distribution are assumptions;
+    calibration ensures the totals match, not every detail.</li>
+</ul>
+</main>
+</body>
+</html>
