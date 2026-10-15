@@ -12,6 +12,22 @@ Each gap has a workable fix, described below.
 
 ---
 
+## Prior work
+
+A quick search (not a systematic review) found related work in four groups. None runs today's actual demand through the bed numbers England actually had in earlier years and reports the effects in patient terms (waits for a bed, cancelled operations). That is the gap this project would fill. The search did not cover think-tank grey literature (Nuffield Trust, RCEM, BMA) or NHS England's internal capacity modelling in depth.
+
+| Group | Study | What it did | Relevance here |
+|---|---|---|---|
+| Simulation of bed occupancy | [Bagust, Place & Posnett (1999), *BMJ*](https://pubmed.ncbi.nlm.nih.gov/10406748) | Stochastic simulation of emergency admissions in a hypothetical English acute hospital; risk of no free bed as occupancy rises. Usually cited as the source of the "85% occupancy" rule of thumb | Closest in method to this project. Models one generic hospital, not real NHS bed numbers over time |
+| Critiques of the 85% figure | [Keegan (2010), *Medical Journal of Australia*](https://www.mja.com.au/journal/2010/192/1/myths-ideal-hospital-occupancy); Proudlove (2020), "The 85% bed occupancy fallacy" ([talk slides](https://www.strategyunitwm.nhs.uk/sites/default/files/2024-11/MAN%20Huddle%2021.03.24.pdf)) | Argue a safe occupancy level depends on hospital size and how variable demand is, so occupancy should be treated as an output, not a target | Supports reporting waits and turned-away patients rather than occupancy % alone, and modelling at trust level |
+| Bed-need projections | [Health Foundation REAL Centre (2022)](https://www.health.org.uk/sites/default/files/upload/publications/2022/Final_Beds_analysis_July2022.pdf); [peer-reviewed version, *Health Policy* (2023)](https://www.sciencedirect.com/science/article/pii/S0168851023001008) | Projects England needs ~23,000–39,000 more G&A beds by 2030/31, assuming 87% occupancy | Forward-looking demand projections, not simulations. Comparison point for our future scenarios |
+| Bed-need projections | [King's Fund, "NHS hospital bed numbers: past, present, future"](https://www.kingsfund.org.uk/insight-and-analysis/long-reads/nhs-hospital-bed-numbers) | Descriptive trends; occupancy rose from 87.1% (2010/11) to over 90% | Context and cross-check on historical bed counts |
+| Occupancy vs A&E performance | [Friebel & Fernandez (2020), *Health Policy*](https://pubmed.ncbi.nlm.nih.gov/32811683/) | Data from 143 English trusts: +1 percentage point occupancy linked to a 9.5 point lower chance of meeting the 4-hour target; stronger above 90% | Statistical, not a simulation. Benchmark to check our model's results against |
+| Forecasting | [Emergency bed forecasting for an NHS trust (MSARIMA)](https://pmc.ncbi.nlm.nih.gov/articles/PMC9021768/); [UK emergency bed requirement forecasting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8517824/) | Time-series forecasts of emergency admissions and bed occupancy | Forward forecasting only; no "what if" scenarios. Possible source of seasonality assumptions |
+| Python DES tooling | [Monks & Harper (2023)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10593330/) | Open-source approach for NHS DES models in Python with web front ends | Template for the build (SimPy + Streamlit) |
+
+---
+
 ## 1. Proposed model structure
 
 ```
