@@ -117,6 +117,7 @@ export const DEFAULTS = {
   delayShape: 1.5,            // gamma shape of the delay distribution
   electiveLosMedianDays: 2.0,
   electiveLosSigma: 0.8,
+  electiveWeekday: [1, 1, 1, 1, 1], // relative planned admissions Mon-Fri
   seasonAmp: 0.04,            // +/- non-flu emergency demand, peak mid-January
   fluPerYear: 0,              // emergency admissions with influenza (separate winter wave)
   fluPeakDoy: 5,              // day of year of the flu peak (5 January)
@@ -220,10 +221,12 @@ export function simulate(p, seed = 1, wantDaily = true) {
   { const sorted = order.map((i) => arr[i]); order.forEach((i, j) => { if (i >= nFluOffset) isFlu[j] = 1; }); arr.length = 0; for (const t of sorted) arr.push(t); }
   // elective arrivals: weekdays 11:00-15:00
   const lamEl = p.electivePerYear / 365 / nPools * 7 / 5;
+  const elW = p.electiveWeekday || [1, 1, 1, 1, 1];
+  const elWm = elW.reduce((a, b) => a + b, 0) / 5;
   const el = [];
   for (let d = 0; d < nDays; d++) {
     if ((d + dow0) % 7 < 5) {
-      const n = R.poisson(lamEl);
+      const n = R.poisson(lamEl * elW[(d + dow0) % 7] / elWm);
       for (let i = 0; i < n; i++) el.push(d * 24 + 11 + 4 * R.next());
     }
   }
@@ -365,6 +368,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
     wait12: waits.length ? w12 / waits.length : 0,
     elecOffered, elecCancelled,
     daily: wantDaily ? occMid.map((o, i) => o / capMid[i]) : null,
+    daily8: wantDaily ? occ8.map((o, i) => o / capMid[Math.min(i, capMid.length - 1)]) : null,
     fluDaily: fluMid,
     nctrDisWk: Array.from(nctrDisWk), nctrStockWk: Array.from(nctrStockWk),
     long21Share8: sum(long21_8) / Math.max(sum(occ8), 1),          // share of occupied beds with stay >= 21 days (08:00)
@@ -396,6 +400,10 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
   const days = out[0].daily.length;
   const daily = new Array(days).fill(0);
   for (const x of out) for (let i = 0; i < days; i++) daily[i] += x.daily[i] / out.length;
+  // national 08:00 series: England is the average of many independent bed pools, so the average
+  // across replications (each one pool) approximates the national daily series
+  const daily8 = new Array(out[0].daily8.length).fill(0);
+  for (const x of out) for (let i = 0; i < daily8.length; i++) daily8[i] += x.daily8[i] / out.length;
   const nPools = out[0].nPools;
   const corridor8 = new Array(days).fill(0);
   for (const x of out) for (let i = 0; i < Math.min(days, x.corridorDaily8.length); i++) corridor8[i] += x.corridorDaily8[i] * nPools / out.length;
@@ -419,7 +427,8 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
     wait4PerYear: wmean((x) => x.wait4) * p.emergPerYear,
     elecCancelRate: out.reduce((s, x) => s + x.elecCancelled, 0) / Math.max(out.reduce((s, x) => s + x.elecOffered, 0), 1),
     daily,
-    fluBedsPeak: Math.max(...fluDaily),
+    // peak of the 7-day rolling mean (robust to day-to-day noise; same definition used for the data)
+    fluBedsPeak: Math.max(...fluDaily.map((_, i) => i < 6 ? 0 : fluDaily.slice(i - 6, i + 1).reduce((a, b) => a + b, 0) / 7)),
     long21Share: mean((x) => x.long21Share8),
     emBedDaysPerAdm: mean((x) => x.emBedDaysPerAdm),
     delayedShareOvernight: mean((x) => x.delayedShareOvernight),
@@ -436,6 +445,7 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
       return ((r[5] + r[6]) / 2) / ((r[0] + r[1] + r[2] + r[3] + r[4]) / 5);
     })(),
     fluBedsDaily: fluDaily,
+    daily8,
     reps,
   };
 }

@@ -179,5 +179,116 @@ def main() -> None:
     json.dump(meta, open(OUT / "effects_meta.json", "w"), indent=1)
 
 
+# ------------------------------------------------------------------ parameters for the simulator's public-health levers
+def england_value(key: str, iid: int, age: str, period_pattern: str | None = None) -> tuple[float, str, float | None]:
+    d = pd.read_csv(FT / f"{key}__{iid}__at15.csv", low_memory=False)
+    e = d[(d["Area Name"] == "England") & (d.Sex == "Persons") & d["Category Type"].isna() & (d.Age == age)]
+    if period_pattern:
+        e = e[e["Time period"].astype(str).str.fullmatch(period_pattern)]
+    row = e.iloc[-1]
+    return float(row.Value), str(row["Time period"]), (float(row.Count) if pd.notna(row.Count) else None)
+
+
+def lever_parameters(est: pd.DataFrame, panel: pd.DataFrame) -> dict:
+    hes = pd.read_csv(OUT / "hes_primary_diagnosis_2023-24.csv")
+    agecols = [c for c in hes.columns if c.startswith("age_")]
+    fce_by_age = hes[agecols].sum()
+    over35 = sum(v for c, v in fce_by_age.items() if re.match(r"age_(35|4|5|6|7|8|9)", c))
+    fae_total = hes.fae.sum()
+    fae_35 = fae_total * over35 / fce_by_age.sum()
+
+    # Smoking: OHID smoking-attributable admissions (aged 35+) / all admissions aged 35+ = attributable fraction.
+    smk_adm, smk_period, smk_count = england_value("smoking_admissions", 93753, "35+ yrs")
+    paf = smk_count / fae_35
+    p_then, p_then_period, _ = england_value("smoking_prevalence", 92443, "18+ yrs", smk_period[:4])
+    p_now, p_now_period, _ = england_value("smoking_prevalence", 92443, "18+ yrs", r"20\d\d")
+    rr = 1 + paf / ((1 - paf) * p_then / 100)
+    smoking = dict(key="smoking", label="Adult smoking rate", type="prevalence", current=round(p_now, 1),
+                   relativeRisk=rr, paf=paf, min=0, max=25, step=0.5,
+                   derivation=(f"OHID smoking-attributable admissions {smk_period} ({smk_count:,.0f}, ages 35+) divided by all hospital "
+                               f"admissions aged 35+ (HES 2023/24, {fae_35:,.0f}) gives an attributable fraction of {paf:.1%}. With adult "
+                               f"smoking prevalence {p_then:.1f}% ({p_then_period}) this implies a relative risk of {rr:.2f}."),
+                   note="OHID's attributable count includes harm in ex-smokers, so the effect of quitting builds up over many years.",
+                   sources=[dict(name="OHID Fingertips 93753", url="https://fingertips.phe.org.uk/search/93753"),
+                            dict(name="OHID Fingertips 92443 (APS)", url="https://fingertips.phe.org.uk/search/92443")],
+                   help=f"Adults who smoke. Today {p_now:.1f}% ({p_now_period}).")
+
+    # Alcohol: OHID narrow measure is already an attributable count.
+    alc_rate, alc_period, alc_count = england_value("alcohol_admissions", 93764, "All ages")
+    alcohol = dict(key="alcohol", label="Alcohol harm", type="attributable", current=0, share=alc_count / fae_total,
+                   min=-50, max=50, step=5,
+                   derivation=(f"OHID alcohol-related admissions, narrow measure, {alc_period}: {alc_count:,.0f}, "
+                               f"{alc_count / fae_total:.1%} of all admissions (HES 2023/24)."),
+                   sources=[dict(name="OHID Fingertips 93764", url="https://fingertips.phe.org.uk/search/93764")],
+                   help="Change in admissions caused by alcohol (e.g. from minimum unit pricing or treatment services).")
+
+    # Obesity: between-area association with all-cause emergency admissions (no official attributable count).
+    est_ = pd.read_csv(OUT / "effects_estimates.csv")
+    ob = est_[(est_.outcome == "emergency_all") & (est_.exposure == "obesity") & est_.design.str.startswith("between")]
+    ob = ob.sort_values("n_obs").iloc[-1]
+    ob_now, ob_period, _ = england_value("obesity_prevalence", 93881, "18+ yrs", r"20\d\d/\d\d")
+    pct = ob.pct_per_point / 100
+    rr_ob = 1 + pct * (1 + ob_now / 100 * 0)  # per point of prevalence; converted below
+    # Express as a relative risk so it fits the attributable-fraction formula:
+    # d log(rate) / d p = (RR-1) / (1 + p (RR-1))  =>  RR - 1 = b / (1 - b p)
+    b = np.log(1 + pct) * 100  # per unit of prevalence (fraction)
+    rr_ob = 1 + b / (1 - b * ob_now / 100)
+    # Published alternative: Million Women Study (Reeves et al. 2014) standardised admission rates per woman over
+    # 10 years: 2.4 (BMI 22.5-25), 2.6 (25-30), 3.0 (30-35), 3.5 (35+). Relative risk of obesity (BMI 30+) versus
+    # BMI under 30 = mean of the 30+ rates, weighted by the share of obese adults with BMI 35+ (about 40%,
+    # HSE), divided by the mean of the under-30 rates weighted equally between healthy weight and overweight.
+    rr_mws = (0.6 * 3.0 + 0.4 * 3.5) / (0.5 * 2.4 + 0.5 * 2.6)
+    obesity = dict(key="obesity", label="Adult obesity rate", type="prevalence", current=round(ob_now, 1), relativeRisk=rr_mws,
+                   relativeRiskAreaData=rr_ob,
+                   derivationPublished=(f"Million Women Study (Reeves et al. 2014): admission rates per woman over 10 years of 3.0 "
+                                        f"(BMI 30-35) and 3.5 (35+) versus 2.4-2.6 below BMI 30, giving a relative risk of "
+                                        f"{rr_mws:.2f} for obesity."),
+                   paf=(ob_now / 100) * (rr_mws - 1) / (1 + ob_now / 100 * (rr_mws - 1)),
+                   pafAreaData=(ob_now / 100) * (rr_ob - 1) / (1 + ob_now / 100 * (rr_ob - 1)), min=10, max=40, step=0.5,
+                   derivation=(f"Between-area regression of age-standardised emergency admissions (OHID 93227) on adult obesity "
+                               f"prevalence, adjusted for deprivation and smoking, across {int(ob.n_areas)} local authorities: "
+                               f"{ob.pct_per_point:+.2f}% admissions per percentage point (95% CI {ob.ci_low:+.2f} to {ob.ci_high:+.2f}). "
+                               f"Equivalent relative risk {rr_ob:.2f}."),
+                   note="An association between areas, not a proven causal effect; see the Validation page.",
+                   ci_pct_per_point=[float(ob.ci_low), float(ob.ci_high)],
+                   sources=[dict(name="OHID Fingertips 93881", url="https://fingertips.phe.org.uk/search/93881"),
+                            dict(name="OHID Fingertips 93227", url="https://fingertips.phe.org.uk/search/93227"),
+                            dict(name="Reeves et al. 2014, BMC Medicine", url="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4003825/")],
+                   help=f"Adults living with obesity. Today {ob_now:.1f}% ({ob_period}).")
+
+    # Deprivation: emergency admission ratio by fifth of local authorities ranked by IMD 2019 score.
+    sar = load_series("emergency_all_causes", 93227, None).rename(columns={"value": "sar"})
+    imd = deprivation_by_area()
+    pop = pd.read_csv(OUT / "effects_panel.csv")[["area"]].drop_duplicates()
+    g = sar.merge(imd, on="area").dropna()
+    g["fifth"] = pd.qcut(g.imd.rank(method="first", ascending=False), 5, labels=[1, 2, 3, 4, 5])
+    rel = g.groupby("fifth", observed=True).sar.mean()
+    rel = (rel / rel.mean()).round(4).tolist()
+    deprivation = dict(relativeRates=rel,
+                       note=(f"Age-standardised emergency admission ratio (OHID 93227, {sar.year.min():.0f}-based pooled period) for "
+                             f"{len(g)} upper-tier local authorities grouped into fifths by IMD 2019 deprivation score "
+                             "(most deprived first), relative to the average. Area-level, so it understates the gap between individuals."),
+                       sources=[dict(name="OHID Fingertips 93227", url="https://fingertips.phe.org.uk/search/93227"),
+                                dict(name="OHID Fingertips 93553 (IMD 2019)", url="https://fingertips.phe.org.uk/search/93553")],
+                       help="Narrow the gap in emergency admission rates between the most and least deprived fifths of areas.")
+
+    # Flu vaccination: uptake from OHID; effectiveness against hospitalisation from published test-negative studies.
+    up, up_period, _ = england_value("flu_vaccination", 30314, "65+ yrs")
+    flu = dict(uptake65=round(up, 1), uptakeSeason=up_period, ve=0.423, veRange=[0.332, 0.501],
+               veSource=dict(name="Bucholc et al. 2026, Influenza Other Respir Viruses (Northern Ireland 2024/25, aged 65+)",
+                             url="https://onlinelibrary.wiley.com/doi/10.1111/irv.70303"),
+               uptakeSource=dict(name="OHID Fingertips 30314", url="https://fingertips.phe.org.uk/search/30314"),
+               note=("Vaccine effectiveness cannot be estimated from area-level data (placebo outcomes fail; see Validation), "
+                     "so the measured estimate from a UK test-negative study is used."))
+    return dict(riskFactors=[smoking, obesity, alcohol], deprivation=deprivation, flu=flu)
+
+
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    if sys.argv[1:] != ["levers"]:
+        main()
+    lp = lever_parameters(None, pd.read_csv(OUT / "effects_panel.csv"))
+    (OUT / "lever_parameters.json").write_text(json.dumps(lp, indent=1, default=float))
+    print(json.dumps(lp, indent=1, default=float)[:4000])

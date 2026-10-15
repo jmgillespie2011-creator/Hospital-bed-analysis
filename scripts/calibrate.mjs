@@ -1,8 +1,17 @@
-// Calibrate the simulator to processed inputs and write web/data/baseline.json.
+// Calibrate the simulator to measured 2025/26 targets and write web/data/baseline.json.
 //
-// Usage: node scripts/calibrate.mjs [data/processed/model_inputs.json]
+// Usage: node scripts/calibrate.mjs   (reads data/processed/model_inputs.json from scripts/build_inputs.py)
 //
-// Uses the same model code as the website (web/js/model.js).
+// Uses the same model code as the website (web/js/model.js). Each unknown parameter is fitted to
+// one measured target (bisection), cycling until all targets are met together:
+//   median acute length of stay  -> KH03 G&A occupancy (midnight)
+//   share discharged same day    -> HES midnights per emergency admission
+//   spread (sigma) of stays      -> share of occupied beds with patients in hospital 21+ days (sitrep)
+//   share delayed once fit       -> share discharged after their Discharge Ready Date (DRD)
+//   weekend discharging          -> weekend/weekday discharge-rate ratio (discharge sitrep)
+//   flu admissions               -> peak flu patients in G&A beds (winter sitrep)
+//   effective bed-pool size      -> share of emergency admissions waiting >12h from decision to admit
+// The delay-length distribution (gamma) is fixed from the DRD delay bands.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,148 +19,105 @@ import { run } from "../web/js/model.js";
 import { buildParams, defaultSettings } from "../web/js/demand.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const inPath = process.argv[2] || path.join(ROOT, "data/processed/model_inputs.json");
-const inp = JSON.parse(fs.readFileSync(inPath, "utf8"));
+const inp = JSON.parse(fs.readFileSync(path.join(ROOT, "data/processed/model_inputs.json"), "utf8"));
+const T = inp.targets;
 const log = (...a) => console.log(...a);
+const REPS = 48;
 
-const POOL_B = 1000;
-const REPS = 24, REPS_B = 4;
-
-// A "base" object in the shape the website uses; calibration fields filled in below.
 const base = {
+  ...inp,
   generated: new Date().toISOString().slice(0, 10),
-  baseYear: inp.baseYear,
-  national: inp.national,
-  ageBands: inp.ageBands,
-  ageNote: inp.ageNote,
-  conditions: inp.conditions,
-  conditionNote: inp.conditionNote,
-  otherConditionLosMult: inp.otherConditionLosMult,
-  presets: inp.presets,
-  inputs: inp.inputs,
-  bedHistory: inp.bedHistory,
-  rawFiles: inp.rawFiles,
-  riskFactors: inp.riskFactors,
-  deprivation: inp.deprivation,
-  flu: inp.flu ? { ...inp.flu, admissions: inp.flu.admissionsGuess || 50000 } : undefined,
   calibration: {
-    A: { poolSize: 92, losMedianDays: 3, delayMeanDays: 4 },
-    B: { poolSize: POOL_B, losMedianDays: 3, delayMeanDays: 4 },
-    targets: inp.targets,
+    A: {
+      poolSize: 90, losMedianDays: 3, losSigma: 1.1, sameDayFrac: 0.3, delayProb: 0.1,
+      delayMeanDays: inp.delays.mean, delayShape: inp.delays.shape, weekendDischargePct: 75, electiveFrontLoad: 0, electiveLosSigma: 0.8,
+      electiveLosMedianDays: inp.elective.meanBedDays / Math.exp(0.8 ** 2 / 2), seasonAmp: 0.04, fluAdmissions: 40000,
+    },
+    B: null,
+    targets: T,
   },
 };
 
-function paramsFor(which, overrides = {}, settingsOverride = {}) {
-  const s = { ...defaultSettings(base), ...settingsOverride, flexibility: which };
-  return { ...buildParams(base, s), ...overrides };
+function measure(which, reps = which === "B" ? 4 : REPS) {
+  const s = defaultSettings(base);
+  return run(buildParams(base, { ...s, flexibility: which }), reps);
 }
 
-function fitLosDelay(which, occT, nctrT, reps, extra = {}, settingsOverride = {}) {
-  const cal = base.calibration[which];
-  for (let it = 0; it < 4; it++) {
-    let lo = 0.3, hi = 12;
-    for (let k = 0; k < 14; k++) {
-      const mid = (lo + hi) / 2;
-      cal.losMedianDays = mid;
-      const r = run(paramsFor(which, extra, settingsOverride), reps);
-      if (r.occMidnight < occT) lo = mid; else hi = mid;
+// Bisection on one parameter so that metric(result) hits target; increasing=true if metric rises with param.
+function fit1(which, key, metric, target, lo, hi, increasing, iters = 11) {
+  const c = base.calibration[which];
+  for (let k = 0; k < iters; k++) {
+    const mid = (lo + hi) / 2;
+    c[key] = mid;
+    const m = metric(measure(which));
+    if ((m < target) === increasing) lo = mid; else hi = mid;
+  }
+  c[key] = (lo + hi) / 2;
+  return c[key];
+}
+
+// Weekend discharging is fitted to the measured weekend/weekday discharge-rate ratio (discharge sitrep).
+// How planned admissions are spread over Mon-Fri, and the spread of planned stays, are then fitted to
+// the observed weekday pattern of winter 08:00 occupancy (daily sitrep) by grid search on its shape.
+// (Fitting weekend discharging to that pattern as well pushed it far below the measured ratio.)
+const obsWeek = base.winterValidation[base.baseYearLabel].weekday.map((x) => 100 * x);
+function weekShape(r) {
+  const wk = [0, 0, 0, 0, 0, 0, 0], n = [0, 0, 0, 0, 0, 0, 0];
+  r.daily8.forEach((v, i) => { if (i >= 238 && i <= 362) { wk[i % 7] += 100 * v; n[i % 7]++; } });
+  const w = wk.map((v, i) => v / n[i]), m = w.reduce((a, b) => a + b) / 7, mo = obsWeek.reduce((a, b) => a + b) / 7;
+  return Math.sqrt(w.reduce((s, v, i) => s + ((v - m) - (obsWeek[i] - mo)) ** 2, 0) / 7);
+}
+function fitWeekly(which) {
+  const c = base.calibration[which];
+  let best = null;
+  const wd = c.weekendDischargePct;
+  for (const fl of [0, 0.15, 0.3, 0.45]) for (const sg of [0.8, 1.2]) {
+    Object.assign(c, { electiveFrontLoad: fl, electiveLosSigma: sg,
+      electiveLosMedianDays: inp.elective.meanBedDays / Math.exp(sg ** 2 / 2) });
+    const e = weekShape(measure(which, which === "B" ? 4 : 12));
+    if (!best || e < best.e) best = { e, wd, fl, sg };
+  }
+  Object.assign(c, { weekendDischargePct: best.wd, electiveFrontLoad: best.fl, electiveLosSigma: best.sg,
+    electiveLosMedianDays: inp.elective.meanBedDays / Math.exp(best.sg ** 2 / 2) });
+  log(`   weekly pattern fit (weekend fixed at ${best.wd.toFixed(0)}%): front-load ${best.fl}, elective sigma ${best.sg}, shape RMSE ${best.e.toFixed(2)} pts`);
+}
+
+function fitAll(which, rounds = 3, withPool = false, behaviour = true) {
+  for (let r = 0; r < rounds; r++) {
+    if (behaviour) {
+      fit1(which, "weekendDischargePct", (x) => x.weekendDischargeRatio, T.weekendRatio, 30, 100, true, 8);
+      if (r === 0 || r === rounds - 1) fitWeekly(which);
     }
-    cal.losMedianDays = (lo + hi) / 2;
-    const r = run(paramsFor(which, extra, settingsOverride), reps);
-    const ratio = nctrT / Math.max(r.nctrShare, 1e-6);
-    if (Math.abs(ratio - 1) < 0.02) break;
-    cal.delayMeanDays = Math.max(0.05, cal.delayMeanDays * ratio);
-  }
-  return { ...cal };
-}
-
-const T = inp.targets;
-log("Targets", T);
-
-// --- size of the flu wave: scale flu admissions so the simulated peak number of flu
-// patients in beds matches the observed peak (peak occupancy is proportional to admissions)
-if (base.flu) {
-  base.calibration.A.poolSize = 100;
-  for (let it = 0; it < 3; it++) {
-    fitLosDelay("A", T.occupancy, T.nctrShare, 12);
-    const r = run(paramsFor("A"), 12);
-    const ratio = base.flu.peakBedsTarget / r.fluBedsPeak;
-    log("flu admissions", Math.round(base.flu.admissions), "peak beds", Math.round(r.fluBedsPeak));
-    base.flu.admissions *= ratio;
-    if (Math.abs(ratio - 1) < 0.03) break;
-  }
-  base.flu.admissions = Math.round(base.flu.admissions);
-}
-
-// --- model A: grid over pool sizes, interpolate on log(>12h share)
-const grid = [];
-for (const S of [50, 70, 90, 110, 140, 200, 300]) {
-  base.calibration.A.poolSize = S;
-  const c = fitLosDelay("A", T.occupancy, T.nctrShare, REPS);
-  const r = run(paramsFor("A"), REPS);
-  grid.push({ S, ...c, wait12: r.wait12, occ: r.occMidnight });
-  log("pool", S, "wait12", r.wait12.toFixed(4), "occ", r.occMidnight.toFixed(4));
-}
-const lw = (x) => -Math.log(Math.max(x, 1e-6));
-let S_A = grid[grid.length - 1].S;
-for (let i = 0; i < grid.length - 1; i++) {
-  const a = grid[i], b = grid[i + 1];
-  if ((lw(a.wait12) - lw(T.wait12Share)) * (lw(b.wait12) - lw(T.wait12Share)) <= 0) {
-    S_A = Math.round(a.S + (b.S - a.S) * (lw(T.wait12Share) - lw(a.wait12)) / (lw(b.wait12) - lw(a.wait12)));
-    break;
+    fit1(which, "losSigma", (x) => x.long21Share, T.long21Share, 0.6, 1.8, true, 9);
+    fit1(which, "sameDayFrac", (x) => x.emBedDaysPerAdm, T.emBedDaysPerAdm, 0.05, 0.6, false, 9);
+    fit1(which, "losMedianDays", (x) => x.occMidnight, T.occupancy, 0.5, 8, true, 11);
+    fit1(which, "delayProb", (x) => x.delayedShareOvernight, T.delayedShare, 0.0, 0.4, true, 9);
+    if (base.flu) fit1(which, "fluAdmissions", (x) => x.fluBedsPeak, T.fluPeakBeds, 5000, 150000, true, 9);
+    if (withPool) {
+      const lw = (x) => -Math.log(Math.max(x, 1e-6));
+      fit1(which, "poolSize", (x) => lw(x.wait12), lw(T.wait12Share), 30, 600, true, 8);
+    }
+    if (r === rounds - 1) {
+      // final polish: the last parameters fitted shift occupancy, so re-fit it (and pool size) last
+      fit1(which, "losMedianDays", (x) => x.occMidnight, T.occupancy, 2, 6, true, 10);
+      if (withPool) {
+        const lw = (x) => -Math.log(Math.max(x, 1e-6));
+        fit1(which, "poolSize", (x) => lw(x.wait12), lw(T.wait12Share), 40, 200, true, 8);
+        fit1(which, "losMedianDays", (x) => x.occMidnight, T.occupancy, 2, 6, true, 10);
+      }
+    }
+    const m = measure(which, which === "B" ? 8 : 64);
+    log(`[${which}] round ${r + 1}`, JSON.stringify(Object.fromEntries(Object.entries(base.calibration[which]).map(([k, v]) => [k, +(+v).toFixed(4)]))));
+    log(`   occ ${m.occMidnight.toFixed(4)}/${T.occupancy.toFixed(4)}  bd/adm ${m.emBedDaysPerAdm.toFixed(2)}/${T.emBedDaysPerAdm.toFixed(2)}  21+ ${m.long21Share.toFixed(3)}/${T.long21Share.toFixed(3)}  delayed ${m.delayedShareOvernight.toFixed(3)}/${T.delayedShare.toFixed(3)}  wkend ${m.weekendDischargeRatio.toFixed(3)}/${T.weekendRatio.toFixed(3)}  week-shape ${weekShape(m).toFixed(2)}  flu ${Math.round(m.fluBedsPeak)}/${T.fluPeakBeds}  >12h ${m.wait12.toFixed(4)}/${T.wait12Share.toFixed(4)}  nctr ${m.nctrShare.toFixed(3)} (validation ${T.nctrShare.toFixed(3)})`);
   }
 }
-base.calibration.A.poolSize = S_A;
-fitLosDelay("A", T.occupancy, T.nctrShare, REPS);
-base.calibration.B.poolSize = POOL_B;
-base.calibration.B.losMedianDays = base.calibration.A.losMedianDays;
-base.calibration.B.delayMeanDays = base.calibration.A.delayMeanDays;
-fitLosDelay("B", T.occupancy, T.nctrShare, REPS_B);
-log("Calibrated", base.calibration);
 
-// --- validation
-const rA = run(paramsFor("A"), 40), rB = run(paramsFor("B"), 8);
-const fmtP = (x, d = 1) => (100 * x).toFixed(d) + "%";
-const validation = [
-  { check: `${inp.baseYearLabel} average G&A occupancy (calibration target)`, observed: fmtP(T.occupancy), modelA: fmtP(rA.occMidnight), modelB: fmtP(rB.occMidnight), comment: "Calibrated: matches by construction." },
-  { check: `${inp.baseYearLabel} beds occupied by patients fit to leave (calibration target)`, observed: fmtP(T.nctrShare), modelA: fmtP(rA.nctrShare), modelB: fmtP(rB.nctrShare), comment: "Calibrated." },
-  { check: `${inp.baseYearLabel} emergency admissions waiting >12h for a bed`, observed: fmtP(T.wait12Share, 2), modelA: fmtP(rA.wait12, 2), modelB: fmtP(rB.wait12, 2), comment: "Today's system is calibrated to this; the flexible system is not, and under-predicts it." },
-];
-const staticOcc = rA.occupiedBedsNational / inp.national.beds;
-validation.push({ check: "Simple ratio check: occupied beds ÷ beds", observed: fmtP(T.occupancy), modelA: fmtP(staticOcc), modelB: "", comment: "Consistency check on the simulation's bed-day accounting." });
-
-// seasonal pattern vs observed monthly occupancy (if supplied)
-if (inp.monthlyOccupancy && inp.monthlyOccupancy.length === 12) {
-  const MS = [0, 30, 61, 91, 122, 153, 183, 214, 245, 275, 306, 334, 365];
-  const mm = MS.slice(0, 12).map((s, i) => rA.daily.slice(s, MS[i + 1]).reduce((a, b) => a + b, 0) / (MS[i + 1] - s));
-  const obs = inp.monthlyOccupancy.map((m) => m.occupancy);
-  const range = (a) => Math.max(...a) - Math.min(...a);
-  const corr = (() => {
-    const ma = mm.reduce((a, b) => a + b) / 12, mb = obs.reduce((a, b) => a + b) / 12;
-    let n = 0, da = 0, db = 0;
-    for (let i = 0; i < 12; i++) { n += (mm[i] - ma) * (obs[i] - mb); da += (mm[i] - ma) ** 2; db += (obs[i] - mb) ** 2; }
-    return n / Math.sqrt(da * db);
-  })();
-  validation.push({ check: `Seasonal swing: highest minus lowest monthly occupancy (${inp.monthlyOccupancySource})`, observed: `${(100 * range(obs)).toFixed(1)} pts`, modelA: `${(100 * range(mm)).toFixed(1)} pts`, modelB: "", comment: `Not calibrated. Correlation of monthly pattern: ${corr.toFixed(2)}. Observed is the 08:00 sitrep snapshot, model is midnight.` });
-  base.monthlyValidation = MS.slice(0, 12).map((_, i) => ({ month: inp.monthlyOccupancy[i].month, observed: obs[i], model: mm[i] }));
-}
-
-// back-test(s): other years with their own beds and demand
-for (const bt of inp.backtests || []) {
-  const saved = JSON.parse(JSON.stringify(base.calibration));
-  const res = {};
-  for (const which of ["A", "B"]) {
-    const settingsOverride = { beds: bt.beds, otherGrowthPct: 100 * (bt.emergPerYear / inp.national.emergPerYear - 1), popYear: inp.baseYear };
-    fitLosDelay(which, bt.occupancy, bt.nctrShare, which === "A" ? REPS : REPS_B, {}, settingsOverride);
-    res[which] = run(paramsFor(which, {}, settingsOverride), which === "A" ? 40 : 8);
-  }
-  base.calibration = saved;
-  validation.push({ check: `${bt.label}: average occupancy (refitted)`, observed: fmtP(bt.occupancy), modelA: fmtP(res.A.occMidnight), modelB: fmtP(res.B.occMidnight), comment: "Length of stay and delays refitted to that year's occupancy and delayed discharges." });
-  validation.push({ check: `${bt.label}: emergency admissions waiting >12h for a bed (not fitted)`, observed: fmtP(bt.wait12Share, 3), modelA: fmtP(res.A.wait12, 2), modelB: fmtP(res.B.wait12, 3), comment: bt.comment || "Out-of-sample test of the bed-pool structure." });
-}
-base.validation = validation;
+// Model A: everything, including pool size, fitted to 2025/26.
+fitAll("A", 6, true);
+// Model B: large pools (2015/16-like flexibility); same targets except >12h waits.
+base.calibration.B = { ...base.calibration.A, poolSize: 1000 };
+fitAll("B", 2, false, false); // keeps model A's discharge behaviour (weekend, planned-admission timing)
 
 fs.mkdirSync(path.join(ROOT, "web/data"), { recursive: true });
 fs.writeFileSync(path.join(ROOT, "web/data/baseline.json"), JSON.stringify(base, null, 1));
-fs.writeFileSync(path.join(ROOT, "data/processed/calibration_grid.json"), JSON.stringify(grid, null, 1));
 log("Wrote web/data/baseline.json");

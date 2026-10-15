@@ -180,6 +180,14 @@ def main() -> None:
     print(p.groupby("year").population.sum().loc[[1975, 2005, 2010, 2015, 2024, 2025]])
     t = trust_panel("2025/26")
     print(f"trust panel 2025/26: {len(t)} trusts")
+    import json
+    core = assemble()
+    lp = json.loads((OUT / "lever_parameters.json").read_text())
+    core["riskFactors"] = lp["riskFactors"]
+    core["deprivation"] = lp["deprivation"]
+    core["flu"].update(lp["flu"])
+    (OUT / "model_inputs.json").write_text(json.dumps(core, indent=1, default=float))
+    print("wrote data/processed/model_inputs.json")
 
 
 # ------------------------------------------------------------------ trust-level panel (validation V7)
@@ -253,9 +261,6 @@ def trust_panel(fy: str = "2025/26") -> pd.DataFrame:
     yr.to_csv(OUT / f"trust_panel_{fy.replace('/', '_')}.csv", index=False)
     return yr
 
-
-if __name__ == "__main__":
-    main()
 
 
 # ------------------------------------------------------------------ winter daily sitrep (national, daily)
@@ -444,7 +449,8 @@ def flu_waves(w: pd.DataFrame) -> list[dict]:
         res = optimize.least_squares(lambda p: f(p, x) - y, p0, bounds=([0, 250, 3, 0], [2e4, 450, 80, 2e3]))
         a, mu, sd, base = res.x
         peak_date = pd.Timestamp(int(winter[:4]), 1, 1) + pd.Timedelta(days=float(mu))
-        out.append(dict(winter=winter, peak_beds_observed=float(y.max()),
+        roll7 = pd.Series(y).rolling(7).mean().max()
+        out.append(dict(winter=winter, peak_beds_observed=float(y.max()), peak_beds_7day=float(roll7),
                         peak_date_observed=str(g.date.iloc[int(np.argmax(y))].date()),
                         fitted_peak_date=str(peak_date.date()), fitted_peak_doy=int(peak_date.dayofyear),
                         fitted_sd_days=float(sd), fitted_height=float(a), fitted_baseline=float(base),
@@ -489,7 +495,10 @@ def assemble() -> dict:
         s = sr[sr.fy == fy]
         return dict(
             fy=fy, beds=float(a.ga_available), occupied=float(a.ga_occupied), occupancy=float(a.ga_occupancy),
-            emergency_admissions=float(e.emergency_admissions.sum()), dta_over_12h=float(e.dta_over_12h.sum()),
+            # annualise partial years (the A&E series starts in August 2010)
+            emergency_admissions=float(e.emergency_admissions.sum() * 12 / max(e.month.nunique(), 1)),
+            dta_over_12h=float(e.dta_over_12h.sum() * 12 / max(e.month.nunique(), 1)),
+            ae_months=int(e.month.nunique()),
             wait12_share=float(e.dta_over_12h.sum() / e.emergency_admissions.sum()),
             nctr_remaining=float(n.nctr_remaining.mean()) if len(n) else None,
             nctr_share=float(n.nctr_remaining.mean() / a.ga_occupied) if len(n) else None,
@@ -544,7 +553,7 @@ def assemble() -> dict:
                       occupancy=base["occupancy"]),
         targets=dict(occupancy=base["occupancy"], nctrShare=base["nctr_share"], wait12Share=base["wait12_share"],
                      long21Share=base["long21_share"], weekendRatio=weekend_ratio, delayedShare=drd["delayed_share"],
-                     emBedDaysPerAdm=hd["mean_emergency_bed_days"], fluPeakBeds=wave["peak_beds_observed"]),
+                     emBedDaysPerAdm=hd["mean_emergency_bed_days"], fluPeakBeds=wave["peak_beds_7day"]),
         delays=dict(shape=drd["gamma_shape"], mean=drd["gamma_mean"], bands=drd["band_shares"], bandLabels=drd["band_labels"],
                     avgExc0=drd["avg_delay_exc0"]),
         elective=dict(meanBedDays=hd["elective_bed_days_per_overnight_dominant"]),
@@ -560,3 +569,7 @@ def assemble() -> dict:
     import json
     (OUT / "model_inputs_core.json").write_text(json.dumps(inputs, indent=1, default=float))
     return inputs
+
+
+if __name__ == "__main__":
+    main()

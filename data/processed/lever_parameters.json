@@ -1,0 +1,120 @@
+{
+ "riskFactors": [
+  {
+   "key": "smoking",
+   "label": "Adult smoking rate",
+   "type": "prevalence",
+   "current": 9.5,
+   "relativeRisk": 1.2694504759609586,
+   "paf": 0.03005548140207247,
+   "min": 0,
+   "max": 25,
+   "step": 0.5,
+   "derivation": "OHID smoking-attributable admissions 2022/23 (412,171, ages 35+) divided by all hospital admissions aged 35+ (HES 2023/24, 13,713,682) gives an attributable fraction of 3.0%. With adult smoking prevalence 11.5% (2022) this implies a relative risk of 1.27.",
+   "note": "OHID's attributable count includes harm in ex-smokers, so the effect of quitting builds up over many years.",
+   "sources": [
+    {
+     "name": "OHID Fingertips 93753",
+     "url": "https://fingertips.phe.org.uk/search/93753"
+    },
+    {
+     "name": "OHID Fingertips 92443 (APS)",
+     "url": "https://fingertips.phe.org.uk/search/92443"
+    }
+   ],
+   "help": "Adults who smoke. Today 9.5% (2025)."
+  },
+  {
+   "key": "obesity",
+   "label": "Adult obesity rate",
+   "type": "prevalence",
+   "current": 26.6,
+   "relativeRisk": 1.28,
+   "relativeRiskAreaData": 2.486672219790472,
+   "derivationPublished": "Million Women Study (Reeves et al. 2014): admission rates per woman over 10 years of 3.0 (BMI 30-35) and 3.5 (35+) versus 2.4-2.6 below BMI 30, giving a relative risk of 1.28 for obesity.",
+   "paf": 0.06942133238586033,
+   "pafAreaData": 0.283715283536504,
+   "min": 10,
+   "max": 40,
+   "step": 0.5,
+   "derivation": "Between-area regression of age-standardised emergency admissions (OHID 93227) on adult obesity prevalence, adjusted for deprivation and smoking, across 147 local authorities: +1.07% admissions per percentage point (95% CI +0.57 to +1.57). Equivalent relative risk 2.49.",
+   "note": "An association between areas, not a proven causal effect; see the Validation page.",
+   "ci_pct_per_point": [
+    0.5734633246866849,
+    1.5701349859738478
+   ],
+   "sources": [
+    {
+     "name": "OHID Fingertips 93881",
+     "url": "https://fingertips.phe.org.uk/search/93881"
+    },
+    {
+     "name": "OHID Fingertips 93227",
+     "url": "https://fingertips.phe.org.uk/search/93227"
+    },
+    {
+     "name": "Reeves et al. 2014, BMC Medicine",
+     "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4003825/"
+    }
+   ],
+   "help": "Adults living with obesity. Today 26.6% (2024/25)."
+  },
+  {
+   "key": "alcohol",
+   "label": "Alcohol harm",
+   "type": "attributable",
+   "current": 0,
+   "share": 0.01598775134213145,
+   "min": -50,
+   "max": 50,
+   "step": 5,
+   "derivation": "OHID alcohol-related admissions, narrow measure, 2023/24: 280,747, 1.6% of all admissions (HES 2023/24).",
+   "sources": [
+    {
+     "name": "OHID Fingertips 93764",
+     "url": "https://fingertips.phe.org.uk/search/93764"
+    }
+   ],
+   "help": "Change in admissions caused by alcohol (e.g. from minimum unit pricing or treatment services)."
+  }
+ ],
+ "deprivation": {
+  "relativeRates": [
+   1.1941,
+   1.0353,
+   0.9624,
+   0.9493,
+   0.8589
+  ],
+  "note": "Age-standardised emergency admission ratio (OHID 93227, 2018-based pooled period) for 151 upper-tier local authorities grouped into fifths by IMD 2019 deprivation score (most deprived first), relative to the average. Area-level, so it understates the gap between individuals.",
+  "sources": [
+   {
+    "name": "OHID Fingertips 93227",
+    "url": "https://fingertips.phe.org.uk/search/93227"
+   },
+   {
+    "name": "OHID Fingertips 93553 (IMD 2019)",
+    "url": "https://fingertips.phe.org.uk/search/93553"
+   }
+  ],
+  "help": "Narrow the gap in emergency admission rates between the most and least deprived fifths of areas."
+ },
+ "flu": {
+  "uptake65": 74.9,
+  "uptakeSeason": "2024/25",
+  "ve": 0.423,
+  "veRange": [
+   0.332,
+   0.501
+  ],
+  "veSource": {
+   "name": "Bucholc et al. 2026, Influenza Other Respir Viruses (Northern Ireland 2024/25, aged 65+)",
+   "url": "https://onlinelibrary.wiley.com/doi/10.1111/irv.70303"
+  },
+  "uptakeSource": {
+   "name": "OHID Fingertips 30314",
+   "url": "https://fingertips.phe.org.uk/search/30314"
+  },
+  "note": "Vaccine effectiveness cannot be estimated from area-level data (placebo outcomes fail; see Validation), so the measured estimate from a UK test-negative study is used."
+ }
+}

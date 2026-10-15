@@ -1,121 +1,777 @@
 {
- "_note": "TEMPORARY test file built from headline figures; replaced by scripts/build_baseline.mjs output",
- "baseYear": 2024,
+ "baseYear": 2025,
+ "baseYearLabel": "2025/26",
  "national": {
-  "beds": 102423,
-  "emergPerYear": 6600000.0,
-  "electivePerYear": 1600000.0,
-  "occupancy": 0.92
+  "beds": 103406.66316955994,
+  "emergPerYear": 6451147,
+  "electivePerYear": 1145001,
+  "occupancy": 0.9158285358490685
  },
- "calibration": {
-  "A": {
-   "poolSize": 92,
-   "losMedianDays": 2.9876,
-   "delayMeanDays": 4.285
-  },
-  "B": {
-   "poolSize": 1000,
-   "losMedianDays": 3.07,
-   "delayMeanDays": 4.3
-  }
+ "targets": {
+  "occupancy": 0.9158285358490685,
+  "nctrShare": 0.13703653361815146,
+  "wait12Share": 0.08850472636881472,
+  "long21Share": 0.19313314466585116,
+  "weekendRatio": 0.7549449849445672,
+  "delayedShare": 0.14147928467193285,
+  "emBedDaysPerAdm": 4.52361697908072,
+  "fluPeakBeds": 3065
+ },
+ "delays": {
+  "shape": 0.48248522160587276,
+  "mean": 5.146633900506387,
+  "bands": [
+   0.3429,
+   0.2299,
+   0.1637,
+   0.1528,
+   0.0527,
+   0.0579
+  ],
+  "bandLabels": [
+   "1 day",
+   "2-3 days",
+   "4-6 days",
+   "7-13 days",
+   "14-20 days",
+   "21+ days"
+  ],
+  "avgExc0": 6.057387258815332
+ },
+ "elective": {
+  "meanBedDays": 4.540517914825759
  },
  "ageBands": [
   {
-   "band": "0-64",
+   "band": "0-17",
+   "emergAdm": 688526.2276668999,
+   "losMult": 0.5566474404978704,
+   "delayMult": 1,
+   "older": false,
    "pop": {
-    "2005": 42000000.0,
-    "2024": 47000000.0
-   },
-   "emergAdm": 3300000.0,
-   "losMult": 0.7,
-   "delayMult": 0.4
+    "2000": 11177102,
+    "2001": 11145813,
+    "2002": 11125499,
+    "2003": 11113739,
+    "2004": 11107896,
+    "2005": 11111597,
+    "2006": 11109827,
+    "2007": 11152784,
+    "2008": 11202377,
+    "2009": 11231596,
+    "2010": 11279426,
+    "2011": 11340751,
+    "2012": 11403970,
+    "2013": 11473080,
+    "2014": 11535489,
+    "2015": 11593891,
+    "2016": 11671521,
+    "2017": 11716740,
+    "2018": 11755593,
+    "2019": 11790492,
+    "2020": 11787794,
+    "2021": 11762878,
+    "2022": 11853430,
+    "2023": 11956208,
+    "2024": 12024697,
+    "2025": 11957603,
+    "2026": 11853939.31702769,
+    "2027": 11780041.203657653,
+    "2028": 11687276.9586522,
+    "2029": 11585121.53981762,
+    "2030": 11482974.037770148,
+    "2031": 11397389.244048513,
+    "2032": 11326836.26979663,
+    "2033": 11258484.894961623,
+    "2034": 11183915.78248651,
+    "2035": 11127761.708384344,
+    "2036": 11086029.049831737,
+    "2037": 11051542.30290677,
+    "2038": 11029226.271427587,
+    "2039": 11025826.705798173,
+    "2040": 11018336.173810761,
+    "2041": 11042009.345010418,
+    "2042": 11068415.730667364,
+    "2043": 11092964.66298734,
+    "2044": 11115821.767495975,
+    "2045": 11137393.537665052
+   }
+  },
+  {
+   "band": "18-64",
+   "emergAdm": 2755729.810658004,
+   "losMult": 0.7534876410322188,
+   "delayMult": 1,
+   "older": false,
+   "pop": {
+    "2000": 30272726,
+    "2001": 30468407,
+    "2002": 30672914,
+    "2003": 30882718,
+    "2004": 31110844,
+    "2005": 31466428,
+    "2006": 31800879,
+    "2007": 32103141,
+    "2008": 32363495,
+    "2009": 32564498,
+    "2010": 32799411,
+    "2011": 33036751,
+    "2012": 33055905,
+    "2013": 33161205,
+    "2014": 33330364,
+    "2015": 33553450,
+    "2016": 33800898,
+    "2017": 33952187,
+    "2018": 34086174,
+    "2019": 34196343,
+    "2020": 34205957,
+    "2021": 34322969,
+    "2022": 34694394,
+    "2023": 35223276,
+    "2024": 35564299,
+    "2025": 35642818,
+    "2026": 36360732.8087198,
+    "2027": 36573220.986698754,
+    "2028": 36710594.37858759,
+    "2029": 36844944.44596811,
+    "2030": 36973695.92539196,
+    "2031": 37093769.177218795,
+    "2032": 37199735.453823544,
+    "2033": 37311694.72359256,
+    "2034": 37432698.29235586,
+    "2035": 37555544.0888653,
+    "2036": 37650231.12292848,
+    "2037": 37767567.15254291,
+    "2038": 37901244.421994984,
+    "2039": 38043386.1410536,
+    "2040": 38199384.297261626,
+    "2041": 38336729.54220088,
+    "2042": 38485780.661603495,
+    "2043": 38624483.96403303,
+    "2044": 38716688.16900945,
+    "2045": 38780175.06099385
+   }
   },
   {
    "band": "65-74",
+   "emergAdm": 977405.2877363882,
+   "losMult": 1.106468253662193,
+   "delayMult": 1,
+   "older": false,
    "pop": {
-    "2005": 4300000.0,
-    "2024": 5900000.0
-   },
-   "emergAdm": 1000000.0,
-   "losMult": 1.0,
-   "delayMult": 1.0
+    "2000": 4106824,
+    "2001": 4113000,
+    "2002": 4126630,
+    "2003": 4152451,
+    "2004": 4172747,
+    "2005": 4186147,
+    "2006": 4164253,
+    "2007": 4186667,
+    "2008": 4273848,
+    "2009": 4387775,
+    "2010": 4490464,
+    "2011": 4592171,
+    "2012": 4840898,
+    "2013": 5015807,
+    "2014": 5149506,
+    "2015": 5263582,
+    "2016": 5383374,
+    "2017": 5458356,
+    "2018": 5502119,
+    "2019": 5524043,
+    "2020": 5536686,
+    "2021": 5567613,
+    "2022": 5492408,
+    "2023": 5492273,
+    "2024": 5544855,
+    "2025": 5628630,
+    "2026": 5722271.19754913,
+    "2027": 5865417.284004395,
+    "2028": 6010360.346294152,
+    "2029": 6163705.026400407,
+    "2030": 6325893.809401689,
+    "2031": 6463074.488769181,
+    "2032": 6582972.599757992,
+    "2033": 6675417.468139636,
+    "2034": 6754174.564524701,
+    "2035": 6802275.836371681,
+    "2036": 6845172.068244402,
+    "2037": 6841182.987361342,
+    "2038": 6798897.2405006,
+    "2039": 6719924.138996284,
+    "2040": 6627793.1762005165,
+    "2041": 6531664.473518305,
+    "2042": 6423581.836368923,
+    "2043": 6334867.61999825,
+    "2044": 6295521.934303278,
+    "2045": 6302029.184843412
+   }
   },
   {
-   "band": "75+",
+   "band": "75-84",
+   "emergAdm": 1198207.7896299933,
+   "losMult": 1.3298874424840073,
+   "delayMult": 1,
+   "older": true,
    "pop": {
-    "2005": 4300000.0,
-    "2024": 5700000.0
-   },
-   "emergAdm": 2300000.0,
-   "losMult": 1.35,
-   "delayMult": 1.6,
-   "older": true
+    "2000": 2726775,
+    "2001": 2763683,
+    "2002": 2799283,
+    "2003": 2842929,
+    "2004": 2866171,
+    "2005": 2855158,
+    "2006": 2850283,
+    "2007": 2855667,
+    "2008": 2864519,
+    "2009": 2876775,
+    "2010": 2908101,
+    "2011": 2944178,
+    "2012": 2987357,
+    "2013": 3034996,
+    "2014": 3086535,
+    "2015": 3113539,
+    "2016": 3121349,
+    "2017": 3160373,
+    "2018": 3240218,
+    "2019": 3351157,
+    "2020": 3424608,
+    "2021": 3507656,
+    "2022": 3724369,
+    "2023": 3870937,
+    "2024": 3986902,
+    "2025": 4086518,
+    "2026": 4170724.3990572626,
+    "2027": 4230223.395645782,
+    "2028": 4272624.528639167,
+    "2029": 4299956.952494587,
+    "2030": 4324993.139439471,
+    "2031": 4358997.134384197,
+    "2032": 4321700.510625164,
+    "2033": 4341309.60968369,
+    "2034": 4397013.260086612,
+    "2035": 4476387.805266766,
+    "2036": 4583212.305876621,
+    "2037": 4712477.076069385,
+    "2038": 4844332.0781587325,
+    "2039": 4982027.282275658,
+    "2040": 5124112.996650796,
+    "2041": 5244875.869013475,
+    "2042": 5350966.905322373,
+    "2043": 5434620.12433959,
+    "2044": 5506649.685156615,
+    "2045": 5552449.4942831285
+   }
+  },
+  {
+   "band": "85+",
+   "emergAdm": 831277.8843087149,
+   "losMult": 1.5837337831213851,
+   "delayMult": 1,
+   "older": true,
+   "pop": {
+    "2000": 949884,
+    "2001": 958843,
+    "2002": 954941,
+    "2003": 933680,
+    "2004": 936942,
+    "2005": 986704,
+    "2006": 1039944,
+    "2007": 1082834,
+    "2008": 1111614,
+    "2009": 1135737,
+    "2010": 1165050,
+    "2011": 1193318,
+    "2012": 1218682,
+    "2013": 1233598,
+    "2014": 1268425,
+    "2015": 1284214,
+    "2016": 1311892,
+    "2017": 1331892,
+    "2018": 1340424,
+    "2019": 1368021,
+    "2020": 1370916,
+    "2021": 1393775,
+    "2022": 1425100,
+    "2023": 1448097,
+    "2024": 1486417,
+    "2025": 1519243,
+    "2026": 1515554.9343494482,
+    "2027": 1550979.0157268925,
+    "2028": 1609491.141037735,
+    "2029": 1681513.6937638745,
+    "2030": 1746636.0111545443,
+    "2031": 1813680.8447639057,
+    "2032": 1962677.7133452904,
+    "2033": 2068021.189667841,
+    "2034": 2142460.195144469,
+    "2035": 2197782.573842144,
+    "2036": 2238840.343747325,
+    "2037": 2269781.634030024,
+    "2038": 2303397.735468631,
+    "2039": 2336081.1080715777,
+    "2040": 2363371.7894262085,
+    "2041": 2399583.6119717667,
+    "2042": 2444726.4122155886,
+    "2043": 2501123.3080789396,
+    "2044": 2563510.5720027606,
+    "2045": 2631472.408097384
+   }
   }
  ],
- "otherConditionLosMult": 0.984,
+ "flu": {
+  "admissionsCoded2324": 27284,
+  "share65": 0.5028009828009828,
+  "losMult": 1.3188657102742187,
+  "peakDoy": 358,
+  "sdDays": 28.560187256180782,
+  "peakBedsTarget": 3215,
+  "seasons": [
+   {
+    "winter": "2024/25",
+    "peak_beds_observed": 5385,
+    "peak_beds_7day": 5171.857142857143,
+    "peak_date_observed": "2025-01-03",
+    "fitted_peak_date": "2025-01-03",
+    "fitted_peak_doy": 3,
+    "fitted_sd_days": 15.71725215235723,
+    "fitted_height": 3703.921655906085,
+    "fitted_baseline": 1232.6386303888578,
+    "r2": 0.9658727178075297
+   },
+   {
+    "winter": "2025/26",
+    "peak_beds_observed": 3215,
+    "peak_beds_7day": 3065,
+    "peak_date_observed": "2025-12-12",
+    "fitted_peak_date": "2025-12-24",
+    "fitted_peak_doy": 358,
+    "fitted_sd_days": 28.560187256180782,
+    "fitted_height": 2682.5736843464288,
+    "fitted_baseline": 269.66131868130526,
+    "r2": 0.9687873609871247
+   }
+  ],
+  "uptake65": 74.9,
+  "uptakeSeason": "2024/25",
+  "ve": 0.423,
+  "veRange": [
+   0.332,
+   0.501
+  ],
+  "veSource": {
+   "name": "Bucholc et al. 2026, Influenza Other Respir Viruses (Northern Ireland 2024/25, aged 65+)",
+   "url": "https://onlinelibrary.wiley.com/doi/10.1111/irv.70303"
+  },
+  "uptakeSource": {
+   "name": "OHID Fingertips 30314",
+   "url": "https://fingertips.phe.org.uk/search/30314"
+  },
+  "note": "Vaccine effectiveness cannot be estimated from area-level data (placebo outcomes fail; see Validation), so the measured estimate from a UK test-negative study is used."
+ },
+ "bedHistory": [
+  {
+   "year": "2005/06",
+   "beds": 118863.49012169435,
+   "bedsPublished": 132826.06301369867,
+   "occupancy": null,
+   "population": 50606034,
+   "note": "KH03 pre-2010 (ward type, annual) x 0.895 bridge"
+  },
+  {
+   "year": "2008/09",
+   "beds": 109656.79244954008,
+   "bedsPublished": 122537.87945205478,
+   "occupancy": null,
+   "population": 51815853,
+   "note": "KH03 pre-2010 (ward type, annual) x 0.895 bridge"
+  },
+  {
+   "year": "2010/11",
+   "beds": 108957.51545037692,
+   "bedsPublished": 108957.51545037692,
+   "occupancy": 0.8707805906376571,
+   "population": 52642452,
+   "note": "KH03 2010/11+ (consultant specialty, quarterly)"
+  },
+  {
+   "year": "2015/16",
+   "beds": 102940.71451863355,
+   "bedsPublished": 102940.71451863355,
+   "occupancy": 0.8895046325764555,
+   "population": 54808676,
+   "note": "KH03 2010/11+ (consultant specialty, quarterly)"
+  },
+  {
+   "year": "2019/20",
+   "beds": 101431.6323757764,
+   "bedsPublished": 101431.6323757764,
+   "occupancy": 0.9017107196141357,
+   "population": 56230056,
+   "note": "KH03 2010/11+ (consultant specialty, quarterly)"
+  },
+  {
+   "year": "2024/25",
+   "beds": 105450.17761188088,
+   "bedsPublished": 105450.17761188088,
+   "occupancy": 0.9110475871643836,
+   "population": 58607170,
+   "note": "KH03 2010/11+ (consultant specialty, quarterly)"
+  },
+  {
+   "year": "2025/26",
+   "beds": 103406.66316955994,
+   "bedsPublished": 103406.66316955994,
+   "occupancy": 0.9158285358490685,
+   "population": 58834812,
+   "note": "KH03 2010/11+ (consultant specialty, quarterly)"
+  }
+ ],
  "presets": [
   {
-   "label": "2024/25",
-   "beds": 102423
+   "label": "2025/26 (today)",
+   "beds": 103406.66316955994
   },
   {
    "label": "2005/06",
-   "beds": 119730
+   "beds": 118863.49012169435,
+   "note": "KH03 pre-2010 (ward type, annual) x 0.895 bridge"
+  },
+  {
+   "label": "2008/09",
+   "beds": 109656.79244954008,
+   "note": "KH03 pre-2010 (ward type, annual) x 0.895 bridge"
+  },
+  {
+   "label": "2010/11",
+   "beds": 108957.51545037692,
+   "note": "KH03 2010/11+ (consultant specialty, quarterly)"
+  },
+  {
+   "label": "2015/16",
+   "beds": 102940.71451863355,
+   "note": "KH03 2010/11+ (consultant specialty, quarterly)"
+  },
+  {
+   "label": "2019/20",
+   "beds": 101431.6323757764,
+   "note": "KH03 2010/11+ (consultant specialty, quarterly)"
+  },
+  {
+   "label": "2024/25",
+   "beds": 105450.17761188088,
+   "note": "KH03 2010/11+ (consultant specialty, quarterly)"
+  },
+  {
+   "label": "2005/06 per head",
+   "beds": 138191.2499796713,
+   "note": "2005/06 beds per head of population, applied to the 2025 population"
+  },
+  {
+   "label": "2008/09 per head",
+   "beds": 124510.86674751277,
+   "note": "2008/09 beds per head of population, applied to the 2025 population"
+  },
+  {
+   "label": "2010/11 per head",
+   "beds": 121774.24671461013,
+   "note": "2010/11 beds per head of population, applied to the 2025 population"
+  },
+  {
+   "label": "2015/16 per head",
+   "beds": 110502.53404861441,
+   "note": "2015/16 beds per head of population, applied to the 2025 population"
   }
  ],
+ "backtests": [
+  {
+   "fy": "2024/25",
+   "beds": 105450.17761188088,
+   "occupied": 96070.12987935978,
+   "occupancy": 0.9110475871643836,
+   "emergency_admissions": 6522815,
+   "dta_over_12h": 532451,
+   "ae_months": 12,
+   "wait12_share": 0.08162902059923514,
+   "nctr_remaining": 12663.334246575343,
+   "nctr_share": 0.1318134394371835,
+   "long21_share": 0.19399501484107776,
+   "occupancy_8am": 0.9318333333333334
+  },
+  {
+   "fy": "2023/24",
+   "beds": 104417.50328674949,
+   "occupied": 95166.03290531931,
+   "occupancy": 0.9113992377693235,
+   "emergency_admissions": 6410632,
+   "dta_over_12h": 439411,
+   "ae_months": 12,
+   "wait12_share": 0.06854409986410076,
+   "nctr_remaining": 12693.38524590164,
+   "nctr_share": 0.1333814687697478,
+   "long21_share": 0.19380529273727953,
+   "occupancy_8am": 0.9313067255422497
+  },
+  {
+   "fy": "2022/23",
+   "beds": 103356.99124993362,
+   "occupied": 94129.49425333121,
+   "occupancy": 0.9107220819316533,
+   "emergency_admissions": 6020665,
+   "dta_over_12h": 410092,
+   "ae_months": 12,
+   "wait12_share": 0.06811407045567225,
+   "nctr_remaining": 13226.695054945056,
+   "nctr_share": 0.14051594731134942,
+   "long21_share": 0.2042810622954059,
+   "occupancy_8am": 0.9344609316821334
+  },
+  {
+   "fy": "2019/20",
+   "beds": 101431.6323757764,
+   "occupied": 91461.9902211978,
+   "occupancy": 0.9017107196141357,
+   "emergency_admissions": 6405933,
+   "dta_over_12h": 12435,
+   "ae_months": 12,
+   "wait12_share": 0.0019411692254664543,
+   "nctr_remaining": null,
+   "nctr_share": null,
+   "long21_share": null,
+   "occupancy_8am": null
+  },
+  {
+   "fy": "2018/19",
+   "beds": 101352.12940622178,
+   "occupied": 91372.68467908901,
+   "occupancy": 0.9015369012412664,
+   "emergency_admissions": 6369153,
+   "dta_over_12h": 3262,
+   "ae_months": 12,
+   "wait12_share": 0.0005121560119532377,
+   "nctr_remaining": null,
+   "nctr_share": null,
+   "long21_share": null,
+   "occupancy_8am": null
+  },
+  {
+   "fy": "2015/16",
+   "beds": 102940.71451863355,
+   "occupied": 91566.24244505494,
+   "occupancy": 0.8895046325764555,
+   "emergency_admissions": 5656122,
+   "dta_over_12h": 1013,
+   "ae_months": 12,
+   "wait12_share": 0.00017909797560943698,
+   "nctr_remaining": null,
+   "nctr_share": null,
+   "long21_share": null,
+   "occupancy_8am": null
+  },
+  {
+   "fy": "2010/11",
+   "beds": 108957.51545037692,
+   "occupied": 94878.08965829086,
+   "occupancy": 0.8707805906376571,
+   "emergency_admissions": 5188050.642857144,
+   "dta_over_12h": 57.85714285714285,
+   "ae_months": 8,
+   "wait12_share": 0.0000111520004024633,
+   "nctr_remaining": null,
+   "nctr_share": null,
+   "long21_share": null,
+   "occupancy_8am": null
+  }
+ ],
+ "winterValidation": {
+  "2024/25": {
+   "days": 126,
+   "occ_mean": 0.9365618202844741,
+   "occ_sd": 0.015454791124021,
+   "occ_p5": 0.9136277185686198,
+   "occ_p95": 0.9517517969141163,
+   "weekday": [
+    0.9364799092898084,
+    0.9437665102315087,
+    0.9402299002773246,
+    0.939879410755641,
+    0.9398531959059747,
+    0.9282660901514345,
+    0.927457725379628
+   ],
+   "start": "2024-11-25",
+   "end": "2025-03-30"
+  },
+  "2025/26": {
+   "days": 126,
+   "occ_mean": 0.9341104451491813,
+   "occ_sd": 0.02060443166247791,
+   "occ_p5": 0.9042136003996294,
+   "occ_p95": 0.9498886737576735,
+   "weekday": [
+    0.9348018071103458,
+    0.942679477281589,
+    0.9416955750126257,
+    0.9353091325516291,
+    0.9345118108878064,
+    0.9250625431138104,
+    0.9247127700864639
+   ],
+   "start": "2025-11-24",
+   "end": "2026-03-29"
+  }
+ },
+ "trustPanel": {
+  "fy": "2025/26",
+  "n": 121,
+  "file": "data/processed/trust_panel_2025_26.csv"
+ },
+ "hes": {
+  "year": "2023/24",
+  "emergencyTotal": 6238352,
+  "meanEmergencyBedDays": 4.52361697908072,
+  "emergencyBedDaysDominant": 5.821732255916645
+ },
  "riskFactors": [
   {
    "key": "smoking",
    "label": "Adult smoking rate",
    "type": "prevalence",
-   "current": 11.9,
+   "current": 9.5,
+   "relativeRisk": 1.2694504759609586,
+   "paf": 0.03005548140207247,
    "min": 0,
    "max": 25,
    "step": 0.5,
-   "relativeRisk": 1.26,
-   "help": "TEST"
+   "derivation": "OHID smoking-attributable admissions 2022/23 (412,171, ages 35+) divided by all hospital admissions aged 35+ (HES 2023/24, 13,713,682) gives an attributable fraction of 3.0%. With adult smoking prevalence 11.5% (2022) this implies a relative risk of 1.27.",
+   "note": "OHID's attributable count includes harm in ex-smokers, so the effect of quitting builds up over many years.",
+   "sources": [
+    {
+     "name": "OHID Fingertips 93753",
+     "url": "https://fingertips.phe.org.uk/search/93753"
+    },
+    {
+     "name": "OHID Fingertips 92443 (APS)",
+     "url": "https://fingertips.phe.org.uk/search/92443"
+    }
+   ],
+   "help": "Adults who smoke. Today 9.5% (2025)."
   },
   {
    "key": "obesity",
    "label": "Adult obesity rate",
    "type": "prevalence",
-   "current": 26.5,
+   "current": 26.6,
+   "relativeRisk": 1.28,
+   "relativeRiskAreaData": 2.486672219790472,
+   "derivationPublished": "Million Women Study (Reeves et al. 2014): admission rates per woman over 10 years of 3.0 (BMI 30-35) and 3.5 (35+) versus 2.4-2.6 below BMI 30, giving a relative risk of 1.28 for obesity.",
+   "paf": 0.06942133238586033,
+   "pafAreaData": 0.283715283536504,
    "min": 10,
    "max": 40,
    "step": 0.5,
-   "relativeRisk": 1.25,
-   "help": "TEST"
+   "derivation": "Between-area regression of age-standardised emergency admissions (OHID 93227) on adult obesity prevalence, adjusted for deprivation and smoking, across 147 local authorities: +1.07% admissions per percentage point (95% CI +0.57 to +1.57). Equivalent relative risk 2.49.",
+   "note": "An association between areas, not a proven causal effect; see the Validation page.",
+   "ci_pct_per_point": [
+    0.5734633246866849,
+    1.5701349859738478
+   ],
+   "sources": [
+    {
+     "name": "OHID Fingertips 93881",
+     "url": "https://fingertips.phe.org.uk/search/93881"
+    },
+    {
+     "name": "OHID Fingertips 93227",
+     "url": "https://fingertips.phe.org.uk/search/93227"
+    },
+    {
+     "name": "Reeves et al. 2014, BMC Medicine",
+     "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4003825/"
+    }
+   ],
+   "help": "Adults living with obesity. Today 26.6% (2024/25)."
   },
   {
    "key": "alcohol",
    "label": "Alcohol harm",
    "type": "attributable",
    "current": 0,
+   "share": 0.01598775134213145,
    "min": -50,
    "max": 50,
    "step": 5,
-   "share": 0.034,
-   "help": "TEST"
+   "derivation": "OHID alcohol-related admissions, narrow measure, 2023/24: 280,747, 1.6% of all admissions (HES 2023/24).",
+   "sources": [
+    {
+     "name": "OHID Fingertips 93764",
+     "url": "https://fingertips.phe.org.uk/search/93764"
+    }
+   ],
+   "help": "Change in admissions caused by alcohol (e.g. from minimum unit pricing or treatment services)."
   }
  ],
  "deprivation": {
   "relativeRates": [
-   1.5,
-   1.2,
-   1.0,
-   0.9,
-   0.8
+   1.1941,
+   1.0353,
+   0.9624,
+   0.9493,
+   0.8589
   ],
-  "help": "TEST"
+  "note": "Age-standardised emergency admission ratio (OHID 93227, 2018-based pooled period) for 151 upper-tier local authorities grouped into fifths by IMD 2019 deprivation score (most deprived first), relative to the average. Area-level, so it understates the gap between individuals.",
+  "sources": [
+   {
+    "name": "OHID Fingertips 93227",
+    "url": "https://fingertips.phe.org.uk/search/93227"
+   },
+   {
+    "name": "OHID Fingertips 93553 (IMD 2019)",
+    "url": "https://fingertips.phe.org.uk/search/93553"
+   }
+  ],
+  "help": "Narrow the gap in emergency admission rates between the most and least deprived fifths of areas."
  },
- "flu": {
-  "admissions": 48000,
-  "uptake65": 74.9,
-  "uptakeSeason": "2024/25",
-  "ve": 0.45,
-  "share65": 0.6,
-  "losMult": 1.3,
-  "sdDays": 21,
-  "peakBedsTarget": 5200
+ "generated": "2026-10-15",
+ "calibration": {
+  "A": {
+   "poolSize": 79.6875,
+   "losMedianDays": 3.591796875,
+   "losSigma": 1.252734375,
+   "sameDayFrac": 0.525341796875,
+   "delayProb": 0.194140625,
+   "delayMeanDays": 5.146633900506387,
+   "delayShape": 0.48248522160587276,
+   "weekendDischargePct": 92.48046875,
+   "electiveFrontLoad": 0.15,
+   "electiveLosSigma": 1.2,
+   "electiveLosMedianDays": 2.2101073382681045,
+   "seasonAmp": 0.04,
+   "fluAdmissions": 42524.4140625
+  },
+  "B": {
+   "poolSize": 1000,
+   "losMedianDays": 3.474609375,
+   "losSigma": 1.2457031249999997,
+   "sameDayFrac": 0.5994628906249999,
+   "delayProb": 0.205859375,
+   "delayMeanDays": 5.146633900506387,
+   "delayShape": 0.48248522160587276,
+   "weekendDischargePct": 92.48046875,
+   "electiveFrontLoad": 0.15,
+   "electiveLosSigma": 1.2,
+   "electiveLosMedianDays": 2.2101073382681045,
+   "seasonAmp": 0.04,
+   "fluAdmissions": 45922.8515625
+  },
+  "targets": {
+   "occupancy": 0.9158285358490685,
+   "nctrShare": 0.13703653361815146,
+   "wait12Share": 0.08850472636881472,
+   "long21Share": 0.19313314466585116,
+   "weekendRatio": 0.7549449849445672,
+   "delayedShare": 0.14147928467193285,
+   "emBedDaysPerAdm": 4.52361697908072,
+   "fluPeakBeds": 3065
+  }
  }
 }

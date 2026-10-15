@@ -47,5 +47,33 @@
   "age": "65+ yrs",
   "years": "2010-2024",
   "areas": 151
+ },
+ "emergency_all": {
+  "indicator_id": 93227,
+  "name": "Emergency hospital admissions: all causes",
+  "age": "All ages",
+  "years": "2018-2018",
+  "areas": 151
+ },
+ "chd": {
+  "indicator_id": 93229,
+  "name": "Coronary heart disease: emergency hospital admissions",
+  "age": "All ages",
+  "years": "2018-2018",
+  "areas": 151
+ },
+ "stroke": {
+  "indicator_id": 93231,
+  "name": "Stroke: emergency hospital admissions",
+  "age": "All ages",
+  "years": "2018-2018",
+  "areas": 151
+ },
+ "hip_fracture": {
+  "indicator_id": 93241,
+  "name": "Hip fracture: emergency hospital admissions (aged 65 and over)",
+  "age": "65+ yrs",
+  "years": "2018-2018",
+  "areas": 151
  }
 }

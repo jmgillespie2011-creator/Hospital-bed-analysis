@@ -12,6 +12,7 @@
 import { DEFAULTS } from "./model.js";
 
 export function defaultSettings(base) {
+  const c = base.calibration.A;
   return {
     // capacity
     beds: base.national.beds,
@@ -23,11 +24,12 @@ export function defaultSettings(base) {
     risk: Object.fromEntries((base.riskFactors || []).map((r) => [r.key, r.current])),
     deprivationGapPct: 0,
     fluUptake65: base.flu ? base.flu.uptake65 : 75,
+    evidence: "published",   // "published": OHID attributable counts and cohort studies; "area": this project's area analysis
     // hospital flow
-    sameDayPct: Math.round(DEFAULTS.sameDayFrac * 100),
+    sameDayPct: Math.round(100 * (c.sameDayFrac ?? DEFAULTS.sameDayFrac)),
     delayChangePct: 0,
-    weekendDischargePct: DEFAULTS.weekendDischargePct,
-    dischargeStart: DEFAULTS.dischargeStart,
+    weekendDischargePct: Math.round(c.weekendDischargePct ?? DEFAULTS.weekendDischargePct),
+    prepHours: DEFAULTS.prepHours,
     virtualWardPct: 0,
     admissionAvoidancePct: 0,
     losChangePct: 0,
@@ -52,11 +54,12 @@ export function populationFor(base, band, year) {
 }
 
 // Relative change in admissions from one risk factor (1 = no change).
-export function riskFactorMultiplier(r, value) {
+export function riskFactorMultiplier(r, value, evidence = "published") {
   if (r.type === "prevalence") {
     // Population attributable fraction: PAF = p(RR-1) / (1 + p(RR-1)).
-    // RR is derived from the published attributable fraction at the reference prevalence.
-    const rr = r.relativeRisk;
+    // RR is derived from published attributable counts / cohort studies, or from this project's
+    // area analysis where that gives an estimate (see data.html).
+    const rr = evidence === "area" && r.relativeRiskAreaData ? r.relativeRiskAreaData : r.relativeRisk;
     const p0 = r.current / 100, p1 = value / 100;
     return (1 + p1 * (rr - 1)) / (1 + p0 * (rr - 1));
   }
@@ -95,7 +98,7 @@ export function demandBreakdown(base, s) {
   out.risk = {};
   let riskAll = 1;
   for (const r of base.riskFactors || []) {
-    const m = riskFactorMultiplier(r, s.risk[r.key] ?? r.current);
+    const m = riskFactorMultiplier(r, s.risk[r.key] ?? r.current, s.evidence);
     out.risk[r.key] = m;
     riskAll *= m;
   }
@@ -115,7 +118,7 @@ export function buildParams(base, s) {
   let emerg = 0;
   // influenza admissions are simulated as a separate winter wave, so they are taken out of
   // the year-round age-band demand and added back through fluPerYear
-  const flu0 = base.flu ? base.flu.admissions : 0;
+  const flu0 = base.flu ? (cal.fluAdmissions ?? base.flu.admissions ?? 0) : 0;
   const total0 = base.ageBands.reduce((t, b) => t + b.emergAdm, 0);
   const nonFlu = 1 - flu0 / total0;
   for (const b of base.ageBands) {
@@ -144,12 +147,18 @@ export function buildParams(base, s) {
     groups,
     sameDayFrac: s.sameDayPct / 100,
     losMedianDays: cal.losMedianDays,
+    losSigma: cal.losSigma ?? DEFAULTS.losSigma,
     losChangePct: s.losChangePct,
-    delayProb: DEFAULTS.delayProb,
-    delayMeanDays: cal.delayMeanDays * Math.max(0, 1 + s.delayChangePct / 100),
-    seasonAmp: DEFAULTS.seasonAmp,
-    dischargeStart: s.dischargeStart,
-    dischargeEnd: DEFAULTS.dischargeEnd,
+    delayProb: cal.delayProb ?? DEFAULTS.delayProb,
+    delayMeanDays: (cal.delayMeanDays ?? DEFAULTS.delayMeanDays) * Math.max(0, 1 + s.delayChangePct / 100),
+    delayShape: cal.delayShape ?? DEFAULTS.delayShape,
+    electiveLosMedianDays: cal.electiveLosMedianDays ?? DEFAULTS.electiveLosMedianDays,
+    electiveLosSigma: cal.electiveLosSigma ?? DEFAULTS.electiveLosSigma,
+    electiveWeekday: cal.electiveFrontLoad != null
+      ? [0, 1, 2, 3, 4].map((d) => 1 + cal.electiveFrontLoad * (2 - d)) : DEFAULTS.electiveWeekday,
+    seasonAmp: cal.seasonAmp ?? DEFAULTS.seasonAmp,
+    fluPeakDoy: base.flu ? base.flu.peakDoy : DEFAULTS.fluPeakDoy,
+    prepHours: s.prepHours,
     weekendDischargePct: s.weekendDischargePct,
   };
 }
