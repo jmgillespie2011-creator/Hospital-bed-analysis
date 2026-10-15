@@ -35,7 +35,8 @@ RAW = ROOT / "data" / "raw"
 MAX_FILE_BYTES = 95 * 1024 * 1024  # GitHub rejects files over 100 MB
 DATA_EXT = re.compile(r"\.(xlsx?|xlsm|csv|zip|ods)(\?.*)?$", re.I)
 UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
-      "Chrome/124.0 Safari/537.36 hospital-bed-analysis-data-fetch")
+      "Chrome/124.0.0.0 Safari/537.36")
+DEBUG_DIR = RAW / "_debug"
 
 NHSE = "https://www.england.nhs.uk/statistics/statistical-work-areas"
 NHSD = "https://digital.nhs.uk/data-and-information/publications/statistical"
@@ -104,12 +105,25 @@ SOURCES = [
 
 def session() -> requests.Session:
     s = requests.Session()
-    s.headers.update({"User-Agent": UA, "Accept": "text/html,application/xhtml+xml,*/*"})
+    s.headers.update({
+        "User-Agent": UA,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-GB,en;q=0.9",
+    })
     return s
+
+
+def save_debug(url: str, r: requests.Response) -> None:
+    """Keep a copy of each crawled page (status, headers, HTML) for diagnosis."""
+    DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+    name = re.sub(r"[^A-Za-z0-9]+", "_", urlparse(url).netloc + urlparse(url).path)[-120:]
+    head = f"<!-- {url}\nstatus {r.status_code} final {r.url}\n{dict(r.headers)} -->\n"
+    (DEBUG_DIR / f"{name}.html").write_text(head + r.text[:300_000], errors="replace")
 
 
 def get_links(s: requests.Session, url: str) -> list[tuple[str, str]]:
     r = s.get(url, timeout=60)
+    save_debug(url, r)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "html.parser")
     out = []
