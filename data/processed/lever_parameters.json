@@ -38,7 +38,7 @@
    "max": 40,
    "step": 0.5,
    "derivation": "Between-area regression of age-standardised emergency admissions (OHID 93227) on adult obesity prevalence, adjusted for deprivation and smoking, across 147 local authorities: +1.07% admissions per percentage point (95% CI +0.57 to +1.57). Equivalent relative risk 2.49.",
-   "note": "An association between areas, not a proven causal effect; see the Validation page.",
+   "note": "Default: Million Women Study relative risk. Alternative ('area analysis' evidence setting): this project's between-area estimate, an association that is probably inflated by confounding; see the Validation page.",
    "ci_pct_per_point": [
     0.5734633246866849,
     1.5701349859738478

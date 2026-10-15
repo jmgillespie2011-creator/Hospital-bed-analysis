@@ -670,7 +670,7 @@
    "max": 40,
    "step": 0.5,
    "derivation": "Between-area regression of age-standardised emergency admissions (OHID 93227) on adult obesity prevalence, adjusted for deprivation and smoking, across 147 local authorities: +1.07% admissions per percentage point (95% CI +0.57 to +1.57). Equivalent relative risk 2.49.",
-   "note": "An association between areas, not a proven causal effect; see the Validation page.",
+   "note": "Default: Million Women Study relative risk. Alternative ('area analysis' evidence setting): this project's between-area estimate, an association that is probably inflated by confounding; see the Validation page.",
    "ci_pct_per_point": [
     0.5734633246866849,
     1.5701349859738478
@@ -730,5 +730,223 @@
    }
   ],
   "help": "Narrow the gap in emergency admission rates between the most and least deprived fifths of areas."
- }
+ },
+ "inputs": [
+  {
+   "label": "G&A beds open overnight (England)",
+   "value": 103406.66316955994,
+   "unit": "beds",
+   "period": "2025/26",
+   "source": "NHS England KH03 bed availability and occupancy",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/bed-availability-and-occupancy/bed-availability-and-occupancy-kh03/",
+   "note": "Average of four quarters"
+  },
+  {
+   "label": "G&A occupancy (midnight)",
+   "value": 0.9158285358490685,
+   "unit": "share",
+   "period": "2025/26",
+   "source": "NHS England KH03 bed availability and occupancy",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/bed-availability-and-occupancy/bed-availability-and-occupancy-kh03/",
+   "note": "Calibration target"
+  },
+  {
+   "label": "Emergency admissions",
+   "value": 6451147.0,
+   "unit": "per year",
+   "period": "2025/26",
+   "source": "NHS England A&E attendances and emergency admissions",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/",
+   "note": "All routes (via A&E and other)"
+  },
+  {
+   "label": "Waiting >12h from decision to admit",
+   "value": 0.08850472636881472,
+   "unit": "share",
+   "period": "2025/26",
+   "source": "NHS England A&E attendances and emergency admissions",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/",
+   "note": "Share of emergency admissions; calibration target (pool size)"
+  },
+  {
+   "label": "Planned overnight admissions",
+   "value": 1145001.0,
+   "unit": "per year",
+   "period": "2023/24",
+   "source": "NHS England Digital, Hospital Admitted Patient Care Activity 2023-24 (diagnosis tables)",
+   "url": "https://digital.nhs.uk/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/2023-24",
+   "note": "Waiting-list and planned admissions minus day cases, excluding maternity and psychiatry"
+  },
+  {
+   "label": "Planned stay, bed days per overnight admission",
+   "value": 4.540517914825759,
+   "unit": "days",
+   "period": "2023/24",
+   "source": "NHS England Digital, Hospital Admitted Patient Care Activity 2023-24 (diagnosis tables)",
+   "url": "https://digital.nhs.uk/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/2023-24",
+   "note": "Diagnoses where >=85% of admissions are planned"
+  },
+  {
+   "label": "Midnights per emergency admission",
+   "value": 4.52361697908072,
+   "unit": "days",
+   "period": "2023/24",
+   "source": "NHS England Digital, Hospital Admitted Patient Care Activity 2023-24 (diagnosis tables)",
+   "url": "https://digital.nhs.uk/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/2023-24",
+   "note": "Calibration target (share discharged the same day)"
+  },
+  {
+   "label": "Occupied beds with patients in hospital 21+ days",
+   "value": 0.19313314466585116,
+   "unit": "share",
+   "period": "2025/26",
+   "source": "NHS England UEC daily situation reports (G&A beds)",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/bed-availability-and-occupancy/critical-care-and-general-acute-beds-urgent-and-emergency-care-daily-situation-reports/",
+   "note": "Calibration target (spread of length of stay)"
+  },
+  {
+   "label": "Discharged after Discharge Ready Date",
+   "value": 0.14147928467193285,
+   "unit": "share",
+   "period": "2025/26",
+   "source": "NHS England timeliness of discharges (Discharge Ready Date)",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/discharge-delays-acute-data/",
+   "note": "Calibration target (share delayed)"
+  },
+  {
+   "label": "Delay length distribution (gamma fit)",
+   "value": 5.146633900506387,
+   "unit": "days (mean)",
+   "period": "2025/26",
+   "source": "NHS England timeliness of discharges (Discharge Ready Date)",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/discharge-delays-acute-data/",
+   "note": "Shape 0.48, fitted to the published delay bands"
+  },
+  {
+   "label": "Weekend / weekday discharge-rate ratio",
+   "value": 0.7549449849445672,
+   "unit": "ratio",
+   "period": "2025/26",
+   "source": "NHS England acute discharge situation report",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/discharge-delays-acute-data/",
+   "note": "Patients no longer meeting criteria to reside; calibration target (weekend discharging)"
+  },
+  {
+   "label": "Patients no longer meeting criteria to reside, end of day",
+   "value": 0.13703653361815146,
+   "unit": "share",
+   "period": "2025/26",
+   "source": "NHS England acute discharge situation report",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/discharge-delays-acute-data/",
+   "note": "Share of occupied beds; validation only (not calibrated)"
+  },
+  {
+   "label": "Flu patients in G&A beds, winter peak (7-day mean)",
+   "value": 3065.0,
+   "unit": "beds",
+   "period": "2025/26",
+   "source": "NHS England UEC daily sitrep, winter daily time series",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/uec-sitrep/",
+   "note": "Calibration target (size of flu wave)"
+  },
+  {
+   "label": "Flu wave peak date and spread",
+   "value": 28.560187256180782,
+   "unit": "days (SD)",
+   "period": "2025/26",
+   "source": "NHS England UEC daily sitrep, winter daily time series",
+   "url": "https://www.england.nhs.uk/statistics/statistical-work-areas/uec-sitrep/",
+   "note": "Peak day-of-year 358; Gaussian fitted to daily flu beds"
+  },
+  {
+   "label": "Flu admissions aged 65+",
+   "value": 0.5028009828009828,
+   "unit": "share",
+   "period": "2023/24",
+   "source": "NHS England Digital, Hospital Admitted Patient Care Activity 2023-24 (diagnosis tables)",
+   "url": "https://digital.nhs.uk/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/2023-24",
+   "note": "ICD-10 J09-J11 primary diagnosis"
+  },
+  {
+   "label": "England population",
+   "value": 58834812.0,
+   "unit": "people",
+   "period": "2025",
+   "source": "ONS mid-year population estimates",
+   "url": "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates",
+   "note": "Mid-year estimate"
+  }
+ ],
+ "rawFiles": [
+  {
+   "dataset": "A&E attendances and emergency admissions",
+   "files": [
+    "214 files, 52 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2019-20/"
+  },
+  {
+   "dataset": "UEC daily sitrep time series (winter daily)",
+   "files": [
+    "10 files, 18 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/uec-sitrep/urgent-and-emergency-care-daily-situation-reports-2025-26/"
+  },
+  {
+   "dataset": "Acute discharge sitrep and Discharge Ready Date",
+   "files": [
+    "180 files, 1744 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/discharge-delays/acute-discharge-situation-report/"
+  },
+  {
+   "dataset": "OHID Fingertips public health indicators",
+   "files": [
+    "216 files, 250 MB"
+   ],
+   "page": "https://fingertips.phe.org.uk/api"
+  },
+  {
+   "dataset": "G&A bed sitreps (monthly, by trust)",
+   "files": [
+    "73 files, 32 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/bed-availability-and-occupancy/critical-care-and-general-acute-beds-urgent-and-emergency-care-daily-situation-reports/critical-care-and-general-acute-beds-urgent-and-emergency-care-daily-situation-reports-2021-22/"
+  },
+  {
+   "dataset": "HES admitted patient care tables",
+   "files": [
+    "1 files, 6 MB"
+   ],
+   "page": ""
+  },
+  {
+   "dataset": "KH03 time series and historic tables",
+   "files": [
+    "80 files, 36 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/bed-availability-and-occupancy/bed-data-day-only/"
+  },
+  {
+   "dataset": "KH03 overnight beds (quarterly, by trust)",
+   "files": [
+    "89 files, 52 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/bed-availability-and-occupancy/bed-data-overnight/"
+  },
+  {
+   "dataset": "ONS population estimates",
+   "files": [
+    "49 files, 299 MB"
+   ],
+   "page": "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/populationestimatesforukenglandandwalesscotlandandnorthernireland"
+  },
+  {
+   "dataset": "ONS national population projections",
+   "files": [
+    "6 files, 42 MB"
+   ],
+   "page": "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/z1zippedpopulationprojectionsdatafilesuk"
+  }
+ ]
 }

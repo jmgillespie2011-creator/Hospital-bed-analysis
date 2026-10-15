@@ -53,6 +53,9 @@ function controlSpec() {
     { key: "electivePct", label: "Planned surgery & treatment (elective activity)", min: 50, max: 150, step: 5, fmt: (v) => v + "% of today",
       help: "Planned overnight admissions, e.g. to clear waiting lists. These compete with emergency patients for beds." },
     { section: "Public health" },
+    { key: "evidence", label: "Evidence for public-health effects", type: "select",
+      options: [["published", "OHID attributable estimates and cohort studies"], ["area", "This project's area analysis (where available)"]],
+      help: "Smoking and alcohol use OHID's attributable-admission counts either way. For obesity, the published cohort estimate (relative risk 1.28) is much smaller than the association between areas found in this project's analysis (2.49), which is likely confounded. See Validation." },
     ...rf,
     ...(base.flu ? [{ key: "fluUptake65", label: "Flu vaccination uptake, people aged 65+", min: 40, max: 100, step: 1, fmt: (v) => v + "%",
       help: `Today ${base.flu.uptake65}% (${base.flu.uptakeSeason}). Each extra vaccinated person aged 65+ is protected with vaccine effectiveness ${Math.round(100 * base.flu.ve)}% against hospital admission. Changes the size of the winter flu wave.` }] : []),
@@ -76,8 +79,8 @@ function controlSpec() {
     { section: "Context (not policy levers)" },
     { key: "popYear", label: "Population of year", min: ymin, max: ymax, step: 1, fmt: (v) => String(v),
       help: `Size and age of England's population (ONS${ymax > base.baseYear ? " estimates and projections" : ""}). Older populations need more beds.` },
-    { key: "winterSeverityPct", label: "Severity of the flu season", min: 0, max: 300, step: 25, fmt: (v) => v + "% of 2024/25",
-      help: "Size of the winter flu wave before vaccination effects. 2024/25 was a severe season (about 5,200 flu patients in G&A beds at the peak)." },
+    { key: "winterSeverityPct", label: "Severity of the flu season", min: 0, max: 300, step: 25, fmt: (v) => v + "% of " + BY,
+      help: `Size of the winter flu wave before vaccination effects. ${BY} peaked at about ${fmt.int(base.calibration.targets.fluPeakBeds)} flu patients in G&A beds (7-day average); 2024/25 was bigger, about 5,400 at its peak (175%).` },
     { key: "otherGrowthPct", label: "Other change in emergency demand", min: -30, max: 50, step: 1, fmt: (v) => sign(v),
       help: "Anything not covered above." },
   ];
@@ -94,6 +97,14 @@ function buildControls() {
     const div = document.createElement("div");
     div.className = "ctl";
     const id = "ctl-" + c.key.replace(/[^a-z0-9]/gi, "_");
+    if (c.type === "select") {
+      div.innerHTML = `<label for="${id}"><span>${c.label}</span></label><select id="${id}">${c.options.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")}</select>${c.help ? `<div class="help">${c.help}</div>` : ""}`;
+      root.append(div);
+      const sel = div.querySelector("select");
+      sel.value = getVal(c.key);
+      sel.addEventListener("change", () => { setVal(c.key, sel.value); schedule(); });
+      continue;
+    }
     div.innerHTML = `<label for="${id}"><span>${c.label}</span><output id="${id}-out"></output></label>
       <input type="range" id="${id}" min="${c.min}" max="${c.max}" step="${c.step}">
       ${c.help ? `<div class="help">${c.help}</div>` : ""}`;
@@ -120,6 +131,7 @@ function syncControls() {
     if (c.section) continue;
     const id = "ctl-" + c.key.replace(/[^a-z0-9]/gi, "_");
     const input = $(id); if (!input) continue;
+    if (c.type === "select") { input.value = getVal(c.key); continue; }
     input.value = getVal(c.key);
     $(id + "-out").textContent = c.fmt(Number(input.value));
   }
@@ -146,12 +158,13 @@ async function runScenario() {
 }
 
 // ---------------------------------------------------------------- rendering
+let BY = "baseline";
 function delta(x, base0, kind = "pct", goodWhenLower = true) {
   const d = x - base0;
-  if (Math.abs(d) < 1e-9) return `<span>same as 2024/25</span>`;
+  if (Math.abs(d) < 1e-9) return `<span>same as ${BY}</span>`;
   const cls = d > 0 ? "delta-up" : "delta-down";
   const txt = kind === "pts" ? `${(100 * Math.abs(d)).toFixed(1)} pts` : kind === "int" ? fmt.k(Math.abs(d)) : `${Math.abs(d).toFixed(1)}`;
-  return `<span class="${cls}">${txt} vs 2024/25</span>`;
+  return `<span class="${cls}">${txt} vs ${BY}</span>`;
 }
 
 function render(pA) {
@@ -167,7 +180,7 @@ function render(pA) {
       sub: `${fmt.k(A.waitingForBed8am)} waiting in A&E for a bed, ${fmt.k(A.inEscalationSpaces8am)} in temporary escalation spaces. Worst morning: ${fmt.k(A.corridorCarePeak)}. ${delta(A.corridorCare8am, A0.corridorCare8am, "int")}` },
     { name: "Waiting >4h for a bed", val: fmt.pct(A.wait4),
       sub: `${delta(A.wait4, A0.wait4, "pts")}<br>Flexible system: ${fmt.pct(B.wait4)}` },
-    { name: "Planned admissions lost for lack of a bed", val: fmt.pct(A.elecCancelRate),
+    { name: "Planned admission slots lost for lack of a bed", val: fmt.pct(A.elecCancelRate),
       sub: `${delta(A.elecCancelRate, A0.elecCancelRate, "pts")}<br>Flexible system: ${fmt.pct(B.elecCancelRate)}` },
     { name: "Occupancy in the busiest month", val: fmt.pct(peakMonth(A.daily).v),
       sub: `${peakMonth(A.daily).m}. ${delta(peakMonth(A.daily).v, peakMonth(A0.daily).v, "pts")}` },
@@ -209,7 +222,7 @@ function renderDaily() {
     labels,
     datasets: [
       { label: "This scenario", data: resultA.daily.map((x) => 100 * x), borderColor: css("--series-scn"), borderWidth: 2, pointRadius: 0, tension: 0 },
-      { label: "2024/25 baseline", data: baselineA.daily.map((x) => 100 * x), borderColor: css("--series-base"), borderWidth: 1.5, pointRadius: 0, borderDash: [4, 3] },
+      { label: `${BY} baseline`, data: baselineA.daily.map((x) => 100 * x), borderColor: css("--series-base"), borderWidth: 1.5, pointRadius: 0, borderDash: [4, 3] },
     ],
   };
   const opts = {
@@ -228,7 +241,7 @@ function renderDaily() {
     const avg = (a) => a.slice(s, e).reduce((x, y) => x + y, 0) / (e - s);
     return `<tr><td>${m}</td><td class="num">${fmt.pct(avg(resultA.daily))}</td><td class="num">${fmt.pct(avg(baselineA.daily))}</td></tr>`;
   });
-  $("dailyTable").innerHTML = `<table><thead><tr><th>Month</th><th class="num">This scenario</th><th class="num">2024/25 baseline</th></tr></thead><tbody>${rows.join("")}</tbody></table>`;
+  $("dailyTable").innerHTML = `<table><thead><tr><th>Month</th><th class="num">This scenario</th><th class="num">${BY} baseline</th></tr></thead><tbody>${rows.join("")}</tbody></table>`;
 }
 
 function renderInputs(pA) {
@@ -243,7 +256,7 @@ function renderInputs(pA) {
     ["Available (staffed) beds", fmt.int(p0.beds * Math.min(1, p0.staffingPct / 100)), fmt.int(pA.beds * Math.min(1, pA.staffingPct / 100))],
     ["Winter escalation beds", "+0%", `+${pA.escalationPct}%`],
     ["Temporary escalation (corridor) spaces", "0", fmt.int(pA.beds * Math.min(1, pA.staffingPct / 100) * pA.corridorPct / 100)],
-    ["Emergency admissions per year", fmt.int(p0.emergPerYear), fmt.int(pA.emergPerYear)],
+    ["Emergency admissions per year (including flu)", fmt.int(p0.emergPerYear + p0.fluPerYear), fmt.int(pA.emergPerYear + pA.fluPerYear)],
     ["Planned overnight admissions per year", fmt.int(p0.electivePerYear), fmt.int(pA.electivePerYear)],
     ["Emergency patients going home same day", fmt.pct(p0.sameDayFrac, 0), fmt.pct(pA.sameDayFrac, 0)],
     ["Mean acute stay, overnight emergency patients (days)", meanLos(p0).toFixed(2), meanLos(pA).toFixed(2)],
@@ -259,10 +272,10 @@ function renderInputs(pA) {
     return `<tr><td>${b.band}</td><td class="num">${fmt.k(p0b)}</td><td class="num">${fmt.k(p)}</td><td class="num">${fmt.int(b.emergAdm)}</td><td class="num">${fmt.int(b.emergAdm * p / p0b)}</td></tr>`;
   }).join("");
   $("inputsTable").innerHTML =
-    `<table><thead><tr><th>Input</th><th class="num">2024/25 baseline</th><th class="num">This scenario</th></tr></thead><tbody>` +
+    `<table><thead><tr><th>Input</th><th class="num">${BY} baseline</th><th class="num">This scenario</th></tr></thead><tbody>` +
     rows.map((r) => `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join("") +
     `</tbody></table><h4 style="margin:14px 0 4px">Population and emergency admissions by age</h4>
-    <table><thead><tr><th>Age</th><th class="num">Population ${base.baseYear}</th><th class="num">Population ${settings.popYear}</th><th class="num">Emergency admissions ${base.baseYear}</th><th class="num">Scenario (before condition & other changes)</th></tr></thead><tbody>${ageRows}</tbody></table>`;
+    <table><thead><tr><th>Age</th><th class="num">Population ${base.baseYear}</th><th class="num">Population ${settings.popYear}</th><th class="num">Emergency admissions ${base.baseYear}</th><th class="num">Scenario (population change only)</th></tr></thead><tbody>${ageRows}</tbody></table>`;
 }
 
 function demandRows() {
@@ -323,12 +336,14 @@ function readHash() {
   const h = new URLSearchParams(location.hash.slice(1));
   for (const [k, v] of h) {
     if (k.startsWith("r.")) { if (k.slice(2) in settings.risk) settings.risk[k.slice(2)] = Number(v); }
-    else if (k in settings) settings[k] = k === "flexibility" ? v : Number(v);
+    else if (k in settings) settings[k] = ["flexibility", "evidence"].includes(k) ? v : Number(v);
   }
 }
 
 async function main() {
   base = await (await fetch("data/baseline.json")).json();
+  BY = base.baseYearLabel || String(base.baseYear);
+  document.querySelectorAll(".by").forEach((e) => (e.textContent = BY));
   settings = defaultSettings(base);
   readHash();
   buildControls();
@@ -339,7 +354,7 @@ async function main() {
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "bed-scenario.json"; a.click();
   };
   $("sweepBtn").onclick = runSweep;
-  $("status").textContent = "Simulating the 2024/25 baseline…";
+  $("status").textContent = `Simulating the ${BY} baseline…`;
   const d = defaultSettings(base);
   [baselineA, baselineB] = await Promise.all([
     call("run", buildParams(base, { ...d, flexibility: "A" }), REPS_A),

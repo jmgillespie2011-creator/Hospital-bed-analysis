@@ -186,6 +186,8 @@ def main() -> None:
     core["riskFactors"] = lp["riskFactors"]
     core["deprivation"] = lp["deprivation"]
     core["flu"].update(lp["flu"])
+    core["inputs"] = headline_inputs(core)
+    core["rawFiles"] = raw_file_summary()
     (OUT / "model_inputs.json").write_text(json.dumps(core, indent=1, default=float))
     print("wrote data/processed/model_inputs.json")
 
@@ -455,6 +457,63 @@ def flu_waves(w: pd.DataFrame) -> list[dict]:
                         fitted_peak_date=str(peak_date.date()), fitted_peak_doy=int(peak_date.dayofyear),
                         fitted_sd_days=float(sd), fitted_height=float(a), fitted_baseline=float(base),
                         r2=float(1 - np.sum((f(res.x, x) - y) ** 2) / np.sum((y - y.mean()) ** 2))))
+    return out
+
+
+# ------------------------------------------------------------------ documentation lists for the website
+NHSE_STATS = "https://www.england.nhs.uk/statistics/statistical-work-areas"
+SRC = {
+    "kh03": ("NHS England KH03 bed availability and occupancy", f"{NHSE_STATS}/bed-availability-and-occupancy/bed-availability-and-occupancy-kh03/"),
+    "ae": ("NHS England A&E attendances and emergency admissions", f"{NHSE_STATS}/ae-waiting-times-and-activity/"),
+    "sitrep": ("NHS England UEC daily situation reports (G&A beds)", f"{NHSE_STATS}/bed-availability-and-occupancy/critical-care-and-general-acute-beds-urgent-and-emergency-care-daily-situation-reports/"),
+    "nctr": ("NHS England acute discharge situation report", f"{NHSE_STATS}/discharge-delays-acute-data/"),
+    "drd": ("NHS England timeliness of discharges (Discharge Ready Date)", f"{NHSE_STATS}/discharge-delays-acute-data/"),
+    "hes": ("NHS England Digital, Hospital Admitted Patient Care Activity 2023-24 (diagnosis tables)", "https://digital.nhs.uk/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/2023-24"),
+    "ons": ("ONS mid-year population estimates", "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates"),
+    "onsp": ("ONS 2022-based national population projections", "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections"),
+    "winter": ("NHS England UEC daily sitrep, winter daily time series", f"{NHSE_STATS}/uec-sitrep/"),
+}
+
+
+def headline_inputs(core: dict) -> list[dict]:
+    t, n, fy = core["targets"], core["national"], core["baseYearLabel"]
+    def row(label, value, unit, src, note="", period=fy):
+        name, url = SRC[src]
+        return dict(label=label, value=value, unit=unit, period=period, source=name, url=url, note=note)
+    return [
+        row("G&A beds open overnight (England)", n["beds"], "beds", "kh03", "Average of four quarters"),
+        row("G&A occupancy (midnight)", t["occupancy"], "share", "kh03", "Calibration target"),
+        row("Emergency admissions", n["emergPerYear"], "per year", "ae", "All routes (via A&E and other)"),
+        row("Waiting >12h from decision to admit", t["wait12Share"], "share", "ae", "Share of emergency admissions; calibration target (pool size)"),
+        row("Planned overnight admissions", n["electivePerYear"], "per year", "hes", "Waiting-list and planned admissions minus day cases, excluding maternity and psychiatry", "2023/24"),
+        row("Planned stay, bed days per overnight admission", core["elective"]["meanBedDays"], "days", "hes", "Diagnoses where >=85% of admissions are planned", "2023/24"),
+        row("Midnights per emergency admission", t["emBedDaysPerAdm"], "days", "hes", "Calibration target (share discharged the same day)", "2023/24"),
+        row("Occupied beds with patients in hospital 21+ days", t["long21Share"], "share", "sitrep", "Calibration target (spread of length of stay)"),
+        row("Discharged after Discharge Ready Date", t["delayedShare"], "share", "drd", "Calibration target (share delayed)"),
+        row("Delay length distribution (gamma fit)", core["delays"]["mean"], "days (mean)", "drd", f"Shape {core['delays']['shape']:.2f}, fitted to the published delay bands"),
+        row("Weekend / weekday discharge-rate ratio", t["weekendRatio"], "ratio", "nctr", "Patients no longer meeting criteria to reside; calibration target (weekend discharging)"),
+        row("Patients no longer meeting criteria to reside, end of day", t["nctrShare"], "share", "nctr", "Share of occupied beds; validation only (not calibrated)"),
+        row("Flu patients in G&A beds, winter peak (7-day mean)", t["fluPeakBeds"], "beds", "winter", "Calibration target (size of flu wave)"),
+        row("Flu wave peak date and spread", core["flu"]["sdDays"], "days (SD)", "winter", f"Peak day-of-year {core['flu']['peakDoy']}; Gaussian fitted to daily flu beds"),
+        row("Flu admissions aged 65+", core["flu"]["share65"], "share", "hes", "ICD-10 J09-J11 primary diagnosis", "2023/24"),
+        row("England population", sum(b["pop"][str(core["baseYear"])] if str(core["baseYear"]) in b["pop"] else b["pop"][core["baseYear"]] for b in core["ageBands"]), "people", "ons", "Mid-year estimate", str(core["baseYear"])),
+    ]
+
+
+def raw_file_summary() -> list[dict]:
+    import csv as _csv
+    rows = list(_csv.DictReader(open(RAW / "manifest.csv")))
+    names = {"kh03_overnight": "KH03 overnight beds (quarterly, by trust)", "kh03_main": "KH03 time series and historic tables",
+             "ga_sitreps": "G&A bed sitreps (monthly, by trust)", "ae_attendances": "A&E attendances and emergency admissions",
+             "discharge_acute": "Acute discharge sitrep and Discharge Ready Date", "dtoc": "Delayed transfers of care (to 2020)",
+             "fingertips": "OHID Fingertips public health indicators", "hes_files": "HES admitted patient care tables",
+             "corridor_care": "UEC daily sitrep time series (winter daily)", "ons_population": "ONS population estimates",
+             "ons_projections": "ONS national population projections"}
+    out = []
+    for src in sorted({r["source"] for r in rows}):
+        rs = [r for r in rows if r["source"] == src]
+        out.append(dict(dataset=names.get(src, src), files=[f"{len(rs)} files, {sum(int(r['bytes'] or 0) for r in rs) / 1e6:.0f} MB"],
+                        page=rs[0]["page"] if rs[0]["page"].startswith("http") else ""))
     return out
 
 

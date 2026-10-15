@@ -210,8 +210,13 @@ if (fs.existsSync(estPath)) {
   const lines = fs.readFileSync(estPath, "utf8").trim().split("\n");
   const h = lines[0].split(",");
   const rows = lines.slice(1).map((l) => Object.fromEntries(l.split(",").map((v, i) => [h[i], v])));
-  out.effects = rows.map((r) => ({ outcome: r.outcome, exposure: r.exposure, design: r.design, pct: +r.pct_per_point,
-    lo: +r.ci_low, hi: +r.ci_high, p: +r.p, n: +r.n_obs }));
+  const numOrNaN = (v) => (v === "" || v == null ? NaN : +v);
+  out.effects = rows.map((r) => {
+    // a within-area estimate needs several years per area; with one observation per area it is not estimable
+    const estimable = !(r.design.startsWith("within") && +r.n_obs <= +r.n_areas);
+    return { outcome: r.outcome, exposure: r.exposure, design: r.design, pct: estimable ? numOrNaN(r.pct_per_point) : NaN,
+      lo: estimable ? numOrNaN(r.ci_low) : NaN, hi: estimable ? numOrNaN(r.ci_high) : NaN, p: estimable ? numOrNaN(r.p) : NaN, n: +r.n_obs };
+  });
   const plac = out.effects.filter((e) => ["falls65", "hip_fracture"].includes(e.outcome) && e.exposure === "flu_uptake65");
   out.checks.push({
     id: "L1", name: "Placebo test: flu vaccine uptake should not predict falls or hip-fracture admissions",

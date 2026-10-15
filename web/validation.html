@@ -23,16 +23,32 @@
 <p>A model is only useful if it reproduces what actually happened. These checks compare the model with observed data,
 including years it was not calibrated to. Failures are shown as plainly as successes.</p>
 
-<div class="callout warn"><strong>The most important finding.</strong> No single version of the model reproduces both 2015/16 and 2024/25.
-Tuned to today, the model predicts far more long waits in 2015/16 than actually happened. Tuned to 2015/16, it predicts far fewer long waits
-today than actually happen. In other words, hospitals now produce much longer waits at the same average occupancy than they did a decade ago,
-which matches NHS England's own caution that hospitals now experience pressure at lower occupancy. Possible reasons include less flexible use of
-beds (post-pandemic infection control, more single-sex and specialty ring-fencing), more variable demand, and changes in how waits are
-recorded. This is why the simulator shows both a "today's system" and a "more flexible system": occupancy results barely differ between them, but
-waits differ a lot, and the truth for any future scenario is likely to lie between them.</div>
+<div class="callout warn"><strong>The most important finding.</strong> One version of the model cannot reproduce long waits both before
+and after the pandemic. Calibrated to 2025/26, the model predicts several percent of emergency admissions waiting over 12 hours in 2018/19
+and 2019/20, when almost none did. A version with much more flexible use of beds matches the pre-pandemic years but predicts almost no long
+waits today. Hospitals now produce far longer waits at the same occupancy than before the pandemic, consistent with NHS England's caution
+that hospitals experience pressure at lower occupancy than before. Occupancy results barely differ between the two versions; waits differ a
+lot, so the simulator shows both and the truth for a future scenario is likely to lie between them.</div>
 
-<h2>Checks</h2>
+<h2>Checks against data the model was not calibrated on</h2>
+<p>Pass criteria were set before running the checks (<a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis/blob/ccr-c8062017-bkob0b/docs/validation-plan.md">validation plan</a>).
+All results are produced by <code>scripts/validate.mjs</code>.</p>
 <div id="validation"></div>
+
+<h2>Charts</h2>
+<div class="grid2">
+  <div class="chart-card"><h3>Occupancy by year: observed and model</h3><p class="cap">Each year run with its own beds and emergency admissions; length of stay and delays held at 2025/26 values.</p><div class="chart-box"><canvas id="chartYears"></canvas></div></div>
+  <div class="chart-card"><h3>Long waits by year: observed and model</h3><p class="cap">Share of emergency admissions waiting over 12 hours from decision to admit.</p><div class="chart-box"><canvas id="chartWaits"></canvas></div></div>
+  <div class="chart-card"><h3>Weekly pattern, winter 2025/26</h3><p class="cap">Average 08:00 occupancy by day of the week.</p><div class="chart-box"><canvas id="chartWeek"></canvas></div></div>
+  <div class="chart-card"><h3>121 acute trusts: long waits</h3><p class="cap">Model run for each trust with its own beds, admissions and occupancy, against its observed share waiting over 12 hours.</p><div class="chart-box"><canvas id="chartTrusts"></canvas></div></div>
+</div>
+
+<h2>Can area data measure the effect of public-health policies?</h2>
+<p>Estimates from <code>scripts/effects_analysis.py</code>: how emergency admission rates vary with risk factors across ~150 local
+authorities (between areas, adjusted for deprivation) and within areas over time (area and year fixed effects). Placebo outcomes (falls, hip
+fracture) should show no effect of flu vaccination; they do, which shows these designs pick up confounding. The simulator therefore uses OHID's
+attributable-admission estimates and published studies by default (see <a href="data.html">Data &amp; sources</a>).</p>
+<div id="effects"></div>
 
 <h2>What this means for using the simulator</h2>
 <ul>
@@ -42,6 +58,7 @@ waits differ a lot, and the truth for any future scenario is likely to lie betwe
     errors affect the baseline and the scenario alike.</li>
 </ul>
 </main>
+<script src="vendor/chart-4.4.1.umd.min.js"></script>
 <script type="module" src="js/pages.js"></script>
 </body>
 </html>

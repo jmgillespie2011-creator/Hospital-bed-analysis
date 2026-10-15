@@ -23,7 +23,7 @@
   <p class="intro">
     A simulation of general &amp; acute (G&amp;A) hospital beds in England. Change any setting on the left
     and the model re-runs a year of simulated patients in your browser. Results are compared with a
-    <strong>2024/25 baseline</strong> calibrated to published NHS data. Every assumption is explained on the
+    <strong><span class="by">2025/26</span> baseline</strong> calibrated to published NHS data. Every assumption is explained on the
     <a href="methods.html">Methods</a> page, and every input is listed with its source on
     <a href="data.html">Data &amp; sources</a>.
   </p>
@@ -33,7 +33,7 @@
       <div class="presets" id="presets"></div>
       <div id="ctl-root"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-        <button id="reset">Reset to 2024/25</button>
+        <button id="reset">Reset to <span class="by">2025/26</span></button>
         <button id="share">Copy link to this scenario</button>
         <button id="download">Download results (JSON)</button>
       </div>
@@ -44,7 +44,7 @@
       <div class="chart-card">
         <h3>Daily bed occupancy across the year</h3>
         <p class="cap">Share of available G&amp;A beds occupied at midnight (as counted by NHS England's KH03 return), averaged across simulation runs. Year runs April to March.</p>
-        <div class="legend"><span style="--c:var(--series-scn)">This scenario</span><span style="--c:var(--series-base)">2024/25 baseline</span></div>
+        <div class="legend"><span style="--c:var(--series-scn)">This scenario</span><span style="--c:var(--series-base)"><span class="by">2025/26</span> baseline</span></div>
         <div class="chart-box"><canvas id="dailyChart" aria-label="Daily occupancy chart"></canvas></div>
         <details><summary>Show as table (monthly averages)</summary><div class="table-scroll" id="dailyTable"></div></details>
       </div>

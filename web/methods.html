@@ -65,14 +65,18 @@ season(d) = 1 + a × cos(2π (day-of-year − 15) / 365)    (peak mid-January; a
     where <code>A</code> is emergency admissions per year. The weekday profile is 1.10, 1.03, 1.00, 1.00, 1.02, 0.93, 0.92 (Mon to Sun) and the hour-of-day profile
     peaks at midday-afternoon (both normalised to average 1; see <code>HOURLY</code> and <code>WEEKDAY</code> in the code). These shapes are assumptions informed by
     typical A&amp;E patterns.</li>
-  <li><strong>Same-day patients</strong>: a share (default 30%) leave within 3 to 10 hours (same day emergency care) and are never in a bed at midnight.</li>
-  <li><strong>Length of stay</strong> for the rest: lognormal, <code>LOS = median × m<sub>age</sub> × m<sub>condition</sub> × (1 + LOS change) × e<sup>σZ</sup></code>
-    with σ = 1.0 (a long right tail: most stays are a few days, a few last weeks). The median is calibrated.</li>
-  <li><strong>Delayed discharge</strong>: once medically fit, a share of patients (default 20%, multiplied by an age factor) wait a further
-    Gamma(shape 1.5)-distributed time before leaving (for social care, community beds, transport, etc.). The mean delay is calibrated to
-    NHS England's count of patients who no longer meet the criteria to reside.</li>
-  <li><strong>Discharge timing</strong>: discharges only happen within the discharge window (default 10:00–20:00); a patient fit to leave at night
-    leaves the next day. At weekends only the chosen share (default 50%) are discharged; the rest wait until Monday.</li>
+  <li><strong>Same-day patients</strong>: a share leave within 3 to 10 hours (same day emergency care) and are never in a bed at midnight.
+    The share is fitted so the model reproduces the number of midnights per emergency admission in Hospital Episode Statistics.</li>
+  <li><strong>Length of stay</strong> for the rest: lognormal, <code>LOS = median × m<sub>age</sub> × (1 + LOS change) × e<sup>σZ</sup></code>.
+    The age multipliers come from HES bed days per emergency admission by age; the median and spread σ are fitted to occupancy and to the
+    number of patients in hospital for 21 days or more.</li>
+  <li><strong>Delayed discharge</strong>: a share of overnight emergency patients are not discharged once fit and wait a further
+    Gamma-distributed time (for social care, community beds, transport, etc.). The shape and mean of the delay distribution are fitted to NHS
+    England's published Discharge Ready Date delay bands; the share delayed is fitted to the share of discharges that happen after the Discharge Ready Date.</li>
+  <li><strong>Discharge process</strong>: a patient who becomes medically fit is confirmed ready at the next morning ward round (09:00–12:00;
+    anyone fit after midday waits for the next day's round). That date is their Discharge Ready Date. They leave after the preparation time
+    (medicines, transport, paperwork; 3 hours on average, an assumption) and never after 20:00. At weekends only a share of ready patients are
+    discharged; the rest wait until Monday. That share is fitted to NHS England's weekend/weekday discharge-rate ratio.</li>
   <li><strong>No bed free</strong>: the patient joins a first-come-first-served queue and is admitted when a bed frees. Waiting time from
     arrival to bed is the model's equivalent of NHS England's "decision to admit to admission" wait.</li>
 </ul>
@@ -91,7 +95,8 @@ time series that separates the two.</p>
 
 <h3>Planned (elective) overnight patients</h3>
 <ul>
-  <li>Arrive on weekdays between 11:00 and 15:00 (Poisson). Length of stay lognormal, median 2 days, σ = 0.8.</li>
+  <li>Arrive on weekdays between 11:00 and 15:00 (Poisson), more on Mondays than Fridays: the weekday spread is fitted to the observed weekly
+    pattern of winter occupancy. Stays are lognormal with the mean taken from HES bed days for diagnoses that are mostly planned.</li>
   <li>If no bed is free they wait behind emergency patients; if still without a bed at 20:00, the admission is lost.
     In reality hospitals plan fewer operations when beds are short, rather than cancelling on the day, so read the
     "planned admissions lost" figure as <em>planned capacity lost</em>.</li>
@@ -167,16 +172,37 @@ length-of-stay and delayed-discharge multipliers (older patients stay longer and
 estimates and projections.</p>
 
 <h2 id="calibration">Calibration</h2>
-<p>Three quantities cannot be observed directly and are tuned so the 2024/25 baseline reproduces published figures:</p>
+<p>Most inputs are measured directly (bed numbers, admissions, the age profile, delay lengths, the flu season's timing). The rest cannot be
+observed, so each is tuned until the model reproduces one measured 2025/26 figure. The fitted values and their targets are listed on the
+<a href="data.html#calibration-values">Data &amp; sources</a> page.</p>
 <table>
-<thead><tr><th>Unknown</th><th>Tuned to match</th><th>Method</th></tr></thead>
+<thead><tr><th>Fitted quantity</th><th>Measured target</th></tr></thead>
 <tbody>
-<tr><td>Median acute length of stay</td><td>Average G&amp;A occupancy (KH03)</td><td>Bisection</td></tr>
-<tr><td>Mean discharge delay</td><td>Patients occupying a bed who no longer meet the criteria to reside (acute discharge situation report)</td><td>Proportional update, iterated with the above</td></tr>
-<tr><td>Effective bed pool size</td><td>Share of emergency admissions waiting &gt;12 hours from decision to admit (A&amp;E statistics)</td><td>Grid search, interpolated</td></tr>
+<tr><td>Median length of stay</td><td>Average G&amp;A occupancy at midnight (KH03)</td></tr>
+<tr><td>Spread of length of stay</td><td>Share of occupied beds with patients in hospital 21+ days (daily sitrep)</td></tr>
+<tr><td>Share of emergency patients discharged the same day</td><td>Midnights per emergency admission (HES)</td></tr>
+<tr><td>Share of patients delayed once fit</td><td>Share discharged after their Discharge Ready Date</td></tr>
+<tr><td>Weekend discharging</td><td>Weekend/weekday discharge-rate ratio (discharge sitrep)</td></tr>
+<tr><td>Weekday spread of planned admissions</td><td>Weekly pattern of winter occupancy (daily sitrep)</td></tr>
+<tr><td>Size of the flu wave</td><td>Peak flu patients in G&amp;A beds (winter daily sitrep)</td></tr>
+<tr><td>Effective bed pool size</td><td>Share of emergency admissions waiting &gt;12 hours from decision to admit (A&amp;E)</td></tr>
 </tbody></table>
-<p>The fitted values and the targets are listed on the <a href="data.html">Data &amp; sources</a> page. Calibration is run by
-<code>scripts/calibrate.mjs</code> using the same model code as this website.</p>
+<p>Parameters are fitted one at a time by bisection, cycling until all targets are met together (<code>scripts/calibrate.mjs</code>, using the
+same model code as this website). Other measurements are kept back to test the model: see <a href="validation.html">Validation</a>.</p>
+
+<h3 id="evidence">Public-health effects: which evidence?</h3>
+<p>This project estimated the effect of smoking, obesity and flu vaccination on emergency admissions from local-authority data
+(<code>scripts/effects_analysis.py</code>). The analysis showed that area data cannot isolate these effects: placebo tests fail and some
+signs are implausible (see Validation). So by default the simulator uses:</p>
+<ul>
+<li><strong>Smoking</strong>: OHID's count of smoking-attributable admissions divided by all admissions in the same age group (HES), with smoking prevalence from the Annual Population Survey, giving the relative risk.</li>
+<li><strong>Alcohol</strong>: OHID's count of alcohol-related admissions (narrow measure).</li>
+<li><strong>Obesity</strong>: the Million Women Study (relative risk 1.28 for obesity). You can switch to this project's between-area estimate (2.49), which is probably inflated by confounding.</li>
+<li><strong>Flu vaccination</strong>: uptake from OHID; vaccine effectiveness against hospitalisation of 42.3% (95% CI 33–50%) in people aged 65+,
+from a 2024/25 test-negative study in Northern Ireland (England's end-of-season estimate for that age group is not published). The share of flu admissions
+in people aged 65+ (50%) and their length of stay come from HES.</li>
+<li><strong>Deprivation</strong>: age-standardised emergency admission ratios for local authorities grouped into fifths by deprivation score (OHID).</li>
+</ul>
 
 <h2 id="randomness">Randomness and accuracy</h2>
 <p>Each result is the average of many simulated years (30 for "today's system", 6 for the "more flexible system", whose larger pools are

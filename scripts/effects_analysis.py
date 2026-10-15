@@ -249,7 +249,8 @@ def lever_parameters(est: pd.DataFrame, panel: pd.DataFrame) -> dict:
                                f"prevalence, adjusted for deprivation and smoking, across {int(ob.n_areas)} local authorities: "
                                f"{ob.pct_per_point:+.2f}% admissions per percentage point (95% CI {ob.ci_low:+.2f} to {ob.ci_high:+.2f}). "
                                f"Equivalent relative risk {rr_ob:.2f}."),
-                   note="An association between areas, not a proven causal effect; see the Validation page.",
+                   note=("Default: Million Women Study relative risk. Alternative ('area analysis' evidence setting): this project's "
+                         "between-area estimate, an association that is probably inflated by confounding; see the Validation page."),
                    ci_pct_per_point=[float(ob.ci_low), float(ob.ci_high)],
                    sources=[dict(name="OHID Fingertips 93881", url="https://fingertips.phe.org.uk/search/93881"),
                             dict(name="OHID Fingertips 93227", url="https://fingertips.phe.org.uk/search/93227"),

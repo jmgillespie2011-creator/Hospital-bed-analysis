@@ -88,3 +88,8 @@ details summary { cursor: pointer; font-weight: 600; }
 .legend { display: flex; gap: 14px; font-size: 13px; color: var(--text-2); margin-bottom: 6px; flex-wrap: wrap; }
 .legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; background: var(--c); }
 footer { color: var(--text-3); font-size: 13px; margin-top: 30px; }
+
+[hidden] { display: none !important; }
+.pass { color: var(--good); font-weight: 600; white-space: nowrap; }
+.fail { color: var(--critical); font-weight: 600; white-space: nowrap; }
+.na { color: var(--text-3); white-space: nowrap; }
