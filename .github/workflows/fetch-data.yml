@@ -11,7 +11,7 @@ on:
       sources:
         description: "JSON list of sources to fetch"
         required: false
-        default: '["fingertips","kh03_overnight","kh03_main","ga_sitreps","ae_attendances","discharge_acute","dtoc","hes_apc","ons_population"]'
+        default: '["fingertips","kh03_overnight","kh03_main","ga_sitreps","ae_attendances","discharge_acute","dtoc","hes_apc","hes_files","ons_population"]'
   push:
     paths:
       - scripts/fetch_raw_data.py
@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source: ${{ fromJSON(github.event.inputs.sources || '["fingertips","kh03_overnight","kh03_main","ga_sitreps","ae_attendances","discharge_acute","dtoc","hes_apc","ons_population"]') }}
+        source: ${{ fromJSON(github.event.inputs.sources || '["fingertips","kh03_overnight","kh03_main","ga_sitreps","ae_attendances","discharge_acute","dtoc","hes_apc","hes_files","ons_population"]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

@@ -331,6 +331,56 @@ def fetch_fingertips(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
 MANIFEST_FIELDS = ["source", "url", "page", "link_text", "path", "bytes", "sha256", "fetched_at"]
 
 
+# ---------------------------------------------------------------- HES files via data.gov.uk
+# The NHS England Digital publication pages sit behind a Cloudflare challenge, but the
+# files themselves are served from files.digital.nhs.uk. data.gov.uk's catalogue (CKAN)
+# lists those file URLs, so we discover them there.
+CKAN = "https://ckan.publishing.service.gov.uk/api/3/action"
+HES_YEARS = r"(2005-06|2008-09|2010-11|2015-16|2019-20|2023-24|2024-25|0506|0809|1011|1516|1920|2324|2425)"
+HES_DIRECT = [
+    "https://files.digital.nhs.uk/A5/5B8474/hosp-epis-stat-admi-diag-2023-24-tab.xlsx",
+]
+
+
+def fetch_hes_files(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
+    out = RAW / "hes_files"
+    out.mkdir(parents=True, exist_ok=True)
+    urls = {u: "direct" for u in HES_DIRECT}
+    for q in ["hospital episode statistics admitted patient care", "hospital admitted patient care activity"]:
+        r = fx.s.get(f"{CKAN}/package_search", params={"q": q, "rows": 50}, timeout=120)
+        if r.status_code != 200:
+            log(f"  ! CKAN search HTTP {r.status_code}")
+            continue
+        for pkg in r.json().get("result", {}).get("results", []):
+            for res in pkg.get("resources", []):
+                u = res.get("url") or ""
+                if "digital.nhs.uk" in u and DATA_EXT.search(urlparse(u).path):
+                    urls.setdefault(u, f"{pkg.get('name')}: {res.get('name') or ''}")
+    log(f"  {len(urls)} HES file URLs found in data.gov.uk catalogue")
+    inv = []
+    for u, label in urls.items():
+        wanted = re.search(HES_YEARS, u) and re.search(r"(?i)(hosp-epis-stat-admi|hes|apc|summ|diag|prov|age)", u)
+        dest = out / safe_name(u)
+        status = "skipped (year/name filter)"
+        if wanted:
+            if u in manifest and dest.exists():
+                status = "already downloaded"
+            else:
+                res = fx.download(u, dest)
+                if isinstance(res, tuple):
+                    status = "downloaded"
+                    manifest[u] = dict(source="hes_files", url=u, page="data.gov.uk catalogue", link_text=label[:200],
+                                       path=str(dest.relative_to(ROOT)), bytes=res[0], sha256=res[1], fetched_at=stamp)
+                else:
+                    status = res
+                log(f"  {status}: {u}")
+        inv.append(dict(source="hes_files", page="data.gov.uk", url=u, link_text=label, wanted=bool(wanted), status=status))
+    with open(out / "_link_inventory.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["source", "page", "url", "link_text", "wanted", "status"])
+        w.writeheader()
+        w.writerows(inv)
+
+
 def write_manifest(manifest: dict) -> None:
     """Write one manifest per source (data/raw/<source>/_manifest.csv) and a combined one."""
     by_src: dict[str, list] = {}
@@ -385,6 +435,14 @@ def main() -> int:
             fetch_fingertips(s, manifest, stamp, log)
         except Exception as e:  # noqa: BLE001
             log(f"  ! fingertips failed: {e}")
+        write_manifest(manifest)
+
+    if not args.dry_run and (not args.only or "hes_files" in args.only):
+        log("[hes_files] HES admitted patient care tables via data.gov.uk / files.digital.nhs.uk")
+        try:
+            fetch_hes_files(s, manifest, stamp, log)
+        except Exception as e:  # noqa: BLE001
+            log(f"  ! hes_files failed: {e}")
         write_manifest(manifest)
 
     for src in SOURCES:
