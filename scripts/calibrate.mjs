@@ -31,6 +31,9 @@ const base = {
   inputs: inp.inputs,
   bedHistory: inp.bedHistory,
   rawFiles: inp.rawFiles,
+  riskFactors: inp.riskFactors,
+  deprivation: inp.deprivation,
+  flu: inp.flu ? { ...inp.flu, admissions: inp.flu.admissionsGuess || 50000 } : undefined,
   calibration: {
     A: { poolSize: 92, losMedianDays: 3, delayMeanDays: 4 },
     B: { poolSize: POOL_B, losMedianDays: 3, delayMeanDays: 4 },
@@ -64,6 +67,21 @@ function fitLosDelay(which, occT, nctrT, reps, extra = {}, settingsOverride = {}
 
 const T = inp.targets;
 log("Targets", T);
+
+// --- size of the flu wave: scale flu admissions so the simulated peak number of flu
+// patients in beds matches the observed peak (peak occupancy is proportional to admissions)
+if (base.flu) {
+  base.calibration.A.poolSize = 100;
+  for (let it = 0; it < 3; it++) {
+    fitLosDelay("A", T.occupancy, T.nctrShare, 12);
+    const r = run(paramsFor("A"), 12);
+    const ratio = base.flu.peakBedsTarget / r.fluBedsPeak;
+    log("flu admissions", Math.round(base.flu.admissions), "peak beds", Math.round(r.fluBedsPeak));
+    base.flu.admissions *= ratio;
+    if (Math.abs(ratio - 1) < 0.03) break;
+  }
+  base.flu.admissions = Math.round(base.flu.admissions);
+}
 
 // --- model A: grid over pool sizes, interpolate on log(>12h share)
 const grid = [];

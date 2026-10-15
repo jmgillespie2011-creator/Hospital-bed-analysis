@@ -116,6 +116,14 @@ a policy leads, not what happens the year it starts.</div>
   <li><strong>Adult smoking rate</strong> and <strong>adult obesity rate</strong> use the prevalence formula above.</li>
   <li><strong>Alcohol harm</strong> changes alcohol-related admissions (OHID's "narrow" measure, where alcohol is the main reason for admission)
     by the chosen %. Admissions change by <code>share × change</code>, where <code>share</code> is alcohol-related admissions as a share of all admissions.</li>
+  <li><strong>Flu vaccination uptake (65+)</strong>: influenza admissions are simulated as a separate winter wave (a bell-shaped curve
+    peaking in early January), sized so the model reproduces the observed peak number of flu patients in G&amp;A beds. Vaccination protects the
+    people vaccinated, with vaccine effectiveness <code>VE</code> against hospital admission. With a share <code>s</code> of flu admissions in people
+    aged 65+, changing uptake from <code>u₀</code> to <code>u₁</code> multiplies flu admissions by
+    <pre>s × (1 − VE·u₁)/(1 − VE·u₀) + (1 − s)</pre>
+    This counts only direct protection. Vaccination also reduces spread to others, so the real benefit is likely to be larger. Vaccine
+    effectiveness varies a lot from season to season with how well the vaccine matches circulating strains. The "severity of the flu season"
+    setting scales the size of the wave independently of vaccination.</li>
   <li><strong>Close the deprivation gap</strong>: people in more deprived areas are admitted more often. Each fifth of the population (by
     Index of Multiple Deprivation) has a relative admission rate <code>r<sub>q</sub></code>. Closing the gap by <code>g</code> moves each fifth towards the
     least deprived: <code>r<sub>q</sub>' = r<sub>min</sub> + (r<sub>q</sub> − r<sub>min</sub>)(1 − g)</code>. Admissions change by

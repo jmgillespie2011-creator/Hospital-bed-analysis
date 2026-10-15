@@ -21,6 +21,7 @@ export function defaultSettings(base) {
     // public health (current values = no change)
     risk: Object.fromEntries((base.riskFactors || []).map((r) => [r.key, r.current])),
     deprivationGapPct: 0,
+    fluUptake65: base.flu ? base.flu.uptake65 : 75,
     // hospital flow
     sameDayPct: Math.round(DEFAULTS.sameDayFrac * 100),
     delayChangePct: 0,
@@ -65,6 +66,16 @@ export function riskFactorMultiplier(r, value) {
   return 1;
 }
 
+// Flu admissions relative to today for a given vaccine uptake among people aged 65+.
+// Only vaccinated people are protected (direct effect; protection of others through less
+// transmission is ignored, so the effect is conservative):
+//   flu admissions(65+) ∝ 1 − VE × uptake
+export function fluVaccineMultiplier(f, uptake) {
+  if (!f) return 1;
+  const m65 = (1 - f.ve * uptake / 100) / (1 - f.ve * f.uptake65 / 100);
+  return f.share65 * m65 + (1 - f.share65);
+}
+
 // Relative change in admissions from narrowing the deprivation gap by g (0..1).
 // Each deprivation fifth has a relative admission rate; the gap to the least deprived fifth shrinks.
 export function deprivationMultiplier(base, g) {
@@ -90,6 +101,8 @@ export function demandBreakdown(base, s) {
   out.riskAll = riskAll;
   out.deprivation = deprivationMultiplier(base, s.deprivationGapPct / 100);
   out.other = 1 + s.otherGrowthPct / 100;
+  out.fluVaccine = fluVaccineMultiplier(base.flu, s.fluUptake65);
+  out.fluSeverity = s.winterSeverityPct / 100;
   return out;
 }
 
@@ -99,8 +112,13 @@ export function buildParams(base, s) {
   const publicHealth = dm.riskAll * dm.deprivation;
   const groups = [];
   let emerg = 0;
+  // influenza admissions are simulated as a separate winter wave, so they are taken out of
+  // the year-round age-band demand and added back through fluPerYear
+  const flu0 = base.flu ? base.flu.admissions : 0;
+  const total0 = base.ageBands.reduce((t, b) => t + b.emergAdm, 0);
+  const nonFlu = 1 - flu0 / total0;
   for (const b of base.ageBands) {
-    let adm = b.emergAdm * populationFor(base, b, s.popYear) / populationFor(base, b, base.baseYear);
+    let adm = b.emergAdm * nonFlu * populationFor(base, b, s.popYear) / populationFor(base, b, base.baseYear);
     adm *= publicHealth * dm.other;
     let losMult = b.losMult;
     if (b.older) {
@@ -117,6 +135,9 @@ export function buildParams(base, s) {
     escalationPct: s.escalationPct,
     poolSize: cal.poolSize,
     emergPerYear: emerg,
+    fluPerYear: flu0 * dm.population * dm.fluVaccine * dm.fluSeverity,
+    fluLosMult: base.flu ? base.flu.losMult : 1.3,
+    fluSdDays: base.flu ? base.flu.sdDays : 21,
     electivePerYear: base.national.electivePerYear * s.electivePct / 100 * publicHealth,
     groups,
     sameDayFrac: s.sameDayPct / 100,
@@ -124,7 +145,7 @@ export function buildParams(base, s) {
     losChangePct: s.losChangePct,
     delayProb: DEFAULTS.delayProb,
     delayMeanDays: cal.delayMeanDays * Math.max(0, 1 + s.delayChangePct / 100),
-    seasonAmp: DEFAULTS.seasonAmp * s.winterSeverityPct / 100,
+    seasonAmp: DEFAULTS.seasonAmp,
     dischargeStart: s.dischargeStart,
     dischargeEnd: DEFAULTS.dischargeEnd,
     weekendDischargePct: s.weekendDischargePct,

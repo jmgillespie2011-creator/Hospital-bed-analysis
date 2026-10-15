@@ -52,6 +52,8 @@ function controlSpec() {
       help: "Planned overnight admissions, e.g. to clear waiting lists. These compete with emergency patients for beds." },
     { section: "Public health" },
     ...rf,
+    ...(base.flu ? [{ key: "fluUptake65", label: "Flu vaccination uptake, people aged 65+", min: 40, max: 100, step: 1, fmt: (v) => v + "%",
+      help: `Today ${base.flu.uptake65}% (${base.flu.uptakeSeason}). Each extra vaccinated person aged 65+ is protected with vaccine effectiveness ${Math.round(100 * base.flu.ve)}% against hospital admission. Changes the size of the winter flu wave.` }] : []),
     ...(base.deprivation ? [{ key: "deprivationGapPct", label: "Close the deprivation gap", min: 0, max: 100, step: 5, fmt: (v) => v + "% closed",
       help: base.deprivation.help }] : []),
     { section: "Hospital flow" },
@@ -72,8 +74,8 @@ function controlSpec() {
     { section: "Context (not policy levers)" },
     { key: "popYear", label: "Population of year", min: ymin, max: ymax, step: 1, fmt: (v) => String(v),
       help: `Size and age of England's population (ONS${ymax > base.baseYear ? " estimates and projections" : ""}). Older populations need more beds.` },
-    { key: "winterSeverityPct", label: "Severity of winter (flu, COVID)", min: 0, max: 250, step: 25, fmt: (v) => v + "% of usual",
-      help: "Size of the winter peak in emergency demand." },
+    { key: "winterSeverityPct", label: "Severity of the flu season", min: 0, max: 300, step: 25, fmt: (v) => v + "% of 2024/25",
+      help: "Size of the winter flu wave before vaccination effects. 2024/25 was a severe season (about 5,200 flu patients in G&A beds at the peak)." },
     { key: "otherGrowthPct", label: "Other change in emergency demand", min: -30, max: 50, step: 1, fmt: (v) => sign(v),
       help: "Anything not covered above." },
   ];
@@ -163,6 +165,10 @@ function render(pA) {
       sub: `${delta(A.wait4, A0.wait4, "pts")}<br>Flexible system: ${fmt.pct(B.wait4)}` },
     { name: "Planned admissions lost for lack of a bed", val: fmt.pct(A.elecCancelRate),
       sub: `${delta(A.elecCancelRate, A0.elecCancelRate, "pts")}<br>Flexible system: ${fmt.pct(B.elecCancelRate)}` },
+    { name: "Occupancy in the busiest month", val: fmt.pct(peakMonth(A.daily).v),
+      sub: `${peakMonth(A.daily).m}. ${delta(peakMonth(A.daily).v, peakMonth(A0.daily).v, "pts")}` },
+    ...(base.flu ? [{ name: "Flu patients in beds at the winter peak", val: fmt.k(A.fluBedsPeak),
+      sub: `${delta(A.fluBedsPeak, A0.fluBedsPeak, "int")}` }] : []),
     { name: "Beds occupied by patients fit to leave", val: fmt.k(A.nctrBedsNational),
       sub: `${fmt.pct(A.nctrShare)} of occupied beds. ${delta(A.nctrBedsNational, A0.nctrBedsNational, "int")}` },
   ];
@@ -171,6 +177,15 @@ function render(pA) {
   renderInputs(pA);
 }
 
+function peakMonth(daily) {
+  let best = { v: -1, m: "" };
+  for (let i = 0; i < 12; i++) {
+    const a = daily.slice(MONTH_START[i], MONTH_START[i + 1]);
+    const v = a.reduce((x, y) => x + y, 0) / a.length;
+    if (v > best.v) best = { v, m: MONTHS[i] };
+  }
+  return best;
+}
 const MONTHS = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
 const MONTH_START = [0, 30, 61, 91, 122, 153, 183, 214, 245, 275, 306, 334, 365];
 function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
@@ -231,7 +246,7 @@ function renderInputs(pA) {
     ["Discharge window", `${p0.dischargeStart}:00–${p0.dischargeEnd}:00`, `${pA.dischargeStart}:00–${pA.dischargeEnd}:00`],
     ...demandRows(),
     ["Weekend discharging", `${p0.weekendDischargePct}%`, `${pA.weekendDischargePct}%`],
-    ["Seasonal swing in demand", `±${(100 * p0.seasonAmp).toFixed(1)}%`, `±${(100 * pA.seasonAmp).toFixed(1)}%`],
+    ["Emergency admissions with flu per year", fmt.int(p0.fluPerYear), fmt.int(pA.fluPerYear)],
   ];
   // age mix
   const ageRows = base.ageBands.map((b) => {
@@ -251,6 +266,7 @@ function demandRows() {
     ["Demand effect: population size & age", "", x(d.population)],
     ...(base.riskFactors || []).map((r) => [`Demand effect: ${r.label.toLowerCase()}`, "", x(d.risk[r.key])]),
     ...(base.deprivation ? [["Demand effect: deprivation gap", "", x(d.deprivation)]] : []),
+    ...(base.flu ? [["Flu admissions: vaccination effect", "", x(d.fluVaccine)], ["Flu admissions: season severity", "", x(d.fluSeverity)]] : []),
     ["Demand effect: other", "", x(d.other)],
   ];
 }

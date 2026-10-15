@@ -114,7 +114,11 @@ export const DEFAULTS = {
   delayMeanDays: 4.3,         // mean delay (gamma, shape 1.5)
   electiveLosMedianDays: 2.0,
   electiveLosSigma: 0.8,
-  seasonAmp: 0.04,            // +/- emergency demand, peak mid-January
+  seasonAmp: 0.04,            // +/- non-flu emergency demand, peak mid-January
+  fluPerYear: 0,              // emergency admissions with influenza (separate winter wave)
+  fluPeakDoy: 5,              // day of year of the flu peak (5 January)
+  fluSdDays: 21,              // spread of the flu wave (standard deviation, days)
+  fluLosMult: 1.3,            // flu patients' stay relative to the average emergency patient
   dischargeStart: 10,         // discharge window (hours)
   dischargeEnd: 20,
   weekendDischargePct: 50,    // % of weekend-ready patients discharged at the weekend
@@ -174,7 +178,28 @@ export function simulate(p, seed = 1, wantDaily = true) {
       for (let i = 0; i < n; i++) arr.push(d * 24 + h + R.next());
     }
   }
-  arr.sort((a, b) => a - b);
+  // influenza wave: Gaussian in time around the peak day
+  const flu = [];
+  if (p.fluPerYear > 0) {
+    const perPool = p.fluPerYear / nPools, norm = 1 / (p.fluSdDays * Math.sqrt(2 * Math.PI));
+    for (let d = 0; d < nDays; d++) {
+      const doy = d + doy0;
+      // distance to the nearest peak (peak each January)
+      let dist = ((doy - p.fluPeakDoy) % 365 + 365) % 365;
+      if (dist > 182.5) dist -= 365;
+      const lam = perPool * norm * Math.exp(-0.5 * (dist / p.fluSdDays) ** 2);
+      for (let h = 0; h < 24; h++) {
+        const n = R.poisson(lam / 24 * HOURLY[h]);
+        for (let i = 0; i < n; i++) flu.push(d * 24 + h + R.next());
+      }
+    }
+  }
+  // merge: emergency arrivals carry a flag for flu patients
+  const nFluOffset = arr.length;
+  for (const t of flu) arr.push(t);
+  const order = Array.from(arr.keys()).sort((a, b) => arr[a] - arr[b]);
+  const isFlu = new Uint8Array(arr.length);
+  { const sorted = order.map((i) => arr[i]); order.forEach((i, j) => { if (i >= nFluOffset) isFlu[j] = 1; }); arr.length = 0; for (const t of sorted) arr.push(t); }
   // elective arrivals: weekdays 11:00-15:00
   const lamEl = p.electivePerYear / 365 / nPools * 7 / 5;
   const el = [];
@@ -194,13 +219,15 @@ export function simulate(p, seed = 1, wantDaily = true) {
   let ia = 0, ie = 0, snapT = 0;
   const waits = [];
   let elecOffered = 0, elecCancelled = 0;
-  const occMid = [], occ8 = [], nctrMid = [], capMid = [];
+  const occMid = [], occ8 = [], nctrMid = [], capMid = [], fluMid = [];
+  const fluInBed = new Set();
 
   const cap = (t) => capByDay[Math.min(nDays - 1, Math.floor(t / 24))];
 
-  const admitEmergency = (t) => {
+  const FLU_GROUP = { losMult: p.fluLosMult, delayMult: 1 };
+  const admitEmergency = (t, i) => {
     key++;
-    const gi = pickGroup(), grp = g[gi];
+    const grp = isFlu[i] ? FLU_GROUP : g[pickGroup()];
     let ready, dis;
     if (R.next() < p.sameDayFrac) {
       ready = dis = t + 3 + 7 * R.next();
@@ -213,6 +240,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
       }
     }
     heap.push(dis, key); readyOf.set(key, ready); occupied++;
+    if (isFlu[i]) fluInBed.add(key);
   };
   const admitElective = (t) => {
     key++;
@@ -225,7 +253,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
       if (qHead < queue.length) {
         const i = queue[qHead++];
         if (arr[i] >= warmH) waits.push(t - arr[i]);
-        admitEmergency(t);
+        admitEmergency(t, i);
       } else if (eHead < elQueue.length) {
         const j = elQueue[eHead++];
         if (t <= deadline(j)) admitElective(t);
@@ -245,19 +273,19 @@ export function simulate(p, seed = 1, wantDaily = true) {
       if (isMidnight) fillFreeBeds(t); // capacity may change at midnight
       if (t >= warmH) {
         if (isMidnight) {
-          occMid.push(occupied); capMid.push(cap(t));
+          occMid.push(occupied); capMid.push(cap(t)); fluMid.push(fluInBed.size);
           let n = 0; for (const r of readyOf.values()) if (r <= t) n++;
           nctrMid.push(n);
         } else occ8.push(occupied);
       }
       snapT += isMidnight ? 8 : 16;
     } else if (t === td) {
-      readyOf.delete(heap.pop()); occupied--;
+      const k = heap.pop(); readyOf.delete(k); fluInBed.delete(k); occupied--;
       fillFreeBeds(t);
     } else if (t === ta) {
       if (occupied < cap(t) && qHead >= queue.length) {
         if (ta >= warmH) waits.push(0);
-        admitEmergency(t);
+        admitEmergency(t, ia);
       } else queue.push(ia);
       ia++;
     } else {
@@ -288,6 +316,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
     wait12: waits.length ? w12 / waits.length : 0,
     elecOffered, elecCancelled,
     daily: wantDaily ? occMid.map((o, i) => o / capMid[i]) : null,
+    fluDaily: fluMid,
     nPools,
   };
 }
@@ -310,6 +339,8 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
   const daily = new Array(days).fill(0);
   for (const x of out) for (let i = 0; i < days; i++) daily[i] += x.daily[i] / out.length;
   const nPools = out[0].nPools;
+  const fluDaily = new Array(days).fill(0);
+  for (const x of out) for (let i = 0; i < days; i++) fluDaily[i] += x.fluDaily[i] * nPools / out.length;
   const availableBeds = p.beds * Math.min(1, p.staffingPct / 100);
   return {
     occMidnight: mean((x) => x.occMidnight),
@@ -328,6 +359,8 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
     wait4PerYear: wmean((x) => x.wait4) * p.emergPerYear,
     elecCancelRate: out.reduce((s, x) => s + x.elecCancelled, 0) / Math.max(out.reduce((s, x) => s + x.elecOffered, 0), 1),
     daily,
+    fluBedsPeak: Math.max(...fluDaily),
+    fluBedsDaily: fluDaily,
     reps,
   };
 }
