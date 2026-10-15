@@ -1,4 +1,4 @@
-import { buildParams, defaultSettings, populationFor } from "./demand.js";
+import { buildParams, defaultSettings, populationFor, demandBreakdown } from "./demand.js";
 
 const REPS_A = 30;   // replications for "today's system" (small bed pools; fast)
 const REPS_B = 6;    // replications for the "more flexible system" (large pools; slower, less noisy)
@@ -34,46 +34,53 @@ function call(kind, params, reps, extra = {}, onProgress) {
 function controlSpec() {
   const years = Object.keys(base.ageBands[0].pop).map(Number);
   const ymin = Math.min(...years), ymax = Math.max(...years);
-  const spec = [
-    { section: "Capacity" },
-    { key: "beds", label: "G&A beds (England)", min: 80000, max: 160000, step: 1, fmt: fmt.int,
-      help: "Physical general & acute beds open overnight. 2024/25: " + fmt.int(base.national.beds) + "." },
-    { key: "staffingPct", label: "Nurse staffing (% of establishment)", min: 70, max: 100, step: 1, fmt: (v) => v + "%",
-      help: "Beds can only be used if staffed. Available beds = beds × staffing %. 100% = all beds staffed (the baseline assumption)." },
-    { key: "escalationPct", label: "Extra winter escalation beds", min: 0, max: 10, step: 0.5, fmt: (v) => "+" + v + "%",
-      help: "Additional beds opened 1 December – 31 March, as a % of available beds." },
-    { section: "Demand: demographics & disease" },
+  const sign = (v, u = "%") => (v > 0 ? "+" : "") + v + u;
+  const rf = (base.riskFactors || []).map((r) => ({
+    key: "risk:" + r.key, label: r.label, min: r.min, max: r.max, step: r.step,
+    fmt: (v) => r.type === "prevalence" ? `${v}%` : sign(v),
+    help: r.help,
+  }));
+  return [
+    { section: "Hospital capacity" },
+    { key: "beds", label: "General & acute beds", min: 80000, max: 160000, step: 1, fmt: fmt.int,
+      help: `Beds open overnight in England. Today: ${fmt.int(base.national.beds)}. Use the presets above for historical levels.` },
+    { key: "staffingPct", label: "Nursing posts filled", min: 70, max: 100, step: 1, fmt: (v) => v + "%",
+      help: "A bed can only be used if it is staffed. Recruitment and retention policies move this. Available beds = beds × % filled." },
+    { key: "escalationPct", label: "Extra winter beds", min: 0, max: 10, step: 0.5, fmt: (v) => "+" + v + "%",
+      help: "Additional beds opened from December to March." },
+    { key: "electivePct", label: "Planned surgery & treatment (elective activity)", min: 50, max: 150, step: 5, fmt: (v) => v + "% of today",
+      help: "Planned overnight admissions, e.g. to clear waiting lists. These compete with emergency patients for beds." },
+    { section: "Public health" },
+    ...rf,
+    ...(base.deprivation ? [{ key: "deprivationGapPct", label: "Close the deprivation gap", min: 0, max: 100, step: 5, fmt: (v) => v + "% closed",
+      help: base.deprivation.help }] : []),
+    { section: "Hospital flow" },
+    { key: "sameDayPct", label: "Same day emergency care", min: 15, max: 50, step: 1, fmt: (v) => v + "% of emergency patients",
+      help: "Emergency patients assessed and treated without an overnight stay (SDEC units, frailty assessment)." },
+    { key: "delayChangePct", label: "Delayed discharges (social care & community capacity)", min: -100, max: 50, step: 5, fmt: (v) => sign(v),
+      help: "Change in the time medically fit patients wait to leave hospital for care homes, home care or community beds. −100% removes delays entirely." },
+    { key: "weekendDischargePct", label: "7-day discharging", min: 0, max: 100, step: 5, fmt: (v) => v + "% at weekends",
+      help: "Share of patients ready to leave at the weekend who are discharged then, rather than waiting for Monday." },
+    { key: "dischargeStart", label: "Earlier discharge in the day", min: 7, max: 14, step: 1, fmt: (v) => "from " + v + ":00",
+      help: "Earliest time of day discharges happen (discharge lounges, criteria-led discharge, morning ward rounds)." },
+    { key: "virtualWardPct", label: "Virtual wards / hospital at home", min: 0, max: 30, step: 1, fmt: (v) => v + "% of stay",
+      help: "Share of older patients' (75+) hospital stay delivered at home instead." },
+    { key: "admissionAvoidancePct", label: "Community urgent response for older people", min: 0, max: 30, step: 1, fmt: (v) => v + "% avoided",
+      help: "Emergency admissions of people aged 75+ avoided by 2-hour community response, frailty and falls services." },
+    { key: "losChangePct", label: "Length of stay programmes", min: -30, max: 20, step: 1, fmt: (v) => sign(v),
+      help: "Change in time needed in hospital from faster diagnostics, consultant-led ward rounds, GIRFT-type improvements." },
+    { section: "Context (not policy levers)" },
     { key: "popYear", label: "Population of year", min: ymin, max: ymax, step: 1, fmt: (v) => String(v),
-      help: `Emergency admissions scale with the size of each age group in this year (ONS mid-year estimates${ymax > base.baseYear ? " and projections" : ""}). Admission rates per head are held at ${base.baseYear} levels.` },
-    ...base.conditions.map((c) => ({
-      key: "cond:" + c.name, label: c.label || c.name, min: -50, max: 100, step: 5, fmt: (v) => (v > 0 ? "+" : "") + v + "%",
-      help: `Change in prevalence / admission rate. ${fmt.pct(c.share)} of emergency admissions in the base year; stays ${c.losMult.toFixed(2)}× average length.`,
-    })),
-    { key: "otherGrowthPct", label: "Other demand change", min: -30, max: 50, step: 1, fmt: (v) => (v > 0 ? "+" : "") + v + "%",
-      help: "Any further change in emergency admissions not explained by population or the conditions above (e.g. changes in admission thresholds)." },
-    { key: "winterSeverityPct", label: "Winter peak (flu, COVID, norovirus)", min: 0, max: 250, step: 25, fmt: (v) => v + "% of normal",
-      help: "Size of the seasonal swing in emergency demand. 100% = ±4% around the average, peaking in mid-January." },
-    { key: "electivePct", label: "Planned (elective) overnight admissions", min: 50, max: 150, step: 5, fmt: (v) => v + "%",
-      help: "Volume of planned overnight admissions relative to 2024/25." },
-    { section: "Hospital processes" },
-    { key: "losChangePct", label: "Length of stay (acute care)", min: -30, max: 30, step: 1, fmt: (v) => (v > 0 ? "+" : "") + v + "%",
-      help: "Change in the time patients need in hospital for treatment, e.g. from faster diagnostics or better ward processes." },
-    { key: "sameDayPct", label: "Emergency patients treated same day", min: 10, max: 50, step: 1, fmt: (v) => v + "%",
-      help: "Share of emergency admissions discharged within hours (same day emergency care), never occupying a bed overnight." },
-    { key: "delayProbPct", label: "Patients delayed once medically fit", min: 0, max: 40, step: 1, fmt: (v) => v + "%",
-      help: "Share of overnight emergency patients whose discharge is delayed (waiting for social care, community beds, transport, etc.)." },
-    { key: "delayLengthPct", label: "Length of those delays", min: 0, max: 200, step: 5, fmt: (v) => v + "% of today",
-      help: "Average delay relative to 2024/25." },
-    { key: "dischargeStart", label: "Discharges start at", min: 6, max: 14, step: 1, fmt: (v) => v + ":00" },
-    { key: "dischargeEnd", label: "Discharges end at", min: 16, max: 24, step: 1, fmt: (v) => v + ":00" },
-    { key: "weekendDischargePct", label: "Weekend discharging", min: 0, max: 100, step: 5, fmt: (v) => v + "% of weekday",
-      help: "Share of patients ready at the weekend who are discharged at the weekend rather than waiting for Monday." },
+      help: `Size and age of England's population (ONS${ymax > base.baseYear ? " estimates and projections" : ""}). Older populations need more beds.` },
+    { key: "winterSeverityPct", label: "Severity of winter (flu, COVID)", min: 0, max: 250, step: 25, fmt: (v) => v + "% of usual",
+      help: "Size of the winter peak in emergency demand." },
+    { key: "otherGrowthPct", label: "Other change in emergency demand", min: -30, max: 50, step: 1, fmt: (v) => sign(v),
+      help: "Anything not covered above." },
   ];
-  return spec;
 }
 
-function getVal(key) { return key.startsWith("cond:") ? settings.conditions[key.slice(5)] : settings[key]; }
-function setVal(key, v) { if (key.startsWith("cond:")) settings.conditions[key.slice(5)] = v; else settings[key] = v; }
+function getVal(key) { return key.startsWith("risk:") ? settings.risk[key.slice(5)] : settings[key]; }
+function setVal(key, v) { if (key.startsWith("risk:")) settings.risk[key.slice(5)] = v; else settings[key] = v; }
 
 function buildControls() {
   const root = $("ctl-root");
@@ -220,9 +227,9 @@ function renderInputs(pA) {
     ["Planned overnight admissions per year", fmt.int(p0.electivePerYear), fmt.int(pA.electivePerYear)],
     ["Emergency patients going home same day", fmt.pct(p0.sameDayFrac, 0), fmt.pct(pA.sameDayFrac, 0)],
     ["Mean acute stay, overnight emergency patients (days)", meanLos(p0).toFixed(2), meanLos(pA).toFixed(2)],
-    ["Patients delayed once fit", fmt.pct(p0.delayProb, 0), fmt.pct(pA.delayProb, 0)],
     ["Mean delay (days)", p0.delayMeanDays.toFixed(2), pA.delayMeanDays.toFixed(2)],
     ["Discharge window", `${p0.dischargeStart}:00–${p0.dischargeEnd}:00`, `${pA.dischargeStart}:00–${pA.dischargeEnd}:00`],
+    ...demandRows(),
     ["Weekend discharging", `${p0.weekendDischargePct}%`, `${pA.weekendDischargePct}%`],
     ["Seasonal swing in demand", `±${(100 * p0.seasonAmp).toFixed(1)}%`, `±${(100 * pA.seasonAmp).toFixed(1)}%`],
   ];
@@ -236,6 +243,16 @@ function renderInputs(pA) {
     rows.map((r) => `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join("") +
     `</tbody></table><h4 style="margin:14px 0 4px">Population and emergency admissions by age</h4>
     <table><thead><tr><th>Age</th><th class="num">Population ${base.baseYear}</th><th class="num">Population ${settings.popYear}</th><th class="num">Emergency admissions ${base.baseYear}</th><th class="num">Scenario (before condition & other changes)</th></tr></thead><tbody>${ageRows}</tbody></table>`;
+}
+
+function demandRows() {
+  const d = demandBreakdown(base, settings), x = (m) => (m >= 1 ? "+" : "−") + Math.abs(100 * (m - 1)).toFixed(1) + "%";
+  return [
+    ["Demand effect: population size & age", "", x(d.population)],
+    ...(base.riskFactors || []).map((r) => [`Demand effect: ${r.label.toLowerCase()}`, "", x(d.risk[r.key])]),
+    ...(base.deprivation ? [["Demand effect: deprivation gap", "", x(d.deprivation)]] : []),
+    ["Demand effect: other", "", x(d.other)],
+  ];
 }
 
 async function runSweep() {
@@ -276,7 +293,7 @@ async function runSweep() {
 function writeHash() {
   const d = defaultSettings(base), diff = {};
   for (const k of Object.keys(settings)) {
-    if (k === "conditions") { for (const c in settings.conditions) if (settings.conditions[c] !== d.conditions[c]) diff["c." + c] = settings.conditions[c]; }
+    if (k === "risk") { for (const c in settings.risk) if (settings.risk[c] !== d.risk[c]) diff["r." + c] = settings.risk[c]; }
     else if (settings[k] !== d[k]) diff[k] = settings[k];
   }
   history.replaceState(null, "", Object.keys(diff).length ? "#" + new URLSearchParams(diff).toString() : location.pathname);
@@ -284,7 +301,7 @@ function writeHash() {
 function readHash() {
   const h = new URLSearchParams(location.hash.slice(1));
   for (const [k, v] of h) {
-    if (k.startsWith("c.")) { if (k.slice(2) in settings.conditions) settings.conditions[k.slice(2)] = Number(v); }
+    if (k.startsWith("r.")) { if (k.slice(2) in settings.risk) settings.risk[k.slice(2)] = Number(v); }
     else if (k in settings) settings[k] = k === "flexibility" ? v : Number(v);
   }
 }

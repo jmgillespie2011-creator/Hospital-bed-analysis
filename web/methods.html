@@ -85,32 +85,63 @@ season(d) = 1 + a × cos(2π (day-of-year − 15) / 365)    (peak mid-January; a
     "planned admissions lost" figure as <em>planned capacity lost</em>.</li>
 </ul>
 
-<h3 id="demographics">Demographics</h3>
-<p>Emergency demand is built up by age band. For each band <code>b</code>:</p>
-<pre>admissions(b, year) = admissions(b, base year) × population(b, year) / population(b, base year)</pre>
-<p>so admission rates per head are held at base-year levels and only the size and age structure of the population change.
-Each band has its own length-of-stay multiplier (from hospital episode statistics: bed days ÷ admissions, relative to the average) and
-delayed-discharge multiplier (older patients are much more likely to wait for social care). Population comes from ONS mid-year estimates
-(and projections where available). The "Other demand change" setting captures everything else, such as changes in admission thresholds.</p>
+<h2 id="levers">How each setting works</h2>
+<p>The settings are grouped into things policy can change (capacity, public health, hospital flow) and context that it
+cannot directly change (population, winter severity). Each one changes a specific model input; the
+"What the model is running" table on the Model page shows the resulting inputs, so you can check every effect.</p>
 
-<h3 id="conditions">Disease prevalence</h3>
-<p>Each condition group <code>i</code> has a base-year share <code>s<sub>i</sub></code> of emergency admissions and a length-of-stay multiplier
-<code>m<sub>i</sub></code> (its share of bed days ÷ its share of admissions). Changing prevalence by <code>Δ<sub>i</sub></code> changes its admissions
-proportionally:</p>
-<pre>weight(i) = s<sub>i</sub> × (1 + Δ<sub>i</sub>)        weight(other) = 1 − Σ s<sub>i</sub>
-emergency admissions = Σ<sub>b</sub> admissions(b, year) × Σ<sub>i</sub> weight(i) × (1 + other change)</pre>
-<p>Each simulated patient is given an age band and a condition group; their length of stay uses both multipliers. <strong>Assumption:</strong> age and
-condition are treated as independent (the condition mix is the same in every age band). In reality, conditions such as dementia, falls and
-pneumonia are concentrated in older people, so the model will slightly understate the length-of-stay effect of an older population with more of
-these conditions.</p>
-<p>A change in prevalence is assumed to change admissions proportionally (a 10% rise in prevalence gives 10% more admissions for that
-condition). Better management of a condition in the community would reduce admissions without changing prevalence; use a negative value
-to represent that.</p>
+<h3 id="capacity">Hospital capacity</h3>
+<ul>
+  <li><strong>General &amp; acute beds</strong>: physical beds <code>B</code>.</li>
+  <li><strong>Nursing posts filled</strong>: available beds = <code>B × min(1, filled%)</code>. Extra beds therefore only help if they can be staffed.
+    The model does not include the evidence that low staffing also lengthens stays and worsens outcomes, so staffing effects are, if anything, understated.</li>
+  <li><strong>Extra winter beds</strong>: additional % of available beds from 1 December to 31 March.</li>
+  <li><strong>Planned surgery &amp; treatment</strong>: scales the number of planned overnight admissions.</li>
+</ul>
 
-<h3 id="staffing">Staffing</h3>
-<p>Staffing affects capacity only: available beds = physical beds × staffing % (capped at 100%). Adding physical beds therefore has no effect
-unless they can be staffed. The model does not represent the evidence that low nurse staffing can also lengthen stays and worsen outcomes,
-so staffing shortfalls are, if anything, understated.</p>
+<h3 id="publichealth">Public health</h3>
+<p>Risk factors change the number of people who need admitting. For a risk factor with prevalence <code>p</code> and relative risk of
+admission <code>RR</code> (people with the risk factor compared with people without), the population attributable fraction is the standard
+epidemiological formula</p>
+<pre>PAF = p (RR − 1) / (1 + p (RR − 1))</pre>
+<p>and changing prevalence from <code>p₀</code> to <code>p₁</code> multiplies admissions by</p>
+<pre>(1 + p₁ (RR − 1)) / (1 + p₀ (RR − 1))</pre>
+<p>RR is taken from published research or derived from a published count of attributable admissions (the sources are on the
+<a href="data.html">Data &amp; sources</a> page). Several risk factors are combined by multiplying their effects, which assumes they act
+independently. The effect is applied to both emergency and planned admissions.</p>
+<div class="callout"><strong>Long-run effects.</strong> These are the effects once a change in prevalence has fully worked through. In reality
+the benefits of stopping smoking or losing weight build up over years (an ex-smoker's risk falls gradually), so these settings describe where
+a policy leads, not what happens the year it starts.</div>
+<ul>
+  <li><strong>Adult smoking rate</strong> and <strong>adult obesity rate</strong> use the prevalence formula above.</li>
+  <li><strong>Alcohol harm</strong> changes alcohol-related admissions (OHID's "narrow" measure, where alcohol is the main reason for admission)
+    by the chosen %. Admissions change by <code>share × change</code>, where <code>share</code> is alcohol-related admissions as a share of all admissions.</li>
+  <li><strong>Close the deprivation gap</strong>: people in more deprived areas are admitted more often. Each fifth of the population (by
+    Index of Multiple Deprivation) has a relative admission rate <code>r<sub>q</sub></code>. Closing the gap by <code>g</code> moves each fifth towards the
+    least deprived: <code>r<sub>q</sub>' = r<sub>min</sub> + (r<sub>q</sub> − r<sub>min</sub>)(1 − g)</code>. Admissions change by
+    <code>Σ r<sub>q</sub>' / Σ r<sub>q</sub></code>. The gap partly reflects risk factors, so combining this with smoking and obesity changes
+    double-counts some of the effect.</li>
+</ul>
+
+<h3 id="flow">Hospital flow</h3>
+<ul>
+  <li><strong>Same day emergency care</strong>: share of emergency patients who leave within hours and never occupy a bed overnight.</li>
+  <li><strong>Delayed discharges</strong>: scales the average time medically fit patients wait to leave (calibrated to NHS England's
+    count of patients who no longer meet the criteria to reside). Represents social care, care home and community bed capacity.</li>
+  <li><strong>7-day discharging</strong>: share of patients ready to leave at the weekend who leave then; the rest wait until Monday.</li>
+  <li><strong>Earlier discharge in the day</strong>: start of the daily discharge window (default 10:00; ends 20:00). Patients ready overnight leave
+    when the window opens.</li>
+  <li><strong>Virtual wards / hospital at home</strong>: shortens the bed stay of patients aged 75+ by the chosen share.</li>
+  <li><strong>Community urgent response for older people</strong>: removes the chosen share of emergency admissions in people aged 75+.</li>
+  <li><strong>Length of stay programmes</strong>: changes the clinically needed length of stay for all patients.</li>
+</ul>
+
+<h3 id="demographics">Population (context)</h3>
+<p>Emergency demand is built up by age band:</p>
+<pre>admissions(band, year) = admissions(band, base year) × population(band, year) / population(band, base year)</pre>
+<p>so admission rates per head are held at base-year levels and only the size and age structure of the population change. Each band has its own
+length-of-stay and delayed-discharge multipliers (older patients stay longer and are more often delayed). Population comes from ONS mid-year
+estimates and projections.</p>
 
 <h2 id="calibration">Calibration</h2>
 <p>Three quantities cannot be observed directly and are tuned so the 2024/25 baseline reproduces published figures:</p>

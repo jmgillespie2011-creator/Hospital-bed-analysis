@@ -48,12 +48,17 @@ async function main() {
       [1, 2, 3, ...show.map((_, i) => 4 + i)]);
     if ($("agesNote")) $("agesNote").innerHTML = esc(base.ageNote || "");
   }
-  if ($("conds")) {
-    $("conds").innerHTML = table(
-      ["Condition group", "Share of emergency admissions", "Length-of-stay multiplier", "Definition"],
-      base.conditions.map((c) => [esc(c.label || c.name), pct(c.share), num(c.losMult, 2), esc(c.definition || "")]),
-      [1, 2]);
-    if ($("condsNote")) $("condsNote").innerHTML = esc(base.conditionNote || "");
+  if ($("risks")) {
+    $("risks").innerHTML = table(
+      ["Setting", "Today", "Method", "Key parameter", "Source", "Notes"],
+      (base.riskFactors || []).map((r) => [esc(r.label), r.type === "prevalence" ? `${r.current}%` : "no change",
+        r.type === "prevalence" ? "Attributable fraction from prevalence" : "Attributable admissions",
+        r.type === "prevalence" ? `Relative risk ${num(r.relativeRisk, 2)} (attributable share today ${pct(r.paf)})` : `Share of admissions ${pct(r.share)}`,
+        (r.sources || []).map((x) => link(x.url, x.name)).join("<br>"), esc(r.note || "")]));
+    if (base.deprivation) $("risks").innerHTML += `<h3>Deprivation</h3>` + table(
+      ["Deprivation fifth", "Relative emergency admission rate"],
+      base.deprivation.relativeRates.map((x, i) => [i === 0 ? "Most deprived" : i === 4 ? "Least deprived" : String(i + 1), num(x, 2)]), [1]) +
+      `<p>${esc(base.deprivation.note || "")} ${(base.deprivation.sources || []).map((x) => link(x.url, x.name)).join(", ")}</p>`;
   }
   if ($("history")) {
     $("history").innerHTML = table(

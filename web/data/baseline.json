@@ -21,24 +21,35 @@
  },
  "ageBands": [
   {
-   "band": "All ages",
+   "band": "0-64",
    "pop": {
-    "2005": 50600000.0,
-    "2008": 51460000.0,
-    "2010": 52600000.0,
-    "2015": 54800000.0,
-    "2024": 58600000.0
+    "2005": 42000000.0,
+    "2024": 47000000.0
    },
-   "emergAdm": 6600000.0,
-   "losMult": 1,
-   "delayMult": 1
-  }
- ],
- "conditions": [
+   "emergAdm": 3300000.0,
+   "losMult": 0.7,
+   "delayMult": 0.4
+  },
   {
-   "name": "Respiratory",
-   "share": 0.14,
-   "losMult": 1.1
+   "band": "65-74",
+   "pop": {
+    "2005": 4300000.0,
+    "2024": 5900000.0
+   },
+   "emergAdm": 1000000.0,
+   "losMult": 1.0,
+   "delayMult": 1.0
+  },
+  {
+   "band": "75+",
+   "pop": {
+    "2005": 4300000.0,
+    "2024": 5700000.0
+   },
+   "emergAdm": 2300000.0,
+   "losMult": 1.35,
+   "delayMult": 1.6,
+   "older": true
   }
  ],
  "otherConditionLosMult": 0.984,
@@ -51,5 +62,50 @@
    "label": "2005/06",
    "beds": 119730
   }
- ]
+ ],
+ "riskFactors": [
+  {
+   "key": "smoking",
+   "label": "Adult smoking rate",
+   "type": "prevalence",
+   "current": 11.9,
+   "min": 0,
+   "max": 25,
+   "step": 0.5,
+   "relativeRisk": 1.26,
+   "help": "TEST"
+  },
+  {
+   "key": "obesity",
+   "label": "Adult obesity rate",
+   "type": "prevalence",
+   "current": 26.5,
+   "min": 10,
+   "max": 40,
+   "step": 0.5,
+   "relativeRisk": 1.25,
+   "help": "TEST"
+  },
+  {
+   "key": "alcohol",
+   "label": "Alcohol harm",
+   "type": "attributable",
+   "current": 0,
+   "min": -50,
+   "max": 50,
+   "step": 5,
+   "share": 0.034,
+   "help": "TEST"
+  }
+ ],
+ "deprivation": {
+  "relativeRates": [
+   1.5,
+   1.2,
+   1.0,
+   0.9,
+   0.8
+  ],
+  "help": "TEST"
+ }
 }
