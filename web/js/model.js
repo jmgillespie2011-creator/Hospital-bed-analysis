@@ -113,7 +113,8 @@ export const DEFAULTS = {
   losSigma: 1.0,
   losChangePct: 0,            // scenario change to acute LOS
   delayProb: 0.20,            // share of overnight emergency patients delayed once medically fit
-  delayMeanDays: 4.3,         // mean delay (gamma, shape 1.5)
+  delayMeanDays: 4.3,         // mean delay (gamma distribution)
+  delayShape: 1.5,            // gamma shape of the delay distribution
   electiveLosMedianDays: 2.0,
   electiveLosSigma: 0.8,
   seasonAmp: 0.04,            // +/- non-flu emergency demand, peak mid-January
@@ -121,7 +122,8 @@ export const DEFAULTS = {
   fluPeakDoy: 5,              // day of year of the flu peak (5 January)
   fluSdDays: 21,              // spread of the flu wave (standard deviation, days)
   fluLosMult: 1.3,            // flu patients' stay relative to the average emergency patient
-  dischargeStart: 10,         // discharge window (hours)
+  prepHours: 3,               // average hours from ward round to leaving hospital
+  dischargeStart: 9,          // discharge window (hours)
   dischargeEnd: 20,
   weekendDischargePct: 50,    // % of weekend-ready patients discharged at the weekend
   electiveWaitUntil: 20,      // electives without a bed by this hour are cancelled
@@ -163,12 +165,23 @@ export function simulate(p, seed = 1, wantDaily = true) {
   for (const x of g) { acc += x.share / gTot; gCum.push(acc); }
   const pickGroup = () => { const u = R.next(); for (let i = 0; i < gCum.length; i++) if (u < gCum[i]) return i; return gCum.length - 1; };
 
-  const dischargeTime = (ready) => {
-    let day = Math.floor(ready / 24), hr = ready - day * 24, t = ready;
-    if (hr < dStart) t = day * 24 + dStart + R.next() * dLen;
-    else if (hr >= dStart + dLen) { day += 1; t = day * 24 + dStart + R.next() * dLen; }
+  // Discharge process. A patient who becomes medically fit is confirmed ready at the next morning
+  // ward round (09:00-12:00; anyone fit after 12:00 waits for the next day's round): that date is
+  // their Discharge Ready Date. They leave after the preparation time (medicines, transport,
+  // paperwork), never after the end of the discharge window. At weekends only the chosen share of
+  // ready patients are discharged; the rest leave on Monday.
+  const wardRound = (fit) => {
+    let day = Math.floor(fit / 24);
+    if (fit - day * 24 > 12) day += 1;
+    return day * 24 + 9 + 3 * R.next();
+  };
+  const prep = p.prepHours;
+  const leaveAfter = (ready) => {
+    let t = ready + prep * (0.4 + 1.2 * R.next());
+    let day = Math.floor(t / 24);
+    if (t - day * 24 >= dStart + dLen) { day += 1; t = day * 24 + 9 + 3 * R.next() + prep * (0.4 + 1.2 * R.next()); }
     const dow = (day + dow0) % 7;
-    if (dow >= 5 && R.next() < weekendDefer) { day += 7 - dow; t = day * 24 + dStart + R.next() * dLen; }
+    if (dow >= 5 && R.next() < weekendDefer) { day += 7 - dow; t = day * 24 + 9 + 3 * R.next() + prep * (0.4 + 1.2 * R.next()); }
     return t;
   };
 
@@ -226,6 +239,9 @@ export function simulate(p, seed = 1, wantDaily = true) {
   let elecOffered = 0, elecCancelled = 0;
   const occMid = [], occ8 = [], nctrMid = [], capMid = [], fluMid = [];
   const fluInBed = new Set();
+  const admitOf = new Map();
+  let emBedDays = 0, emCount = 0, emDelayed = 0, emOvernight = 0, elDelayed = 0, elOvernight = 0;
+  const long21_8 = [];
   // discharges of patients who were medically fit before the day began, by weekday (Mon=0),
   // and the matching midnight stock, to compare with NHS England's discharge sitrep
   const nctrDisWk = new Float64Array(7), nctrStockWk = new Float64Array(7);
@@ -241,24 +257,35 @@ export function simulate(p, seed = 1, wantDaily = true) {
   const admitEmergency = (t, i) => {
     key++;
     const grp = isFlu[i] ? FLU_GROUP : g[pickGroup()];
-    let ready, dis;
+    let ready, dis, overnight = false;
     if (R.next() < p.sameDayFrac) {
       ready = dis = t + 3 + 7 * R.next();
     } else {
+      overnight = true;
       const los = 24 * p.losMedianDays * losScale * grp.losMult * Math.exp(p.losSigma * R.normal());
-      ready = dischargeTime(t + los);
-      dis = ready;
+      ready = wardRound(t + los);
+      dis = leaveAfter(ready);
       if (R.next() < Math.min(1, p.delayProb * grp.delayMult)) {
-        dis = dischargeTime(ready + 24 * R.gamma(1.5, p.delayMeanDays / 1.5));
+        dis = leaveAfter(ready + 24 * R.gamma(p.delayShape, p.delayMeanDays / p.delayShape));
       }
     }
     heap.push(dis, key); readyOf.set(key, ready); occupied++;
+    admitOf.set(key, t);
     if (isFlu[i]) fluInBed.add(key);
+    if (t >= warmH) {
+      // midnights spent in hospital (KH03 bed days); for overnight patients, whether they left on a
+      // later date than the date they became medically fit (the Discharge Ready Date measure)
+      emBedDays += Math.floor(dis / 24) - Math.floor(t / 24); emCount++;
+      if (overnight) { emOvernight++; if (Math.floor(dis / 24) > Math.floor(ready / 24)) emDelayed++; }
+    }
   };
   const admitElective = (t) => {
     key++;
-    const dis = dischargeTime(t + 24 * p.electiveLosMedianDays * losScale * Math.exp(p.electiveLosSigma * R.normal()));
-    heap.push(dis, key); readyOf.set(key, dis); occupied++;
+    const ready = wardRound(t + 24 * p.electiveLosMedianDays * losScale * Math.exp(p.electiveLosSigma * R.normal()));
+    const dis = leaveAfter(ready);
+    heap.push(dis, key); readyOf.set(key, ready); occupied++;
+    admitOf.set(key, t);
+    if (t >= warmH) { elOvernight++; if (Math.floor(dis / 24) > Math.floor(ready / 24)) elDelayed++; }
   };
   const deadline = (j) => Math.floor(el[j] / 24) * 24 + p.electiveWaitUntil;
   const fillFreeBeds = (t) => {
@@ -293,6 +320,8 @@ export function simulate(p, seed = 1, wantDaily = true) {
           nctrStockWk[(Math.floor(t / 24) + dow0) % 7] += n;
         } else {
           occ8.push(Math.min(occupied, cap(t)));
+          let n21 = 0; for (const a of admitOf.values()) if (t - a >= 21 * 24) n21++;
+          long21_8.push(n21);
           queue8.push(queue.length - qHead); tes8.push(Math.max(0, occupied - cap(t)));
         }
       }
@@ -300,7 +329,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
     } else if (t === td) {
       const k = heap.pop();
       if (t >= warmH && readyOf.get(k) <= Math.floor(t / 24) * 24) nctrDisWk[(Math.floor(t / 24) + dow0) % 7]++;
-      readyOf.delete(k); fluInBed.delete(k); occupied--;
+      readyOf.delete(k); fluInBed.delete(k); admitOf.delete(k); occupied--;
       fillFreeBeds(t);
     } else if (t === ta) {
       if (occupied < capE(t) && qHead >= queue.length) {
@@ -338,6 +367,10 @@ export function simulate(p, seed = 1, wantDaily = true) {
     daily: wantDaily ? occMid.map((o, i) => o / capMid[i]) : null,
     fluDaily: fluMid,
     nctrDisWk: Array.from(nctrDisWk), nctrStockWk: Array.from(nctrStockWk),
+    long21Share8: sum(long21_8) / Math.max(sum(occ8), 1),          // share of occupied beds with stay >= 21 days (08:00)
+    emBedDaysPerAdm: emBedDays / Math.max(emCount, 1),               // midnights per emergency admission
+    // share of overnight discharges (emergency and planned) leaving after their Discharge Ready Date
+    delayedShareOvernight: (emDelayed + elDelayed) / Math.max(emOvernight + elOvernight, 1),
     queue8: sum(queue8) / queue8.length,          // patients waiting in A&E for a bed at 08:00
     queue8Max: Math.max(...queue8),
     tes8: sum(tes8) / tes8.length,                // patients in temporary escalation spaces at 08:00
@@ -387,6 +420,9 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
     elecCancelRate: out.reduce((s, x) => s + x.elecCancelled, 0) / Math.max(out.reduce((s, x) => s + x.elecOffered, 0), 1),
     daily,
     fluBedsPeak: Math.max(...fluDaily),
+    long21Share: mean((x) => x.long21Share8),
+    emBedDaysPerAdm: mean((x) => x.emBedDaysPerAdm),
+    delayedShareOvernight: mean((x) => x.delayedShareOvernight),
     waitingForBed8am: mean((x) => x.queue8) * nPools,
     inEscalationSpaces8am: mean((x) => x.tes8) * nPools,
     corridorCare8am: mean((x) => x.queue8 + x.tes8) * nPools,

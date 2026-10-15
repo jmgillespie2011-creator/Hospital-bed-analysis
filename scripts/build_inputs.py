@@ -9,6 +9,7 @@ Usage: python3 scripts/build_inputs.py
 
 from __future__ import annotations
 
+import datetime as _dt
 import re
 from pathlib import Path
 
@@ -255,3 +256,307 @@ def trust_panel(fy: str = "2025/26") -> pd.DataFrame:
 
 if __name__ == "__main__":
     main()
+
+
+# ------------------------------------------------------------------ winter daily sitrep (national, daily)
+def _winter_sheet(f: Path, sheet: str, wanted: dict[str, str]) -> pd.DataFrame:
+    d = pd.read_excel(f, sheet_name=sheet, header=None)
+    date_row = d.index[d.apply(lambda r: r.map(lambda v: isinstance(v, (pd.Timestamp, _dt.datetime))).sum() > 3, axis=1)][0]
+    hdr = d.iloc[date_row + 1].astype(str).str.strip()
+    eng = d.index[d[4].astype(str).str.startswith("ENGLAND (All")][0]
+    dates = d.iloc[date_row].ffill()
+    rows = []
+    for col in d.columns[5:]:
+        name = hdr[col]
+        for key, prefix in wanted.items():
+            if name.startswith(prefix) and pd.notna(dates[col]):
+                rows.append(dict(date=pd.Timestamp(dates[col]), key=key, value=pd.to_numeric(d.at[eng, col], errors="coerce")))
+    return pd.DataFrame(rows).pivot_table(index="date", columns="key", values="value", aggfunc="first").reset_index()
+
+
+def winter_daily() -> pd.DataFrame:
+    out = []
+    for f in sorted((RAW / "corridor_care").glob("Web-File-Timeseries-UEC-Daily-SitRep*.xlsx")):
+        ga = _winter_sheet(f, "Total G&A beds", {"ga_open": "Total G&A Beds Open", "ga_occupied": "Total G&A beds occ"})
+        flu = _winter_sheet(f, "Flu", {"flu_ga_beds": "G&A flu beds"})
+        out.append(ga.merge(flu, on="date", how="outer").assign(source=f.name))
+    w = pd.concat(out).drop_duplicates("date", keep="last").sort_values("date")
+    w["occupancy"] = w.ga_occupied / w.ga_open
+    w["weekday"] = w.date.dt.dayofweek
+    w["winter"] = w.date.map(lambda x: f"{x.year if x.month >= 7 else x.year - 1}/{str((x.year if x.month >= 7 else x.year - 1) + 1)[-2:]}")
+    w.to_csv(OUT / "winter_daily_england.csv", index=False)
+    return w
+
+
+# ------------------------------------------------------------------ HES 2023/24 by diagnosis -> age bands, flu, electives
+AGE_COLS = {"0": (0, 0), "1-4": (1, 4), "5-9": (5, 9), "10-14": (10, 14), "15": (15, 15), "16": (16, 16), "17": (17, 17),
+            "18": (18, 18), "19": (19, 19), "20-24": (20, 24), "25-29": (25, 29), "30-34": (30, 34), "35-39": (35, 39),
+            "40-44": (40, 44), "45-49": (45, 49), "50-54": (50, 54), "55-59": (55, 59), "60-64": (60, 64), "65-69": (65, 69),
+            "70-74": (70, 74), "75-79": (75, 79), "80-84": (80, 84), "85-89": (85, 89), "90+": (90, 120)}
+BANDS = [("0-17", 0, 17), ("18-64", 18, 64), ("65-74", 65, 74), ("75-84", 75, 84), ("85+", 85, 120)]
+
+
+def hes_diagnosis(year: str = "2023-24") -> pd.DataFrame:
+    f = RAW / "hes_files" / f"hosp-epis-stat-admi-diag-{year}-tab.xlsx"
+    d = pd.read_excel(f, sheet_name="Primary Diagnosis 3 Character", header=None)
+    hdr_row = d.index[d.apply(lambda r: r.astype(str).str.startswith("Finished consultant episodes").any(), axis=1)][0]
+    names = [re.sub(r"\s+", " ", str(c)).strip() for c in d.iloc[hdr_row]]
+    rows = d.iloc[hdr_row + 1:]
+    rows = rows[rows[0].astype(str).str.match(r"^[A-Z]\d\d$")]
+    def col(label: str, nth: int = 0) -> pd.Series:
+        idx = [i for i, n in enumerate(names) if n.startswith(label)][nth]
+        return pd.to_numeric(rows[idx], errors="coerce").fillna(0)
+    out = pd.DataFrame({"code": rows[0].astype(str), "desc": rows[1].astype(str),
+                        "fce": col("Finished consultant episodes"), "fae": col("Finished Admission Episodes"),
+                        "emergency_fae": col("Emergency (FAE)"), "waiting_fae": col("Waiting list (FAE)"),
+                        "planned_fae": col("Planned (FAE)"), "day_case_fce": col("Day case (FCE)"),
+                        "bed_days": col("FCE bed days"), "mean_los": col("Mean length of stay")})
+    for k in AGE_COLS:
+        out[f"age_{k}"] = col(f"Age {k} (FCE)")
+    out.to_csv(OUT / f"hes_primary_diagnosis_{year}.csv", index=False)
+    return out
+
+
+def hes_derived(h: pd.DataFrame) -> dict:
+    """Age-band emergency admissions and bed days, flu, and elective overnight admissions.
+
+    HES publishes age only for all episodes of a diagnosis, not by admission method, so each
+    diagnosis's emergency admissions are split by that diagnosis's age profile. Because
+    emergency conditions are age-specific (e.g. pneumonia, falls), summing over ~1,800
+    diagnoses gives a good age profile for emergency admissions. Maternity (O) and perinatal
+    (P) chapters and live-born infants (Z38) are excluded, as they are not G&A beds."""
+    # G&A scope: drop maternity (O), perinatal (P), live births (Z38) and mental illness other than
+    # organic disorders such as dementia and delirium (F10-F99 are mostly psychiatric beds).
+    g = h[~h.code.str.match(r"^(O|P|F[1-9])") & (h.code != "Z38")].copy()
+    agecols = [f"age_{k}" for k in AGE_COLS]
+    tot_age = g[agecols].sum(axis=1).replace(0, np.nan)
+    emerg_share = (g.emergency_fae / g.fae.replace(0, np.nan)).fillna(0).clip(0, 1)
+    g["emergency_bed_days"] = g.bed_days * emerg_share
+    bands = []
+    for name, lo, hi in BANDS:
+        cols = [f"age_{k}" for k, (a, b) in AGE_COLS.items() if a >= lo and b <= hi]
+        share = (g[cols].sum(axis=1) / tot_age).fillna(0)
+        bands.append(dict(band=name, lo=lo, hi=hi, emergency_admissions=float((g.emergency_fae * share).sum()),
+                          emergency_bed_days=float((g.emergency_bed_days * share).sum())))
+    b = pd.DataFrame(bands)
+    mean_bd = b.emergency_bed_days.sum() / b.emergency_admissions.sum()
+    b["los_mult"] = (b.emergency_bed_days / b.emergency_admissions) / mean_bd
+    flu = g[g.code.isin(["J09", "J10", "J11"])]
+    flu_age = flu[agecols].sum()
+    over65 = sum(flu_age[f"age_{k}"] for k, (a, _) in AGE_COLS.items() if a >= 65)
+    flu_info = dict(
+        emergency_admissions=float(flu.emergency_fae.sum()),
+        share65=float(over65 / flu_age.sum()),
+        los_mult=float((flu.emergency_bed_days.sum() / flu.emergency_fae.sum()) / mean_bd),
+        codes="J09-J11",
+    )
+    elective_overnight = float((g.waiting_fae + g.planned_fae).sum() - g.day_case_fce.sum())
+    # Bed days per admission measured on diagnoses dominated (>=85%) by one admission type, where
+    # bed days can be attributed to that type without the splitting assumption.
+    e_dom = g[(g.emergency_fae / g.fae.replace(0, np.nan)) >= 0.85]
+    l_dom = g[((g.waiting_fae + g.planned_fae) / g.fae.replace(0, np.nan)) >= 0.85]
+    emerg_bd_per_adm = float(e_dom.bed_days.sum() / e_dom.fae.sum())
+    elect_bd_per_overnight = float(l_dom.bed_days.sum() / max((l_dom.fae - l_dom.day_case_fce).clip(lower=0).sum(), 1))
+    return dict(bands=b, flu=flu_info, elective_overnight=elective_overnight,
+                emergency_total=float(g.emergency_fae.sum()), mean_emergency_bed_days=float(mean_bd),
+                emergency_bed_days_per_admission_dominant=emerg_bd_per_adm,
+                emergency_dominant_share=float(e_dom.emergency_fae.sum() / g.emergency_fae.sum()),
+                elective_bed_days_per_overnight_dominant=elect_bd_per_overnight,
+                elective_dominant_share=float((l_dom.waiting_fae + l_dom.planned_fae).sum() / (g.waiting_fae + g.planned_fae).sum()))
+
+
+# ------------------------------------------------------------------ ONS projections (England derived from UK)
+def ons_projection_england(est: pd.DataFrame) -> pd.DataFrame:
+    """2022-based UK principal projection by single age, converted to England using the
+    England/UK ratio for each single year of age in the latest estimate year (ONS Table 3/11)."""
+    import io
+    import zipfile
+    z = zipfile.ZipFile(RAW / "ons_projections" / "uk.zip")
+    b = z.read("uk/uk_ppp_machine_readable.xlsx")
+    d = pd.read_excel(io.BytesIO(b), sheet_name="Population")
+    d = d.copy()
+    d["age"] = pd.to_numeric(d["Age"].astype(str).str.extract(r"(\d+)")[0])
+    uk = d.drop(columns=["Sex", "Age"]).groupby("age").sum()
+    f = RAW / "ons_population" / "ukpopulationestimates18382025.xlsx"
+    t3 = pd.read_excel(f, sheet_name="Table 3", header=None)
+    hdr = t3.index[t3[0].astype(str).str.strip().eq("Age")][0]
+    t3.columns = [str(c).strip() for c in t3.iloc[hdr]]
+    t3 = t3.iloc[hdr + 1:]
+    t3 = t3[t3["Sex"].astype(str).str.strip().eq("Persons") & ~t3["Age"].astype(str).str.contains("All")]
+    last = max(est.year)
+    uk_est = pd.Series(pd.to_numeric(t3[f"Mid-{last}"]).values, index=t3["Age"].astype(str).str.extract(r"(\d+)")[0].astype(int))
+    eng_est = est[est.year == last].set_index("age").population
+    ratio = (eng_est / uk_est).reindex(uk.index).ffill()
+    proj = uk.mul(ratio, axis=0)
+    long = proj.reset_index().melt(id_vars="age", var_name="year", value_name="population")
+    long["year"] = long.year.astype(int)
+    long = long[long.year > last]
+    long.to_csv(OUT / "ons_england_projection_single_age.csv", index=False)
+    return long
+
+
+# ------------------------------------------------------------------ delay distribution (Discharge Ready Date)
+def drd_delays(fy_months: list[pd.Timestamp]) -> dict:
+    """Share of discharges after the Discharge Ready Date and the distribution of delay lengths,
+    with a gamma distribution fitted to the published delay bands by maximum likelihood."""
+    from scipy import optimize, stats
+    # several editions are published; use the one covering the most recent month
+    cands = sorted((RAW / "discharge_acute").glob("Discharge-Ready-Date-Timeseries-webfile-*.xlsx"))
+    d = max((pd.read_excel(c, sheet_name="Timeseries", header=None) for c in cands),
+            key=lambda x: pd.to_datetime(x[0], errors="coerce").max())
+    hdr = d.index[d[0].astype(str).str.strip().eq("Month")][0]
+    cols = d.iloc[hdr].tolist()
+    rows = d.iloc[hdr + 1:]
+    rows = rows[pd.to_datetime(rows[0], errors="coerce").notna()].copy()
+    rows["month"] = pd.to_datetime(rows[0])
+    rows = rows[rows.month.isin(fy_months)]
+    delayed_share = pd.to_numeric(rows[8]).mean()
+    # % of delayed patients discharged within each band (columns 26-31)
+    bands = [(1, 1), (2, 3), (4, 6), (7, 13), (14, 20), (21, np.inf)]
+    shares = np.array([pd.to_numeric(rows[c]).mean() for c in range(26, 32)])
+    shares = shares / shares.sum()
+    avg_exc0 = pd.to_numeric(rows[41], errors="coerce").mean()
+    # A delay of d days (continuous) is recorded as ceil(d) days.
+    def nll(theta):
+        k, scale = np.exp(theta)
+        cdf = lambda x: stats.gamma.cdf(x, k, scale=scale)  # noqa: E731
+        probs = [cdf(hi) - cdf(lo - 1) if np.isfinite(hi) else 1 - cdf(lo - 1) for lo, hi in bands]
+        return -np.sum(shares * np.log(np.maximum(probs, 1e-12)))
+    res = optimize.minimize(nll, x0=np.log([1.0, 6.0]), method="Nelder-Mead")
+    k, scale = np.exp(res.x)
+    return dict(delayed_share=float(delayed_share), band_shares=shares.round(4).tolist(),
+                band_labels=["1 day", "2-3 days", "4-6 days", "7-13 days", "14-20 days", "21+ days"],
+                avg_delay_exc0=float(avg_exc0), gamma_shape=float(k), gamma_mean=float(k * scale),
+                months=f"{min(rows.month):%b %Y}-{max(rows.month):%b %Y}")
+
+
+# ------------------------------------------------------------------ flu wave per winter (daily flu beds)
+def flu_waves(w: pd.DataFrame) -> list[dict]:
+    """Fit a Gaussian curve in time to the daily number of flu patients in G&A beds each winter.
+    The peak occupancy and its date are taken directly from the data; the spread is the fitted SD."""
+    from scipy import optimize
+    out = []
+    for winter, g in w.dropna(subset=["flu_ga_beds"]).groupby("winter"):
+        x = (g.date - pd.Timestamp(int(winter[:4]), 1, 1)).dt.days.values.astype(float)  # day of year (Jan 1 = 0)
+        y = g.flu_ga_beds.values.astype(float)
+        f = lambda p, x: p[3] + p[0] * np.exp(-0.5 * ((x - p[1]) / p[2]) ** 2)  # noqa: E731
+        p0 = [y.max(), x[np.argmax(y)], 20, y.min()]
+        res = optimize.least_squares(lambda p: f(p, x) - y, p0, bounds=([0, 250, 3, 0], [2e4, 450, 80, 2e3]))
+        a, mu, sd, base = res.x
+        peak_date = pd.Timestamp(int(winter[:4]), 1, 1) + pd.Timedelta(days=float(mu))
+        out.append(dict(winter=winter, peak_beds_observed=float(y.max()),
+                        peak_date_observed=str(g.date.iloc[int(np.argmax(y))].date()),
+                        fitted_peak_date=str(peak_date.date()), fitted_peak_doy=int(peak_date.dayofyear),
+                        fitted_sd_days=float(sd), fitted_height=float(a), fitted_baseline=float(base),
+                        r2=float(1 - np.sum((f(res.x, x) - y) ** 2) / np.sum((y - y.mean()) ** 2))))
+    return out
+
+
+# ------------------------------------------------------------------ assemble model inputs
+BASE_FY = "2025/26"   # calibration year (latest complete year in every source)
+BASE_YEAR = 2025      # population mid-year matching the calibration year
+
+
+def pop_by_band(est: pd.DataFrame, proj: pd.DataFrame) -> dict[str, dict[int, float]]:
+    allp = pd.concat([est, proj])
+    out = {}
+    for name, lo, hi in BANDS:
+        s = allp[(allp.age >= lo) & (allp.age <= hi)].groupby("year").population.sum()
+        out[name] = {int(y): float(v) for y, v in s.items() if 2000 <= y <= 2045}
+    return out
+
+
+def assemble() -> dict:
+    q, hist = kh03()
+    ann = kh03_annual(q, hist)
+    ae = ae_monthly()
+    sr = sitrep_monthly()
+    nc = nctr_daily()
+    est = ons_england_by_age()
+    proj = ons_projection_england(est)
+    w = winter_daily()
+    h = hes_diagnosis()
+    hd = hes_derived(h)
+    trust = trust_panel(BASE_FY)
+    months = list(pd.date_range(f"{BASE_FY[:4]}-04-01", periods=12, freq="MS"))
+    drd = drd_delays(months)
+    waves = flu_waves(w)
+
+    def year_row(fy):
+        a = ann[ann.year == fy].iloc[0]
+        e = ae[ae.fy == fy]
+        n = nc[nc.fy == fy]
+        s = sr[sr.fy == fy]
+        return dict(
+            fy=fy, beds=float(a.ga_available), occupied=float(a.ga_occupied), occupancy=float(a.ga_occupancy),
+            emergency_admissions=float(e.emergency_admissions.sum()), dta_over_12h=float(e.dta_over_12h.sum()),
+            wait12_share=float(e.dta_over_12h.sum() / e.emergency_admissions.sum()),
+            nctr_remaining=float(n.nctr_remaining.mean()) if len(n) else None,
+            nctr_share=float(n.nctr_remaining.mean() / a.ga_occupied) if len(n) else None,
+            long21_share=float((s.los_21plus / s.ga_occupied_8am).mean()) if len(s) and s.los_21plus.notna().any() else None,
+            occupancy_8am=float(s.ga_occupancy_8am.mean()) if len(s) else None,
+        )
+
+    base = year_row(BASE_FY)
+    nb = nc[nc.fy == BASE_FY].copy()
+    nb["rate"] = nb.nctr_discharged / nb.nctr
+    r = nb.groupby("weekday").rate.median()
+    weekend_ratio = float(r[[5, 6]].mean() / r[[0, 1, 2, 3, 4]].mean())
+
+    # age bands: HES 2023/24 shares applied to the calibration-year emergency total
+    b = hd["bands"].copy()
+    b["share"] = b.emergency_admissions / b.emergency_admissions.sum()
+    pops = pop_by_band(est, proj)
+    age_bands = [dict(band=row.band, emergAdm=float(row.share * base["emergency_admissions"]), losMult=float(row.los_mult),
+                      delayMult=1.0, older=row.lo >= 75, pop=pops[row.band]) for row in b.itertuples()]
+
+    wave = next(x for x in waves if x["winter"] == BASE_FY)
+    flu_hist = [x for x in waves]
+
+    bed_history = []
+    for fy in ["2005/06", "2008/09", "2010/11", "2015/16", "2019/20", "2024/25", BASE_FY]:
+        a = ann[ann.year == fy].iloc[0]
+        yr = int(fy[:4])
+        popn = float(est[est.year == yr].population.sum())
+        bed_history.append(dict(year=fy, beds=float(a.ga_available),
+                                bedsPublished=float(a.ga_available_olddef) if pd.notna(a.get("ga_available_olddef")) else float(a.ga_available),
+                                occupancy=float(a.ga_occupancy) if pd.notna(a.ga_occupancy) else None,
+                                population=popn, note=str(a.definition)))
+    pop_now = float(est[est.year == BASE_YEAR].population.sum())
+    presets = [dict(label=f"{BASE_FY} (today)", beds=base["beds"])]
+    for h_ in bed_history[:-1]:
+        presets.append(dict(label=h_["year"], beds=h_["beds"], note=h_["note"]))
+    for h_ in bed_history[:4]:
+        presets.append(dict(label=f"{h_['year']} per head", beds=h_["beds"] * pop_now / h_["population"],
+                            note=f"{h_['year']} beds per head of population, applied to the {BASE_YEAR} population"))
+
+    backtests = [year_row(fy) for fy in ["2024/25", "2023/24", "2022/23", "2019/20", "2018/19", "2015/16", "2010/11"]]
+    winter_val = {}
+    for wn, g in w.groupby("winter"):
+        winter_val[wn] = dict(days=int(len(g)), occ_mean=float(g.occupancy.mean()), occ_sd=float(g.occupancy.std()),
+                              occ_p5=float(g.occupancy.quantile(0.05)), occ_p95=float(g.occupancy.quantile(0.95)),
+                              weekday=[float(x) for x in g.groupby("weekday").occupancy.mean().values],
+                              start=str(g.date.min().date()), end=str(g.date.max().date()))
+
+    inputs = dict(
+        baseYear=BASE_YEAR, baseYearLabel=BASE_FY,
+        national=dict(beds=base["beds"], emergPerYear=base["emergency_admissions"], electivePerYear=hd["elective_overnight"],
+                      occupancy=base["occupancy"]),
+        targets=dict(occupancy=base["occupancy"], nctrShare=base["nctr_share"], wait12Share=base["wait12_share"],
+                     long21Share=base["long21_share"], weekendRatio=weekend_ratio, delayedShare=drd["delayed_share"],
+                     emBedDaysPerAdm=hd["mean_emergency_bed_days"], fluPeakBeds=wave["peak_beds_observed"]),
+        delays=dict(shape=drd["gamma_shape"], mean=drd["gamma_mean"], bands=drd["band_shares"], bandLabels=drd["band_labels"],
+                    avgExc0=drd["avg_delay_exc0"]),
+        elective=dict(meanBedDays=hd["elective_bed_days_per_overnight_dominant"]),
+        ageBands=age_bands,
+        flu=dict(admissionsCoded2324=hd["flu"]["emergency_admissions"], share65=hd["flu"]["share65"], losMult=hd["flu"]["los_mult"],
+                 peakDoy=wave["fitted_peak_doy"], sdDays=wave["fitted_sd_days"], peakBedsTarget=wave["peak_beds_observed"],
+                 seasons=flu_hist),
+        bedHistory=bed_history, presets=presets, backtests=backtests, winterValidation=winter_val,
+        trustPanel=dict(fy=BASE_FY, n=int(len(trust)), file=f"data/processed/trust_panel_{BASE_FY.replace('/', '_')}.csv"),
+        hes=dict(year="2023/24", emergencyTotal=hd["emergency_total"], meanEmergencyBedDays=hd["mean_emergency_bed_days"],
+                 emergencyBedDaysDominant=hd["emergency_bed_days_per_admission_dominant"]),
+    )
+    import json
+    (OUT / "model_inputs_core.json").write_text(json.dumps(inputs, indent=1, default=float))
+    return inputs

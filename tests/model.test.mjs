@@ -36,12 +36,10 @@ test("reproducible: same seed gives identical results", () => {
   assert.equal(a.wait12, b.wait12);
 });
 
-test("Little's law: beds occupied = arrivals x mean stay (ample beds, no frictions)", () => {
-  const p = { ...small, beds: 1e6, poolSize: 1e6 / 2, emergPerYear: 365 * 400, sameDayFrac: 0, delayProb: 0,
-    dischargeStart: 0, dischargeEnd: 24, weekendDischargePct: 100, seasonAmp: 0, losSigma: 0.8, losMedianDays: 4 };
+test("Little's law: beds occupied at midnight = admissions per day x midnights per stay (ample beds)", () => {
+  const p = { ...small, beds: 1e6, poolSize: 1e6 / 2, emergPerYear: 365 * 400, electivePerYear: 0, seasonAmp: 0 };
   const r = run(p, 3);
-  const expected = 400 * 4 * Math.exp(0.8 ** 2 / 2); // arrivals/day x mean LOS (days)
-  close(r.occupiedBedsNational, expected, 0.03, "occupied beds");
+  close(r.occupiedBedsNational, 400 * r.emBedDaysPerAdm, 0.03, "occupied beds");
 });
 
 test("capacity is never exceeded", () => {
