@@ -275,7 +275,9 @@ FINGERTIPS_PATTERNS = {
     "obesity_admissions": r"admissions.*obesity|obesity.*admissions",
     "alcohol_admissions": r"admission episodes for alcohol.related conditions",
     "alcohol_specific": r"alcohol.specific (conditions|hospital admissions)",
-    "emergency_admissions": r"^emergency (hospital )?admissions( for all causes)?(\s*\(|$|,)",
+    "emergency_admissions": r"emergency (hospital )?admissions (for )?(all causes|\(all|all ages)|^emergency (hospital )?admissions\s*(\(|$)",
+    "flu_admissions": r"admissions.*(influenza|flu\b)|(influenza|pneumonia).*admissions",
+    "respiratory_admissions": r"emergency.*admissions.*respiratory",
     "inactivity": r"percentage of physically inactive adults",
     "flu_vaccination": r"population vaccination coverage.*flu.*(65|aged 65)",
     "copd_admissions": r"emergency hospital admissions for copd",
@@ -303,19 +305,21 @@ def fetch_fingertips(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
     chosen = []
     for key, pat in FINGERTIPS_PATTERNS.items():
         hits = [x for x in rows if re.search(pat, x[name_col], re.I)]
-        for x in hits[:4]:
+        for x in hits[:8]:
             chosen.append((key, x[id_col], x[name_col]))
         log(f"  {key}: {len(hits)} matching indicators" + (f" e.g. {hits[0][id_col]} {hits[0][name_col][:80]}" if hits else ""))
-    for key, iid, name in chosen:
+    # England (15) plus upper-tier local authorities (502: post-4/23, 402: 4/21-3/23, 102: pre-4/19)
+    # so effects can be estimated from variation between areas and over time.
+    for (key, iid, name), at in [(c, a) for c in chosen for a in (15, 502, 402, 102)]:
         url = (f"{FINGERTIPS}/all_data/csv/by_indicator_id?indicator_ids={iid}"
-               f"&child_area_type_id=15&parent_area_type_id=15")
-        dest = out / f"{key}__{iid}.csv"
+               f"&child_area_type_id={at}&parent_area_type_id=15")
+        dest = out / f"{key}__{iid}__at{at}.csv"
         if url in manifest and dest.exists():
             continue
         rr = fx.s.get(url, timeout=300)
         time.sleep(0.3)
-        if rr.status_code != 200 or not rr.content:
-            log(f"  ! {iid} HTTP {rr.status_code}")
+        if rr.status_code != 200 or len(rr.content) < 200:
+            log(f"  - {iid} area type {at}: HTTP {rr.status_code}, {len(rr.content)} bytes (no data)")
             continue
         dest.write_bytes(rr.content)
         manifest[url] = dict(source="fingertips", url=url, page=FINGERTIPS, link_text=name[:200],
