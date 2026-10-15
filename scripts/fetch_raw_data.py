@@ -328,12 +328,32 @@ def fetch_fingertips(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
         log(f"  downloaded {iid} {name[:70]}")
 
 
+MANIFEST_FIELDS = ["source", "url", "page", "link_text", "path", "bytes", "sha256", "fetched_at"]
+
+
 def write_manifest(manifest: dict) -> None:
+    """Write one manifest per source (data/raw/<source>/_manifest.csv) and a combined one."""
+    by_src: dict[str, list] = {}
+    for r in manifest.values():
+        by_src.setdefault(r["source"], []).append(r)
+    for src, rows in by_src.items():
+        (RAW / src).mkdir(parents=True, exist_ok=True)
+        with open(RAW / src / "_manifest.csv", "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=MANIFEST_FIELDS)
+            w.writeheader()
+            w.writerows(sorted(rows, key=lambda r: r["path"]))
+    combine_manifests()
+
+
+def combine_manifests() -> None:
+    rows = {}
+    for p in sorted(RAW.glob("*/_manifest.csv")):
+        for r in csv.DictReader(open(p)):
+            rows[r["url"]] = r
     with open(RAW / "manifest.csv", "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["source", "url", "page", "link_text", "path",
-                                          "bytes", "sha256", "fetched_at"])
+        w = csv.DictWriter(f, fieldnames=MANIFEST_FIELDS)
         w.writeheader()
-        w.writerows(sorted(manifest.values(), key=lambda r: (r["source"], r["path"])))
+        w.writerows(sorted(rows.values(), key=lambda r: (r["source"], r["path"])))
 
 
 def main() -> int:
@@ -341,7 +361,11 @@ def main() -> int:
     ap.add_argument("--only", nargs="*")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--headed", action="store_true", help="run Chromium with a window (use under xvfb)")
+    ap.add_argument("--combine-only", action="store_true", help="just rebuild data/raw/manifest.csv")
     args = ap.parse_args()
+    if args.combine_only:
+        combine_manifests()
+        return 0
     RAW.mkdir(parents=True, exist_ok=True)
     s = Fetcher(headless=not args.headed)
     log = lambda m: print(m, flush=True)  # noqa: E731
@@ -349,9 +373,10 @@ def main() -> int:
 
     man_path, inv_path = RAW / "manifest.csv", RAW / "link_inventory.csv"
     manifest = {}
-    if man_path.exists():
-        for row in csv.DictReader(open(man_path)):
-            manifest[row["url"]] = row
+    for p in [man_path, *RAW.glob("*/_manifest.csv")]:
+        if p.exists():
+            for row in csv.DictReader(open(p)):
+                manifest[row["url"]] = row
     inventory = []
 
     if not args.dry_run and (not args.only or "fingertips" in args.only):
@@ -401,6 +426,9 @@ def main() -> int:
         log(f"  {n_ok}/{sum(L['wanted'] for L in links)} wanted files present")
         if not args.dry_run:
             write_manifest(manifest)
+    if args.only and len(args.only) == 1:
+        inv_path = RAW / args.only[0] / "_link_inventory.csv"
+        inv_path.parent.mkdir(parents=True, exist_ok=True)
     with open(inv_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["source", "page", "url", "link_text", "wanted", "status"])
         w.writeheader()

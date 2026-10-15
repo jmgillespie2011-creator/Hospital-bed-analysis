@@ -1,14 +1,17 @@
 name: Fetch raw data
 
-# Downloads the raw NHS England / NHS England Digital / ONS files into data/raw/
-# and commits them back to the branch that triggered the run.
+# Downloads the raw NHS England / NHS England Digital / ONS / OHID files into
+# data/raw/<source>/ and commits them back to the branch.
+# Each source runs as its own job (in parallel) and uploads its files as an
+# artifact, so a slow or failing source never loses the others; a final job
+# merges whatever succeeded and commits it.
 on:
   workflow_dispatch:
     inputs:
-      only:
-        description: "Space-separated source names to fetch (blank = all)"
+      sources:
+        description: "JSON list of sources to fetch"
         required: false
-        default: ""
+        default: '["fingertips","kh03_overnight","kh03_main","ga_sitreps","ae_attendances","discharge_acute","dtoc","hes_apc","ons_population"]'
   push:
     paths:
       - scripts/fetch_raw_data.py
@@ -24,7 +27,11 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      matrix:
+        source: ${{ fromJSON(github.event.inputs.sources || '["fingertips","kh03_overnight","kh03_main","ga_sitreps","ae_attendances","discharge_acute","dtoc","hes_apc","ons_population"]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -35,14 +42,43 @@ jobs:
           pip install requests beautifulsoup4 playwright
           python -m playwright install --with-deps chromium
           sudo apt-get install -y xvfb
-      - name: Fetch
+      - name: Fetch ${{ matrix.source }}
         # A headed browser under a virtual display passes bot challenges more reliably.
+        run: xvfb-run -a python scripts/fetch_raw_data.py --headed --only ${{ matrix.source }}
+      - name: Keep files even if the fetch step failed part-way
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-${{ matrix.source }}
+          path: data/raw/${{ matrix.source }}
+          if-no-files-found: ignore
+          retention-days: 7
+
+  commit:
+    needs: fetch
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: raw-*
+          path: artifacts
+      - name: Merge into data/raw
         run: |
-          if [ -n "${{ github.event.inputs.only }}" ]; then
-            xvfb-run -a python scripts/fetch_raw_data.py --headed --only ${{ github.event.inputs.only }}
-          else
-            xvfb-run -a python scripts/fetch_raw_data.py --headed
-          fi
+          mkdir -p data/raw
+          for d in artifacts/raw-*; do
+            [ -d "$d" ] || continue
+            src="${d#artifacts/raw-}"
+            mkdir -p "data/raw/$src"
+            cp -r "$d"/. "data/raw/$src/"
+          done
+          pip install requests beautifulsoup4
+          python scripts/fetch_raw_data.py --combine-only
+          du -sh data/raw/* || true
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
@@ -52,8 +88,8 @@ jobs:
             echo "No changes"
             exit 0
           fi
-          git commit -m "Fetch raw data files ($(date -u +%Y-%m-%d))"
-          for i in 1 2 3; do
+          git commit -m "Fetch raw data files ($(date -u +%Y-%m-%d)) [skip ci]"
+          for i in 1 2 3 4; do
             git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
             sleep 10
           done
