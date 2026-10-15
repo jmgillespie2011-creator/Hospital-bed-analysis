@@ -177,6 +177,80 @@ def main() -> None:
     print(n.groupby("fy")[["nctr", "nctr_remaining", "nctr_discharged"]].mean().round(0))
     p = ons_england_by_age()
     print(p.groupby("year").population.sum().loc[[1975, 2005, 2010, 2015, 2024, 2025]])
+    t = trust_panel("2025/26")
+    print(f"trust panel 2025/26: {len(t)} trusts")
+
+
+# ------------------------------------------------------------------ trust-level panel (validation V7)
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
+          "October", "November", "December"]
+
+
+def _month_from_name(name: str) -> pd.Timestamp | None:
+    n = name.lower()
+    for i, m in enumerate(MONTHS):
+        for tok in (m.lower(), m[:3].lower() + "-"):
+            if tok in n:
+                y = re.search(r"(20\d\d)", n) or re.search(r"-(\d\d)-csv", n)
+                if not y:
+                    return None
+                yr = int(y.group(1)) if len(y.group(1)) == 4 else 2000 + int(y.group(1))
+                return pd.Timestamp(yr, i + 1, 1)
+    return None
+
+
+def trust_panel(fy: str = "2025/26") -> pd.DataFrame:
+    start = pd.Timestamp(int(fy[:4]), 4, 1)
+    months = pd.date_range(start, periods=12, freq="MS")
+    # A&E by provider (monthly CSVs)
+    ae = []
+    for f in (RAW / "ae_attendances").glob("*.csv"):
+        m = _month_from_name(f.name)
+        if m is None or m not in months:
+            continue
+        d = pd.read_csv(f)
+        if "Org Code" not in d.columns:
+            continue
+        num = lambda c: pd.to_numeric(d[c], errors="coerce").fillna(0)  # noqa: E731
+        ae.append(pd.DataFrame({
+            "month": m, "org": d["Org Code"].astype(str).str.strip(), "org_name": d["Org name"],
+            "emergency_admissions": num("Emergency admissions via A&E - Type 1") + num("Emergency admissions via A&E - Type 2")
+            + num("Emergency admissions via A&E - Other A&E department") + num("Other emergency admissions"),
+            "dta_over_12h": num("Patients who have waited 12+ hrs from DTA to admission"),
+            "dta_4_12h": num("Patients who have waited 4-12 hs from DTA to admission"),
+        }))
+    ae = pd.concat(ae).drop_duplicates(["month", "org"], keep="last")
+    # G&A sitrep by provider (monthly means of daily 08:00 counts)
+    sr = []
+    for f in (RAW / "ga_sitreps").glob("*CSV*.csv"):
+        m = _month_from_name(f.name.replace("-beds-sitrep", ""))
+        if m is None or m not in months:
+            continue
+        d = pd.read_csv(f)
+        d = d[(d["Level"] == "Provider") & (d["Type"] != "Other")]
+        p = d.pivot_table(index="Org Code", columns="Metric", values="Value", aggfunc="first")
+        sr.append(pd.DataFrame({
+            "month": m, "org": p.index.astype(str).str.strip(),
+            "ga_available": p.get("G&A beds available"), "ga_occupied": p.get("G&A beds occupied"),
+            "los_21plus": p.get("Number of G&A beds occupied by patients with a length of stay of - 21 or more days"),
+        }).reset_index(drop=True))
+    sr = pd.concat(sr).drop_duplicates(["month", "org"], keep="last")
+    panel = sr.merge(ae, on=["month", "org"], how="inner")
+    yr = panel.groupby("org").agg(
+        org_name=("org_name", "first"), months=("month", "nunique"),
+        ga_available=("ga_available", "mean"), ga_occupied=("ga_occupied", "mean"),
+        los_21plus=("los_21plus", "mean"),
+        emergency_admissions=("emergency_admissions", "sum"), dta_over_12h=("dta_over_12h", "sum"),
+    ).reset_index()
+    yr = yr[(yr.months >= 10) & (yr.ga_available > 100) & (yr.emergency_admissions > 5000)]
+    scale = 12 / yr.months
+    yr["emergency_admissions"] *= scale
+    yr["dta_over_12h"] *= scale
+    yr["occupancy_8am"] = yr.ga_occupied / yr.ga_available
+    yr["wait12_share"] = yr.dta_over_12h / yr.emergency_admissions
+    yr["fy"] = fy
+    yr.to_csv(OUT / f"trust_panel_{fy.replace('/', '_')}.csv", index=False)
+    return yr
 
 
 if __name__ == "__main__":

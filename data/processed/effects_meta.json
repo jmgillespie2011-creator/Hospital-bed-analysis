@@ -1,0 +1,51 @@
+{
+ "smoking": {
+  "indicator_id": 92443,
+  "name": "Smoking Prevalence in adults (aged 18 and over) - current smokers (APS)",
+  "age": "18+ yrs",
+  "years": "2011-2025",
+  "areas": 152
+ },
+ "obesity": {
+  "indicator_id": 93881,
+  "name": "Obesity prevalence in adults, (using adjusted self-reported height and weight)",
+  "age": "18+ yrs",
+  "years": "2015-2024",
+  "areas": 153
+ },
+ "inactivity": {
+  "indicator_id": 93015,
+  "name": "Percentage of physically inactive adults",
+  "age": "19+ yrs",
+  "years": "2015-2024",
+  "areas": 153
+ },
+ "flu_uptake65": {
+  "indicator_id": 30314,
+  "name": "Population vaccination coverage: Flu (aged 65 and over)",
+  "age": "65+ yrs",
+  "years": "2010-2024",
+  "areas": 153
+ },
+ "alcohol_narrow": {
+  "indicator_id": 93764,
+  "name": "Admission episodes for alcohol-related conditions (Narrow)",
+  "age": "All ages",
+  "years": "2016-2023",
+  "areas": 151
+ },
+ "copd": {
+  "indicator_id": 92302,
+  "name": "Emergency hospital admissions for COPD (aged 35 and over)",
+  "age": "35+ yrs",
+  "years": "2010-2023",
+  "areas": 151
+ },
+ "falls65": {
+  "indicator_id": 22401,
+  "name": "Emergency hospital admissions due to falls in people aged 65 and over",
+  "age": "65+ yrs",
+  "years": "2010-2024",
+  "areas": 151
+ }
+}

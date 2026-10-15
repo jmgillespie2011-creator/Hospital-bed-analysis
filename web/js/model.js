@@ -226,6 +226,10 @@ export function simulate(p, seed = 1, wantDaily = true) {
   let elecOffered = 0, elecCancelled = 0;
   const occMid = [], occ8 = [], nctrMid = [], capMid = [], fluMid = [];
   const fluInBed = new Set();
+  // discharges of patients who were medically fit before the day began, by weekday (Mon=0),
+  // and the matching midnight stock, to compare with NHS England's discharge sitrep
+  const nctrDisWk = new Float64Array(7), nctrStockWk = new Float64Array(7);
+  let lastMidnightNctr = 0;
 
   const cap = (t) => capByDay[Math.min(nDays - 1, Math.floor(t / 24))];
   const tesN = S0 * (p.corridorPct || 0) / 100;
@@ -286,6 +290,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
           queueMid.push(queue.length - qHead); tesMid.push(Math.max(0, occupied - cap(t)));
           let n = 0; for (const r of readyOf.values()) if (r <= t) n++;
           nctrMid.push(n);
+          nctrStockWk[(Math.floor(t / 24) + dow0) % 7] += n;
         } else {
           occ8.push(Math.min(occupied, cap(t)));
           queue8.push(queue.length - qHead); tes8.push(Math.max(0, occupied - cap(t)));
@@ -293,7 +298,9 @@ export function simulate(p, seed = 1, wantDaily = true) {
       }
       snapT += isMidnight ? 8 : 16;
     } else if (t === td) {
-      const k = heap.pop(); readyOf.delete(k); fluInBed.delete(k); occupied--;
+      const k = heap.pop();
+      if (t >= warmH && readyOf.get(k) <= Math.floor(t / 24) * 24) nctrDisWk[(Math.floor(t / 24) + dow0) % 7]++;
+      readyOf.delete(k); fluInBed.delete(k); occupied--;
       fillFreeBeds(t);
     } else if (t === ta) {
       if (occupied < capE(t) && qHead >= queue.length) {
@@ -330,6 +337,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
     elecOffered, elecCancelled,
     daily: wantDaily ? occMid.map((o, i) => o / capMid[i]) : null,
     fluDaily: fluMid,
+    nctrDisWk: Array.from(nctrDisWk), nctrStockWk: Array.from(nctrStockWk),
     queue8: sum(queue8) / queue8.length,          // patients waiting in A&E for a bed at 08:00
     queue8Max: Math.max(...queue8),
     tes8: sum(tes8) / tes8.length,                // patients in temporary escalation spaces at 08:00
@@ -384,6 +392,13 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
     corridorCare8am: mean((x) => x.queue8 + x.tes8) * nPools,
     corridorCarePeak: Math.max(...corridor8),
     corridorDaily8: corridor8,
+    // weekend / weekday ratio of discharge rates among medically fit patients
+    weekendDischargeRatio: (() => {
+      const dis = [0, 0, 0, 0, 0, 0, 0], st = [0, 0, 0, 0, 0, 0, 0];
+      for (const x of out) for (let i = 0; i < 7; i++) { dis[i] += x.nctrDisWk[i]; st[i] += x.nctrStockWk[i]; }
+      const r = dis.map((d, i) => d / Math.max(st[i], 1));
+      return ((r[5] + r[6]) / 2) / ((r[0] + r[1] + r[2] + r[3] + r[4]) / 5);
+    })(),
     fluBedsDaily: fluDaily,
     reps,
   };
