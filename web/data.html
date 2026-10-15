@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulator Data Sources</title>
+<meta name="description" content="Every input to the NHS bed occupancy simulator, with its source.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header class="site">
+  <h1>NHS bed occupancy simulator</h1>
+  <nav>
+    <a href="index.html">Model</a>
+    <a href="methods.html">Methods</a>
+    <a href="data.html" aria-current="page">Data &amp; sources</a>
+    <a href="validation.html">Validation</a>
+  </nav>
+</header>
+<main class="wrap doc" style="max-width:1150px">
+<h1>Data &amp; sources</h1>
+<p>Every number the model uses is listed here with where it came from. All inputs are built from published NHS England,
+NHS England Digital and ONS files by the scripts in the
+<a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis">GitHub repository</a>
+(<code>scripts/fetch_raw_data.py</code> downloads the raw files, <code>scripts/build_inputs.py</code> processes them,
+<code>scripts/calibrate.mjs</code> calibrates the model). The raw files and a manifest with checksums are kept in
+<code>data/raw/</code>. Data file generated: <span id="generated"></span>.</p>
+<p>You can also download the complete input file the simulator loads: <a href="data/baseline.json">baseline.json</a>.</p>
+
+<h2>Headline inputs</h2>
+<div id="inputs"></div>
+
+<h2>Calibrated values</h2>
+<p>Quantities that cannot be observed directly, tuned so that the 2024/25 baseline matches the targets (see <a href="methods.html#calibration">Methods</a>).</p>
+<div id="calibration"></div>
+
+<h2>Bed numbers over time</h2>
+<p>Before 2010/11 NHS England's KH03 return counted beds by ward type, annually. From 2010/11 it counts beds by consultant specialty, quarterly,
+which reduced reported beds by around 10%. Earlier years are therefore also shown on a consistent definition (see notes).</p>
+<div id="history"></div>
+
+<h2>Age bands</h2>
+<p id="agesNote"></p>
+<div id="ages"></div>
+
+<h2>Condition groups</h2>
+<p id="condsNote"></p>
+<div id="conds"></div>
+
+<h2>Raw files</h2>
+<div id="files"></div>
+</main>
+<script type="module" src="js/pages.js"></script>
+</body>
+</html>

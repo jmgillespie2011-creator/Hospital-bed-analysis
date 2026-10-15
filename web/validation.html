@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulator Validation</title>
+<meta name="description" content="How well the NHS bed occupancy simulator reproduces observed data, and where it does not.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header class="site">
+  <h1>NHS bed occupancy simulator</h1>
+  <nav>
+    <a href="index.html">Model</a>
+    <a href="methods.html">Methods</a>
+    <a href="data.html">Data &amp; sources</a>
+    <a href="validation.html" aria-current="page">Validation</a>
+  </nav>
+</header>
+<main class="wrap doc" style="max-width:1150px">
+<h1>Validation</h1>
+<p>A model is only useful if it reproduces what actually happened. These checks compare the model with observed data,
+including years it was not calibrated to. Failures are shown as plainly as successes.</p>
+
+<div class="callout warn"><strong>The most important finding.</strong> No single version of the model reproduces both 2015/16 and 2024/25.
+Tuned to today, the model predicts far more long waits in 2015/16 than actually happened. Tuned to 2015/16, it predicts far fewer long waits
+today than actually happen. In other words, hospitals now produce much longer waits at the same average occupancy than they did a decade ago,
+which matches NHS England's own caution that hospitals now experience pressure at lower occupancy. Possible reasons include less flexible use of
+beds (post-pandemic infection control, more single-sex and specialty ring-fencing), more variable demand, and changes in how waits are
+recorded. This is why the simulator shows both a "today's system" and a "more flexible system": occupancy results barely differ between them, but
+waits differ a lot, and the truth for any future scenario is likely to lie between them.</div>
+
+<h2>Checks</h2>
+<div id="validation"></div>
+
+<h2>What this means for using the simulator</h2>
+<ul>
+  <li><strong>Occupancy</strong> estimates are robust: they follow mostly from the arithmetic of demand and beds, and both versions of the model agree.</li>
+  <li><strong>Waits for a bed</strong> are sensitive to how flexibly beds can be used. Treat the two systems as a range, not a precise forecast.</li>
+  <li><strong>Direction and size of changes</strong> (scenario minus baseline) are more reliable than absolute levels, because most model
+    errors affect the baseline and the scenario alike.</li>
+</ul>
+</main>
+<script type="module" src="js/pages.js"></script>
+</body>
+</html>
