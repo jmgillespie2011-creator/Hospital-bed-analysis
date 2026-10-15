@@ -62,14 +62,14 @@ function controlSpec() {
     ...(base.deprivation ? [{ key: "deprivationGapPct", label: "Close the deprivation gap", min: 0, max: 100, step: 5, fmt: (v) => v + "% closed",
       help: base.deprivation.help }] : []),
     { section: "Hospital flow" },
-    { key: "sameDayPct", label: "Same day emergency care", min: 15, max: 50, step: 1, fmt: (v) => v + "% of emergency patients",
+    { key: "sameDayPct", label: "Same day emergency care", min: 20, max: 80, step: 1, fmt: (v) => v + "% of emergency patients",
       help: "Emergency patients assessed and treated without an overnight stay (SDEC units, frailty assessment)." },
     { key: "delayChangePct", label: "Delayed discharges (social care & community capacity)", min: -100, max: 50, step: 5, fmt: (v) => sign(v),
       help: "Change in the time medically fit patients wait to leave hospital for care homes, home care or community beds. −100% removes delays entirely." },
     { key: "weekendDischargePct", label: "7-day discharging", min: 0, max: 100, step: 5, fmt: (v) => v + "% at weekends",
       help: "Share of patients ready to leave at the weekend who are discharged then, rather than waiting for Monday." },
-    { key: "prepHours", label: "Faster discharge on the day", min: 0.5, max: 6, step: 0.5, fmt: (v) => v + " h after ward round",
-      help: "Average time from the morning ward round to the patient leaving (medicines to take home, transport, discharge lounges, criteria-led discharge). Not measured nationally: 3 hours is an assumption." },
+    { key: "prepHours", label: "Time from ward round to leaving", min: 0.5, max: 6, step: 0.5, fmt: (v) => v + " h after ward round",
+      help: "Average time from the morning ward round to the patient leaving (medicines to take home, transport, discharge lounges, criteria-led discharge). Not measured nationally: 3 hours is an assumption. In the model, shorter is not always better: if every discharge happens in the morning, beds go to the overnight queue and planned patients, and emergency patients arriving in the afternoon wait until the next day. Treat this setting as exploratory." },
     { key: "virtualWardPct", label: "Virtual wards / hospital at home", min: 0, max: 30, step: 1, fmt: (v) => v + "% of stay",
       help: "Share of older patients' (75+) hospital stay delivered at home instead." },
     { key: "admissionAvoidancePct", label: "Community urgent response for older people", min: 0, max: 30, step: 1, fmt: (v) => v + "% avoided",
@@ -275,7 +275,7 @@ function renderInputs(pA) {
     `<table><thead><tr><th>Input</th><th class="num">${BY} baseline</th><th class="num">This scenario</th></tr></thead><tbody>` +
     rows.map((r) => `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join("") +
     `</tbody></table><h4 style="margin:14px 0 4px">Population and emergency admissions by age</h4>
-    <table><thead><tr><th>Age</th><th class="num">Population ${base.baseYear}</th><th class="num">Population ${settings.popYear}</th><th class="num">Emergency admissions ${base.baseYear}</th><th class="num">Scenario (population change only)</th></tr></thead><tbody>${ageRows}</tbody></table>`;
+    <table><thead><tr><th>Age</th><th class="num">Population ${base.baseYear} (baseline)</th><th class="num">Population ${settings.popYear} (scenario)</th><th class="num">Emergency admissions ${base.baseYear}</th><th class="num">Scenario (population change only)</th></tr></thead><tbody>${ageRows}</tbody></table>`;
 }
 
 function demandRows() {

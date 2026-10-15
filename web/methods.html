@@ -207,7 +207,9 @@ in people aged 65+ (50%) and their length of stay come from HES.</li>
 <h2 id="randomness">Randomness and accuracy</h2>
 <p>Each result is the average of many simulated years (30 for "today's system", 6 for the "more flexible system", whose larger pools are
 less noisy). The same random seeds are used for the baseline and your scenario, so differences between them reflect your changes rather than
-chance. Small differences (under about half a percentage point of occupancy) should not be over-interpreted.</p>
+chance. Small differences (under about half a percentage point of occupancy) should not be over-interpreted. Long waits are much noisier
+than occupancy, because they depend on rare runs of busy days: the share of emergency patients waiting over 12 hours carries roughly
+&plusmn;1 percentage point of simulation noise (about &plusmn;15% of today's figure), so treat changes smaller than that as no change.</p>
 
 <h2 id="limitations">Main limitations</h2>
 <ul>
@@ -219,6 +221,10 @@ chance. Small differences (under about half a percentage point of occupancy) sho
   <li><strong>National, not local.</strong> All trusts are treated as identical. Real pressure is uneven: some trusts are far fuller than average.</li>
   <li><strong>Simplified patient flow.</strong> No transfers between wards, no critical care, no outlying, no paediatric/adult split, no
     infection-control bed closures.</li>
+  <li><strong>Timing of discharges within the day.</strong> There is no national data on what time patients leave hospital. The model
+    assumes ward rounds from 09:00 to 12:00 and 3 hours of preparation. Because of this, shortening the preparation time moves all discharges
+    into the morning. Those beds then go to the overnight queue and to planned patients, so long waits rise rather than fall. Real
+    hospitals confirm patients ready at different times of day, so do not read the "time from ward round to leaving" setting as a forecast.</li>
   <li><strong>Assumed shapes.</strong> Hourly and weekday arrival profiles, the lognormal LOS shape and the delay distribution are assumptions;
     calibration ensures the totals match, not every detail.</li>
 </ul>

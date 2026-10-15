@@ -214,7 +214,7 @@ if (fs.existsSync(estPath)) {
   out.effects = rows.map((r) => {
     // a within-area estimate needs several years per area; with one observation per area it is not estimable
     const estimable = !(r.design.startsWith("within") && +r.n_obs <= +r.n_areas);
-    return { outcome: r.outcome, exposure: r.exposure, design: r.design, pct: estimable ? numOrNaN(r.pct_per_point) : NaN,
+    return { outcome: r.outcome, exposure: r.exposure, adjustedFor: r.adjusted_for || "", design: r.design, pct: estimable ? numOrNaN(r.pct_per_point) : NaN,
       lo: estimable ? numOrNaN(r.ci_low) : NaN, hi: estimable ? numOrNaN(r.ci_high) : NaN, p: estimable ? numOrNaN(r.p) : NaN, n: +r.n_obs };
   });
   const plac = out.effects.filter((e) => ["falls65", "hip_fracture"].includes(e.outcome) && e.exposure === "flu_uptake65");

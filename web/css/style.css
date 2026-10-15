@@ -44,6 +44,7 @@ header.site nav a[aria-current="page"] { color: var(--text); border-bottom: 2px 
 .wrap { max-width: 1320px; margin: 0 auto; padding: 20px 24px 60px; }
 .intro { color: var(--text-2); max-width: 900px; margin: 0 0 16px; }
 .layout { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+.layout > * { min-width: 0; }
 @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .wrap { padding: 16px; } }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
 .controls { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; }

@@ -138,7 +138,8 @@ def fit(panel: pd.DataFrame, outcome: str, exposures: list[str], fe: bool, years
     rows = []
     for x in exposures:
         b, se = m.params[x], m.bse[x]
-        rows.append(dict(outcome=outcome, exposure=x, design="within-area (area+year FE)" if fe else "between-area (adjusted for deprivation)",
+        rows.append(dict(outcome=outcome, exposure=x, adjusted_for=" + ".join([e for e in exposures if e != x] + ([] if fe else ["deprivation"])) or "none",
+                         design="within-area (area+year FE)" if fe else "between-area (adjusted for deprivation)",
                          beta=b, se=se, pct_per_point=100 * (np.exp(b) - 1),
                          ci_low=100 * (np.exp(b - 1.96 * se) - 1), ci_high=100 * (np.exp(b + 1.96 * se) - 1),
                          p=m.pvalues[x], n_obs=int(m.nobs), n_areas=int(d.area.nunique()) if "area" in d else None,

@@ -128,9 +128,16 @@ async function renderValidation() {
     tooltip: { callbacks: { label: (c) => `${c.raw.name}: model ${c.raw.x.toFixed(1)}%, observed ${c.raw.y.toFixed(1)}%` } } },
     scales: { x: { title: { display: true, text: "Model: >12h share (given trust occupancy)" } }, y: { title: { display: true, text: "Observed >12h share" } } } } });
   if (v.effects) {
-    $("effects").innerHTML = table(["Outcome", "Risk factor", "Design", "% change per point", "95% CI", "p"],
-      v.effects.map((e) => [esc(e.outcome), esc(e.exposure), esc(e.design), Number.isFinite(e.pct) ? e.pct.toFixed(2) : "not estimable (one period only)",
-        Number.isFinite(e.lo) ? `${e.lo.toFixed(2)} to ${e.hi.toFixed(2)}` : "not estimable", Number.isFinite(e.p) ? e.p.toFixed(3) : ""]), [3]);
+    const OUT = { emergency_all: "All emergency admissions", copd: "COPD", chd: "Coronary heart disease", stroke: "Stroke",
+      pneumonia: "Pneumonia", respiratory: "Respiratory", falls65: "Falls, 65+ (placebo)", hip_fracture: "Hip fracture, 65+ (placebo)" };
+    const EXP = { smoking: "Smoking %", obesity: "Obesity %", flu_uptake65: "Flu vaccine uptake 65+ %", alcohol_narrow: "Alcohol admissions", deprivation: "deprivation" };
+    const lab = (s) => s.split(" + ").map((x) => EXP[x] || x).join(", ");
+    const est = v.effects.filter((e) => Number.isFinite(e.pct));
+    const dropped = v.effects.length - est.length;
+    $("effects").innerHTML = table(["Outcome", "Risk factor", "Also adjusted for", "Design", "% change per point", "95% CI", "p"],
+      est.map((e) => [esc(OUT[e.outcome] || e.outcome), esc(EXP[e.exposure] || e.exposure), esc(e.adjustedFor ? lab(e.adjustedFor) : ""),
+        esc(e.design), e.pct.toFixed(2), Number.isFinite(e.lo) ? `${e.lo.toFixed(2)} to ${e.hi.toFixed(2)}` : "", Number.isFinite(e.p) ? e.p.toFixed(3) : ""]), [4, 6]) +
+      (dropped ? `<p class="cap">${dropped} within-area estimates are omitted: those outcomes are published for one period only, so change over time within an area cannot be measured.</p>` : "");
   }
 }
 

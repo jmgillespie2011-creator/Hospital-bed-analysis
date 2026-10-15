@@ -2042,6 +2042,7 @@
   {
    "outcome": "copd",
    "exposure": "smoking",
+   "adjustedFor": "deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 3.7373959494183984,
    "lo": 1.3955444857676857,
@@ -2052,6 +2053,7 @@
   {
    "outcome": "copd",
    "exposure": "smoking",
+   "adjustedFor": "none",
    "design": "within-area (area+year FE)",
    "pct": 0.294916760749131,
    "lo": -0.23533996096510856,
@@ -2062,6 +2064,7 @@
   {
    "outcome": "copd",
    "exposure": "smoking",
+   "adjustedFor": "obesity + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 2.374395385630179,
    "lo": -0.047070486756672913,
@@ -2072,6 +2075,7 @@
   {
    "outcome": "copd",
    "exposure": "obesity",
+   "adjustedFor": "smoking + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 1.2142918961204119,
    "lo": 0.1786859155722409,
@@ -2082,6 +2086,7 @@
   {
    "outcome": "copd",
    "exposure": "smoking",
+   "adjustedFor": "obesity",
    "design": "within-area (area+year FE)",
    "pct": 0.20978780122837826,
    "lo": -0.3360177318003199,
@@ -2092,6 +2097,7 @@
   {
    "outcome": "copd",
    "exposure": "obesity",
+   "adjustedFor": "smoking",
    "design": "within-area (area+year FE)",
    "pct": 0.04255972172875211,
    "lo": -0.20836674095247032,
@@ -2102,6 +2108,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "smoking",
+   "adjustedFor": "obesity + flu_uptake65 + alcohol_narrow + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": -0.7711190898517017,
    "lo": -1.7369716517223188,
@@ -2112,6 +2119,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "obesity",
+   "adjustedFor": "smoking + flu_uptake65 + alcohol_narrow + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 0.5622613046440073,
    "lo": 0.10208597291023747,
@@ -2122,6 +2130,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "flu_uptake65",
+   "adjustedFor": "smoking + obesity + alcohol_narrow + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 0.560539657286907,
    "lo": -0.05262854207249701,
@@ -2132,6 +2141,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "alcohol_narrow",
+   "adjustedFor": "smoking + obesity + flu_uptake65 + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 0.039722363641492286,
    "lo": 0.023584260344922114,
@@ -2142,6 +2152,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "smoking",
+   "adjustedFor": "obesity + flu_uptake65 + alcohol_narrow",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
@@ -2152,6 +2163,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "obesity",
+   "adjustedFor": "smoking + flu_uptake65 + alcohol_narrow",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
@@ -2162,6 +2174,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "flu_uptake65",
+   "adjustedFor": "smoking + obesity + alcohol_narrow",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
@@ -2172,6 +2185,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "alcohol_narrow",
+   "adjustedFor": "smoking + obesity + flu_uptake65",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
@@ -2182,6 +2196,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "smoking",
+   "adjustedFor": "obesity + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": -0.9745199469305521,
    "lo": -2.0060753357209804,
@@ -2192,6 +2207,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "obesity",
+   "adjustedFor": "smoking + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 1.0705706221910916,
    "lo": 0.5734633246866849,
@@ -2202,6 +2218,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "smoking",
+   "adjustedFor": "obesity",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
@@ -2212,6 +2229,7 @@
   {
    "outcome": "emergency_all",
    "exposure": "obesity",
+   "adjustedFor": "smoking",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
@@ -2222,6 +2240,7 @@
   {
    "outcome": "chd",
    "exposure": "smoking",
+   "adjustedFor": "obesity + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 0.1726992254953652,
    "lo": -1.2225085860318452,
@@ -2232,6 +2251,7 @@
   {
    "outcome": "chd",
    "exposure": "obesity",
+   "adjustedFor": "smoking + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 1.4041338487241761,
    "lo": 0.6692570700494116,
@@ -2242,6 +2262,7 @@
   {
    "outcome": "chd",
    "exposure": "smoking",
+   "adjustedFor": "obesity",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
@@ -2252,6 +2273,7 @@
   {
    "outcome": "chd",
    "exposure": "obesity",
+   "adjustedFor": "smoking",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
@@ -2262,6 +2284,7 @@
   {
    "outcome": "stroke",
    "exposure": "smoking",
+   "adjustedFor": "obesity + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 0.5362824596006233,
    "lo": -0.31100782940820526,
@@ -2272,6 +2295,7 @@
   {
    "outcome": "stroke",
    "exposure": "obesity",
+   "adjustedFor": "smoking + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": -0.08127937872580704,
    "lo": -0.5484864999270256,
@@ -2282,6 +2306,7 @@
   {
    "outcome": "stroke",
    "exposure": "smoking",
+   "adjustedFor": "obesity",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
@@ -2292,6 +2317,7 @@
   {
    "outcome": "stroke",
    "exposure": "obesity",
+   "adjustedFor": "smoking",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
@@ -2302,6 +2328,7 @@
   {
    "outcome": "falls65",
    "exposure": "smoking",
+   "adjustedFor": "flu_uptake65 + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": -1.5526042803115203,
    "lo": -3.2692500038926875,
@@ -2312,6 +2339,7 @@
   {
    "outcome": "falls65",
    "exposure": "flu_uptake65",
+   "adjustedFor": "smoking + deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": -0.7192107188101371,
    "lo": -1.2004131087933967,
@@ -2322,6 +2350,7 @@
   {
    "outcome": "falls65",
    "exposure": "smoking",
+   "adjustedFor": "flu_uptake65",
    "design": "within-area (area+year FE)",
    "pct": 0.32886369325129117,
    "lo": -0.10668628154969495,
@@ -2332,6 +2361,7 @@
   {
    "outcome": "falls65",
    "exposure": "flu_uptake65",
+   "adjustedFor": "smoking",
    "design": "within-area (area+year FE)",
    "pct": 0.5884112734536151,
    "lo": 0.24341207324731773,
@@ -2342,6 +2372,7 @@
   {
    "outcome": "hip_fracture",
    "exposure": "flu_uptake65",
+   "adjustedFor": "deprivation",
    "design": "between-area (adjusted for deprivation)",
    "pct": 1.7255542688001224,
    "lo": 1.2889327775918558,
@@ -2352,6 +2383,7 @@
   {
    "outcome": "hip_fracture",
    "exposure": "flu_uptake65",
+   "adjustedFor": "none",
    "design": "within-area (area+year FE)",
    "pct": null,
    "lo": null,
