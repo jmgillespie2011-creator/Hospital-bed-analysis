@@ -1,0 +1,54 @@
+name: Fetch raw data
+
+# Downloads the raw NHS England / NHS England Digital / ONS files into data/raw/
+# and commits them back to the branch that triggered the run.
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Space-separated source names to fetch (blank = all)"
+        required: false
+        default: ""
+  push:
+    paths:
+      - scripts/fetch_raw_data.py
+      - .github/workflows/fetch-data.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-data-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests beautifulsoup4
+      - name: Fetch
+        run: |
+          if [ -n "${{ github.event.inputs.only }}" ]; then
+            python scripts/fetch_raw_data.py --only ${{ github.event.inputs.only }}
+          else
+            python scripts/fetch_raw_data.py
+          fi
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/raw
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Fetch raw data files ($(date -u +%Y-%m-%d))"
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep 10
+          done
