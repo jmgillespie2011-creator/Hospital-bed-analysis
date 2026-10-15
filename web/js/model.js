@@ -101,6 +101,8 @@ export const DEFAULTS = {
   beds: 102423,               // physical G&A beds, England
   staffingPct: 100,           // % of nursing establishment in post; available beds scale with it (capped at 100)
   escalationPct: 0,           // extra % of beds opened 1 Dec - 31 Mar
+  corridorPct: 0,             // temporary escalation spaces (trolleys/chairs in corridors and wards) as % of beds,
+                              // used only when every proper bed is full
   poolSize: 92,               // effective pool size (bed flexibility)
   emergPerYear: 6.6e6,        // emergency admissions (all routes), England
   electivePerYear: 1.6e6,     // elective overnight admissions
@@ -144,7 +146,10 @@ export function simulate(p, seed = 1, wantDaily = true) {
   // capacity by day (winter escalation beds, stochastic rounding)
   const capByDay = new Int32Array(nDays);
   const escBeds = S0 * p.escalationPct / 100;
-  const escInt = Math.floor(escBeds) + (R.next() < escBeds - Math.floor(escBeds) ? 1 : 0);
+  // Capacity settings use their own random stream so that changing them never changes the
+  // simulated patients (common random numbers across scenarios).
+  const RC = rng((seed * 2654435761) ^ 0x5bd1e995);
+  const escInt = Math.floor(escBeds) + (RC.next() < escBeds - Math.floor(escBeds) ? 1 : 0);
   for (let d = 0; d < nDays; d++) {
     const doy = (((d + doy0) % 365) + 365) % 365;
     const winter = doy >= 334 || doy < 90; // 1 Dec - 31 Mar
@@ -223,6 +228,10 @@ export function simulate(p, seed = 1, wantDaily = true) {
   const fluInBed = new Set();
 
   const cap = (t) => capByDay[Math.min(nDays - 1, Math.floor(t / 24))];
+  const tesN = S0 * (p.corridorPct || 0) / 100;
+  const tesSpaces = Math.floor(tesN) + (RC.next() < tesN - Math.floor(tesN) ? 1 : 0);
+  const capE = (t) => cap(t) + tesSpaces; // proper beds + temporary escalation spaces
+  const queueMid = [], queue8 = [], tesMid = [], tes8 = [];
 
   const FLU_GROUP = { losMult: p.fluLosMult, delayMult: 1 };
   const admitEmergency = (t, i) => {
@@ -249,7 +258,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
   };
   const deadline = (j) => Math.floor(el[j] / 24) * 24 + p.electiveWaitUntil;
   const fillFreeBeds = (t) => {
-    while (occupied < cap(t)) {
+    while (occupied < capE(t)) {
       if (qHead < queue.length) {
         const i = queue[qHead++];
         if (arr[i] >= warmH) waits.push(t - arr[i]);
@@ -273,24 +282,28 @@ export function simulate(p, seed = 1, wantDaily = true) {
       if (isMidnight) fillFreeBeds(t); // capacity may change at midnight
       if (t >= warmH) {
         if (isMidnight) {
-          occMid.push(occupied); capMid.push(cap(t)); fluMid.push(fluInBed.size);
+          occMid.push(Math.min(occupied, cap(t))); capMid.push(cap(t)); fluMid.push(fluInBed.size);
+          queueMid.push(queue.length - qHead); tesMid.push(Math.max(0, occupied - cap(t)));
           let n = 0; for (const r of readyOf.values()) if (r <= t) n++;
           nctrMid.push(n);
-        } else occ8.push(occupied);
+        } else {
+          occ8.push(Math.min(occupied, cap(t)));
+          queue8.push(queue.length - qHead); tes8.push(Math.max(0, occupied - cap(t)));
+        }
       }
       snapT += isMidnight ? 8 : 16;
     } else if (t === td) {
       const k = heap.pop(); readyOf.delete(k); fluInBed.delete(k); occupied--;
       fillFreeBeds(t);
     } else if (t === ta) {
-      if (occupied < cap(t) && qHead >= queue.length) {
+      if (occupied < capE(t) && qHead >= queue.length) {
         if (ta >= warmH) waits.push(0);
         admitEmergency(t, ia);
       } else queue.push(ia);
       ia++;
     } else {
       if (te >= warmH) elecOffered++;
-      if (occupied < cap(t) && qHead >= queue.length) admitElective(t);
+      if (occupied < cap(t) && qHead >= queue.length) admitElective(t); // planned patients never go to a corridor
       else elQueue.push(ie);
       ie++;
     }
@@ -317,6 +330,10 @@ export function simulate(p, seed = 1, wantDaily = true) {
     elecOffered, elecCancelled,
     daily: wantDaily ? occMid.map((o, i) => o / capMid[i]) : null,
     fluDaily: fluMid,
+    queue8: sum(queue8) / queue8.length,          // patients waiting in A&E for a bed at 08:00
+    queue8Max: Math.max(...queue8),
+    tes8: sum(tes8) / tes8.length,                // patients in temporary escalation spaces at 08:00
+    corridorDaily8: queue8.map((q, i) => q + tes8[i]),
     nPools,
   };
 }
@@ -339,6 +356,8 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
   const daily = new Array(days).fill(0);
   for (const x of out) for (let i = 0; i < days; i++) daily[i] += x.daily[i] / out.length;
   const nPools = out[0].nPools;
+  const corridor8 = new Array(days).fill(0);
+  for (const x of out) for (let i = 0; i < Math.min(days, x.corridorDaily8.length); i++) corridor8[i] += x.corridorDaily8[i] * nPools / out.length;
   const fluDaily = new Array(days).fill(0);
   for (const x of out) for (let i = 0; i < days; i++) fluDaily[i] += x.fluDaily[i] * nPools / out.length;
   const availableBeds = p.beds * Math.min(1, p.staffingPct / 100);
@@ -360,6 +379,11 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
     elecCancelRate: out.reduce((s, x) => s + x.elecCancelled, 0) / Math.max(out.reduce((s, x) => s + x.elecOffered, 0), 1),
     daily,
     fluBedsPeak: Math.max(...fluDaily),
+    waitingForBed8am: mean((x) => x.queue8) * nPools,
+    inEscalationSpaces8am: mean((x) => x.tes8) * nPools,
+    corridorCare8am: mean((x) => x.queue8 + x.tes8) * nPools,
+    corridorCarePeak: Math.max(...corridor8),
+    corridorDaily8: corridor8,
     fluBedsDaily: fluDaily,
     reps,
   };

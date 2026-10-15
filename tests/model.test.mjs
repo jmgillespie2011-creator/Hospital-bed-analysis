@@ -52,7 +52,7 @@ test("capacity is never exceeded", () => {
 test("limits: huge capacity gives no waits; overload gives long waits", () => {
   const roomy = run({ ...small, beds: 20000, poolSize: 2000 }, 2);
   assert.equal(roomy.wait12, 0);
-  const tight = run({ ...small, beds: 1300, poolSize: 100 }, 2);
+  const tight = run({ ...small, beds: 1000, poolSize: 100 }, 2); // demand needs ~1,700 beds
   assert.ok(tight.wait12 > 0.3, `overloaded system should have many >12h waits (got ${tight.wait12})`);
 });
 
@@ -60,6 +60,22 @@ test("monotone: more beds lower occupancy and waits", () => {
   const a = run({ ...small, beds: 1900 }, 8), b = run({ ...small, beds: 2300 }, 8);
   assert.ok(b.occMidnight < a.occMidnight);
   assert.ok(b.wait12 <= a.wait12);
+});
+
+test("common random numbers: capacity settings do not change the simulated patients", () => {
+  // With spare capacity, adding winter or corridor spaces must not change anything patients experience.
+  const roomy = { ...small, beds: 20000, poolSize: 2000 };
+  const a = simulate(roomy, 5), b = simulate({ ...roomy, escalationPct: 3.3, corridorPct: 2.7 }, 5);
+  assert.equal(a.emergAdmitted, b.emergAdmitted);
+  assert.equal(a.nctrBeds, b.nctrBeds);
+});
+
+test("corridor spaces: used only when beds are full, and reduce waits", () => {
+  const t = { ...small, beds: 1300, poolSize: 100 }; // busy: ~90% occupied
+  const a = run(t, 6), b = run({ ...t, corridorPct: 5 }, 6);
+  assert.ok(b.wait12 < a.wait12, "corridor spaces cut long waits");
+  assert.ok(b.inEscalationSpaces8am > 0 && a.inEscalationSpaces8am === 0);
+  assert.ok(Math.max(...b.daily) <= 1 + 1e-9, "proper-bed occupancy still capped at 100%");
 });
 
 test("monotone: more demand raises occupancy", () => {

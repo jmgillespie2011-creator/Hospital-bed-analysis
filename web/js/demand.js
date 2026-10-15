@@ -17,6 +17,7 @@ export function defaultSettings(base) {
     beds: base.national.beds,
     staffingPct: 100,
     escalationPct: 0,
+    corridorPct: 0,
     electivePct: 100,
     // public health (current values = no change)
     risk: Object.fromEntries((base.riskFactors || []).map((r) => [r.key, r.current])),
@@ -133,6 +134,7 @@ export function buildParams(base, s) {
     beds: s.beds,
     staffingPct: s.staffingPct,
     escalationPct: s.escalationPct,
+    corridorPct: s.corridorPct,
     poolSize: cal.poolSize,
     emergPerYear: emerg,
     fluPerYear: flu0 * dm.population * dm.fluVaccine * dm.fluSeverity,

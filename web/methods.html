@@ -77,6 +77,18 @@ season(d) = 1 + a × cos(2π (day-of-year − 15) / 365)    (peak mid-January; a
     arrival to bed is the model's equivalent of NHS England's "decision to admit to admission" wait.</li>
 </ul>
 
+<h3 id="corridor">Corridor care</h3>
+<p>Corridor care appears in two ways in the model, and the Model page reports both at 08:00 each day (averaged over the year, and the worst morning):</p>
+<ul>
+  <li><strong>Waiting in A&amp;E for a bed</strong>: emergency patients with a decision to admit but no free bed. They queue first-come-first-served;
+    their waiting time gives the "&gt;4h" and "&gt;12h" figures (NHS England's decision-to-admit measure).</li>
+  <li><strong>In temporary escalation spaces</strong>: if the temporary escalation spaces setting is above zero, patients waiting for a bed are placed in
+    those spaces first and moved into a proper bed when one becomes free. They are no longer counted as waiting in A&amp;E.</li>
+</ul>
+<p>Neither group is counted in bed occupancy, which, like KH03, counts only patients in proper beds. The 2024/25 calibration targets the
+decision-to-admit waits, with no temporary spaces. This treats today's corridor care as part of the A&amp;E wait, because there is no national
+time series that separates the two.</p>
+
 <h3>Planned (elective) overnight patients</h3>
 <ul>
   <li>Arrive on weekdays between 11:00 and 15:00 (Poisson). Length of stay lognormal, median 2 days, σ = 0.8.</li>
@@ -96,6 +108,9 @@ cannot directly change (population, winter severity). Each one changes a specifi
   <li><strong>Nursing posts filled</strong>: available beds = <code>B × min(1, filled%)</code>. Extra beds therefore only help if they can be staffed.
     The model does not include the evidence that low staffing also lengthens stays and worsens outcomes, so staffing effects are, if anything, understated.</li>
   <li><strong>Extra winter beds</strong>: additional % of available beds from 1 December to 31 March.</li>
+  <li><strong>Temporary escalation spaces (corridor care)</strong>: extra trolleys or chairs used only when every proper bed is full.
+    Emergency patients placed there count as admitted (their A&amp;E wait ends) but not as occupying a G&amp;A bed, matching how KH03 counts beds.
+    Planned patients are never placed in them.</li>
   <li><strong>Planned surgery &amp; treatment</strong>: scales the number of planned overnight admissions.</li>
 </ul>
 
