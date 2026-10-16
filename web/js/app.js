@@ -74,6 +74,8 @@ function controlSpec() {
       help: "Share of older patients' (75+) hospital stay delivered at home instead." },
     { key: "admissionAvoidancePct", label: "Community urgent response for older people", min: 0, max: 30, step: 1, fmt: (v) => v + "% avoided",
       help: "Emergency admissions of people aged 75+ avoided by 2-hour community response, frailty and falls services." },
+    ...(base.readmissions ? [{ key: "readmissionRatePct", label: "Emergency readmissions within 30 days", min: 8, max: 20, step: 0.1, fmt: (v) => v.toFixed(1) + "% of discharges",
+      help: `Today: ${(100 * base.readmissions.rate).toFixed(1)}% (${base.readmissions.year}; ${(100 * base.readmissions.history[0].rate).toFixed(1)}% in ${base.readmissions.history[0].year}). Lowered by better discharge planning, follow-up calls, medicines reconciliation and community follow-up. Readmissions are part of emergency admissions, so fewer readmissions means fewer admissions overall, including readmissions after readmissions. Source: OHID Fingertips 41101.` }] : []),
     { key: "losChangePct", label: "Length of stay programmes", min: -30, max: 20, step: 1, fmt: (v) => sign(v),
       help: "Change in time needed in hospital from faster diagnostics, consultant-led ward rounds, GIRFT-type improvements." },
     { section: "Context (not policy levers)" },
@@ -285,6 +287,7 @@ function demandRows() {
     ...(base.riskFactors || []).map((r) => [`Demand effect: ${r.label.toLowerCase()}`, "", x(d.risk[r.key])]),
     ...(base.deprivation ? [["Demand effect: deprivation gap", "", x(d.deprivation)]] : []),
     ...(base.flu ? [["Flu admissions: vaccination effect", "", x(d.fluVaccine)], ["Flu admissions: season severity", "", x(d.fluSeverity)]] : []),
+    ...(base.readmissions ? [["Demand effect: emergency readmissions", "", x(d.readmissions)]] : []),
     ["Demand effect: other", "", x(d.other)],
   ];
 }

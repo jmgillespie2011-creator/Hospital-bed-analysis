@@ -121,6 +121,12 @@ test("policy levers move model inputs in the expected direction", () => {
   const vw = p({ virtualWardPct: 20 });
   assert.ok(vw.groups.find((g) => g.name === "75+").losMult < p0.groups.find((g) => g.name === "75+").losMult, "virtual wards shorten older patients' stays");
   assert.equal(p({ staffingPct: 90 }).staffingPct, 90);
+  // readmissions: default is today's rate (no change); lower rate, fewer admissions, with the feedback 1/(1 - r k)
+  const rb = { ...testBase, readmissions: { rate: 0.147, dischargesPerEmergencyAdmission: 1, history: [] } };
+  const s1 = defaultSettings(rb);
+  assert.equal(s1.readmissionRatePct, 14.7);
+  const e0 = buildParams(rb, s1).emergPerYear, e1 = buildParams(rb, { ...s1, readmissionRatePct: 12.6 }).emergPerYear;
+  assert.ok(Math.abs(e1 / e0 - (1 - 0.147) / (1 - 0.126)) < 1e-9, "fewer readmissions, fewer admissions");
 });
 
 test("baseline reproduces its calibration targets (regression test)", { skip: !fs.existsSync("web/data/baseline.json") }, () => {

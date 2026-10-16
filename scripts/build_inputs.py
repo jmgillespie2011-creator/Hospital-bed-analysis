@@ -475,6 +475,8 @@ SRC = {
     "ons": ("ONS mid-year population estimates", "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates"),
     "onsp": ("ONS 2022-based national population projections", "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections"),
     "winter": ("NHS England UEC daily sitrep, winter daily time series", f"{NHSE_STATS}/uec-sitrep/"),
+    "readm": ("OHID Fingertips 41101: emergency readmissions within 30 days of discharge (NHS Outcomes Framework, HES)",
+              "https://fingertips.phe.org.uk/search/41101"),
 }
 
 
@@ -499,6 +501,10 @@ def headline_inputs(core: dict) -> list[dict]:
         row("Flu patients in G&A beds, winter peak (7-day mean)", t["fluPeakBeds"], "beds", "winter", "Calibration target (size of flu wave)"),
         row("Flu wave peak date and spread", core["flu"]["sdDays"], "days (SD)", "winter", f"Peak day-of-year {core['flu']['peakDoy']}; Gaussian fitted to daily flu beds"),
         row("Flu admissions aged 65+", core["flu"]["share65"], "share", "hes", "ICD-10 J09-J11 primary diagnosis", "2023/24"),
+        *([row("Emergency readmissions within 30 days", core["readmissions"]["rate"], "share", "readm",
+                f"{core['readmissions']['count']:,.0f} readmissions of {core['readmissions']['discharges']:,.0f} eligible discharges "
+                "(excludes day cases, maternity, cancer); sets the readmissions setting", core["readmissions"]["year"])]
+          if core.get("readmissions") else []),
         row("England population", sum(b["pop"][str(core["baseYear"])] if str(core["baseYear"]) in b["pop"] else b["pop"][core["baseYear"]] for b in core["ageBands"]), "people", "ons", "Mid-year estimate", str(core["baseYear"])),
     ]
 
@@ -638,6 +644,7 @@ def assemble() -> dict:
                      emBedDaysPerAdm=hd["mean_emergency_bed_days"], fluPeakBeds=wave["peak_beds_7day"],
                      **({"wardCorridor8am": corridor["wardMean"]} if corridor else {})),
         corridorCare=corridor,
+        readmissions=readmissions(ae),
         delays=dict(shape=drd["gamma_shape"], mean=drd["gamma_mean"], bands=drd["band_shares"], bandLabels=drd["band_labels"],
                     avgExc0=drd["avg_delay_exc0"]),
         elective=dict(meanBedDays=hd["elective_bed_days_per_overnight_dominant"]),
@@ -654,6 +661,25 @@ def assemble() -> dict:
     (OUT / "model_inputs_core.json").write_text(json.dumps(inputs, indent=1, default=float))
     return inputs
 
+
+# ------------------------------------------------------------------ emergency readmissions (OHID Fingertips 41101)
+def readmissions(ae: pd.DataFrame) -> dict | None:
+    """England emergency readmissions within 30 days of discharge, latest year and history.
+
+    k = eligible discharges / all emergency admissions in the same year: converts a change in the readmission
+    rate into a change in emergency admissions (see demand.js)."""
+    f = RAW / "fingertips" / "readmissions_30d__41101__at15.csv"
+    if not f.exists():
+        return None
+    d = pd.read_csv(f, low_memory=False)
+    d = d[(d.Sex == "Persons") & d["Category Type"].isna() & d.Count.notna()].drop_duplicates("Time period")
+    d = d.sort_values("Time period")
+    last = d.iloc[-1]
+    em = ae.groupby("fy").emergency_admissions.sum()
+    k = float(last.Denominator / em[last["Time period"]]) if last["Time period"] in em.index else 1.0
+    return dict(year=last["Time period"], rate=float(last.Count / last.Denominator), count=float(last.Count),
+                discharges=float(last.Denominator), dischargesPerEmergencyAdmission=k,
+                history=[dict(year=r["Time period"], rate=float(r.Count / r.Denominator)) for _, r in d.iterrows()])
 
 # ------------------------------------------------------------------ corridor care (experimental, from May 2026)
 def corridor_care_daily() -> pd.DataFrame:

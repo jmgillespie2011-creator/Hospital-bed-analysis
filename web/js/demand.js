@@ -32,6 +32,7 @@ export function defaultSettings(base) {
     prepHours: DEFAULTS.prepHours,
     virtualWardPct: 0,
     admissionAvoidancePct: 0,
+    readmissionRatePct: base.readmissions ? +(100 * base.readmissions.rate).toFixed(1) : 0, // today's rate = no change
     losChangePct: 0,
     // context
     popYear: base.baseYear,
@@ -91,6 +92,17 @@ export function deprivationMultiplier(base, g) {
   return scen / now;
 }
 
+// Emergency readmissions within 30 days. Readmissions are part of emergency admissions, and each admission
+// produces discharges that can lead to further readmissions. With readmission rate r and k eligible discharges
+// per emergency admission (both measured, OHID 41101), admissions = first admissions / (1 - r k), so
+// changing r from r0 to r1 scales emergency admissions by (1 - r0 k) / (1 - r1 k).
+export function readmissionMultiplier(base, ratePct) {
+  const r = base.readmissions;
+  if (!r || ratePct == null) return 1;
+  const k = r.dischargesPerEmergencyAdmission ?? 1, r0 = +(100 * r.rate).toFixed(1) / 100, r1 = ratePct / 100;
+  return (1 - r0 * k) / (1 - r1 * k);
+}
+
 export function demandBreakdown(base, s) {
   const out = {};
   out.population = base.ageBands.reduce((t, b) => t + b.emergAdm * populationFor(base, b, s.popYear) / populationFor(base, b, base.baseYear), 0) /
@@ -105,6 +117,7 @@ export function demandBreakdown(base, s) {
   out.riskAll = riskAll;
   out.deprivation = deprivationMultiplier(base, s.deprivationGapPct / 100);
   out.other = 1 + s.otherGrowthPct / 100;
+  out.readmissions = readmissionMultiplier(base, s.readmissionRatePct);
   out.fluVaccine = fluVaccineMultiplier(base.flu, s.fluUptake65);
   out.fluSeverity = s.winterSeverityPct / 100;
   return out;
@@ -123,7 +136,7 @@ export function buildParams(base, s) {
   const nonFlu = 1 - flu0 / total0;
   for (const b of base.ageBands) {
     let adm = b.emergAdm * nonFlu * populationFor(base, b, s.popYear) / populationFor(base, b, base.baseYear);
-    adm *= publicHealth * dm.other;
+    adm *= publicHealth * dm.other * dm.readmissions;
     let losMult = b.losMult;
     if (b.older) {
       adm *= 1 - s.admissionAvoidancePct / 100;  // community urgent response / frailty services
