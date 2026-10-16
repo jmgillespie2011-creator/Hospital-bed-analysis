@@ -97,6 +97,14 @@ number, but it makes several predictions that were never used to fit it. These t
 <div id="poolTests"></div>
 <div class="callout" id="poolSummary"></div>
 
+<h2 id="trust-pools">Does each trust have its own flexibility?</h2>
+<p>One national pool size predicts the national years after the pandemic well, but not which trusts struggle (V7, E3). Here every acute
+trust gets its own pool size in each post-pandemic year (2022/23, 2023/24, 2025/26). The model is scaled to the trust's beds and emergency
+admissions, its stays are set so it matches the trust's occupancy (KH03), and the pool size is fitted to the trust's share of emergency
+admissions waiting over 12 hours. The test is whether those pools are stable from year to year, whether a trust's pool from one year predicts
+its waits in a later year, and what they go with (<code>scripts/trust_pools.mjs</code>, <code>scripts/trust_pools_analysis.py</code>).</p>
+<div id="trustPools"></div>
+
 <h2 id="further">Further validation</h2>
 <p>Six more tests (<code>scripts/validate_extra.mjs</code>, inputs from <code>scripts/validation_data.py</code>). They ask whether the model
 forecasts years it was not fitted to, follows the month-to-month pattern, explains differences between trusts once each trust's own

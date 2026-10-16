@@ -254,6 +254,7 @@ async function renderValidation() {
       suffer most once flexibility is lost, or it shares a common cause with long waits.`;
   }
   await renderPoolTests(BASE0);
+  await renderTrustPools();
   await renderExtra();
   if (v.effects) {
     const OUT = { emergency_all: "All emergency admissions", copd: "COPD", chd: "Coronary heart disease", stroke: "Stroke",
@@ -378,6 +379,45 @@ const poolSummary = () => `<strong>What the pool tests show.</strong>
   crowding, staffing, processes). Infection control (G), split sites and single rooms (H) do not explain which trusts got worse; a high
   long-stay share does (C, H). For this reason the simulator's "pre-pandemic flexibility" setting is fitted to 12-hour waits counted from
   arrival, not from the decision to admit: pools of about ${Math.round(POOL_B)} beds (see the methods page).`;
+
+async function renderTrustPools() {
+  if (!$("trustPools")) return;
+  const tp = await fetch("data/trust_pools.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  if (!tp) return;
+  const sg = (x, d = 0) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(d)}`;
+  const yrs = Object.keys(tp.n).sort();
+  let h = table(["Year", "Trusts", "Median pool (middle half)", "Median pool as a share of beds", "Waits too low for any pool (whole hospital shared)"],
+    yrs.map((fy) => { const n = tp.n[fy]; return [esc(fy), num(n.trusts), `${num(n.medianPool)} beds (${num(n.q1)}–${num(n.q3)})`, pct(n.medianShare, 1), num(n.wholeHospital)]; }), [1, 2, 3, 4]);
+  h += `<h3>Stability</h3>` + table(["Years", "Rank correlation of trusts' pools", "p", "Trusts"],
+    tp.stability.map((s) => [`${esc(s.a)} and ${esc(s.b)}`, s.spearman.toFixed(2), s.p < 0.001 ? "<0.001" : s.p.toFixed(3), num(s.n)]), [1, 2, 3]) +
+    `<p class="cap">${pct(tp.icc.betweenTrust, 0)} of the variation in (log) pool size is between trusts rather than from year to year
+    (${num(tp.icc.trusts)} trusts with at least two uncensored years).</p>`;
+  const P = tp.prediction;
+  h += `<h3>Predicting 2025/26 from 2023/24</h3>` + table(["Pool used", "Rank correlation with observed 12-hour waits", "Median absolute error", "Within a factor of 2"],
+    [["Each trust's own 2023/24 pool", P.ownPool.spearman.toFixed(2), `${(100 * P.ownPool.medae).toFixed(1)} pts`, pct(P.ownPool.withinFactor2, 0)],
+      ["The national pool (today's calibration)", P.nationalPool.spearman.toFixed(2), `${(100 * P.nationalPool.medae).toFixed(1)} pts`, pct(P.nationalPool.withinFactor2, 0)]], [1, 2, 3]) +
+    `<p class="cap">${num(P.n)} trusts, each run with its own 2025/26 beds, admissions and occupancy. Mean observed share waiting over 12 hours:
+    ${pct(P.observedMean, 1)}. A few trusts recorded near 100% occupancy, where the model's waits explode, so mean errors are larger than median ones.</p>`;
+  const C = tp.correlates, J = tp.joint;
+  h += `<h3>What goes with a trust's pool size (2025/26)</h3>` + table(["Characteristic", "Rank correlation with pool size", "p", "Trusts"],
+    Object.values(C).map((c) => [esc(c.label), sg(c.spearman, 2), c.p < 0.001 ? "<0.001" : c.p.toFixed(3), num(c.n)]), [1, 2, 3]) +
+    `<p class="cap">Smaller pool = less flexible. Delays per 100 G&amp;A beds, April 2025 to March 2026 (acute discharge sitrep). In a joint regression
+    (R² ${J.r2.toFixed(2)}, ${num(J.n)} trusts), each standard deviation more hospital-process delays goes with a ${sg(J.terms.hp_z.pct)}% pool
+    (95% CI ${sg(J.terms.hp_z.lo)}% to ${sg(J.terms.hp_z.hi)}%, p=${J.terms.hp_z.p.toFixed(3)}); social care delays ${sg(J.terms.sc_z.pct)}% (p=${J.terms.sc_z.p.toFixed(2)}),
+    long-stay share ${sg(J.terms.ls_pts_z.pct)}% (p=${J.terms.ls_pts_z.p.toFixed(2)}), size ${sg(J.terms.log_beds_z.pct)}% (p=${J.terms.log_beds_z.p.toFixed(2)}).
+    The positive link with occupancy is partly built in: a trust that runs very full with modest waits can only be fitted with a large pool.</p>`;
+  const s1 = tp.stability.find((s) => s.a === "2022/23" && s.b === "2023/24"), s2 = tp.stability.find((s) => s.a === "2023/24" && s.b === "2025/26");
+  h += `<div class="callout"><strong>What this shows.</strong> Trusts' flexibility is a real, persistent property: a trust's fitted pool in one year
+    ranks closely with its pool the next (${s1 ? s1.spearman.toFixed(2) : ""}) and two years later (${s2 ? s2.spearman.toFixed(2) : ""}), and
+    ${pct(tp.icc.betweenTrust, 0)} of the variation is between trusts. Using each trust's own earlier pool ranks its later waits far better than
+    one national pool (${P.ownPool.spearman.toFixed(2)} against ${P.nationalPool.spearman.toFixed(2)}), but predicts their level only roughly
+    (median error ${(100 * P.ownPool.medae).toFixed(1)} points), because the model's waits respond too steeply to occupancy (E4). Less flexible
+    trusts are not the smaller ones, nor clearly those with more long-stay patients or social care delays; they are the ones with more delays
+    from their own discharge processes, though that explains only a small part of the differences (R² ${J.r2.toFixed(2)}). This does not contradict the trust panel above, where trusts with
+    more long-stay patients saw bigger <em>rises</em> in long waits after the pandemic: that test compares each trust with its own pre-pandemic waits,
+    while a pool size describes how flexible a trust is now, including differences it already had before.</div>`;
+  $("trustPools").innerHTML = h;
+}
 
 async function renderExtra() {
   if (!$("extraSummary")) return;
