@@ -104,6 +104,7 @@ async function main() {
   const BLUE = css("--series-scn"), ORANGE = css("--series-b"), GREY = css("--series-base");
   const BY = sc.baseYear;
   fill("baseYear", BY);
+  if (base.calibration?.B) { fill("poolB", Math.round(base.calibration.B.poolSize)); fill("poolA", Math.round(base.calibration.A.poolSize)); }
   $("genDate").textContent = new Date(sc.generated).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
   // ---------------------------------------------------------------- 1. beds

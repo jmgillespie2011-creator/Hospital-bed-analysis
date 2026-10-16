@@ -9,7 +9,9 @@ import { buildParams, defaultSettings, demandBreakdown } from "../web/js/demand.
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const base = JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/baseline.json"), "utf8"));
-const REPS_A = 60, REPS_B = 8;
+const REPS_A = 60;
+// model B: the same total number of simulated beds as model A
+const REPS_B = Math.max(4, Math.round(REPS_A * base.calibration.A.poolSize / base.calibration.B.poolSize));
 const s0 = defaultSettings(base);
 const settings = (ch) => ({ ...s0, ...ch, risk: { ...s0.risk, ...(ch.risk || {}) } });
 

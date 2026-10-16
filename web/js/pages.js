@@ -39,7 +39,7 @@ async function main() {
         r("Weekend-ready patients discharged at the weekend (%)", "weekendDischargePct", 0, (x) => x, `Weekend/weekday discharge-rate ratio ${num(t.weekendRatio, 2)} (discharge sitrep)`),
         r("Planned admissions front-loaded towards Monday", "electiveFrontLoad", 2, (x) => x, "Weekday pattern of winter occupancy (daily sitrep)"),
         r("Flu admissions per year (simulated wave)", "fluAdmissions", 0, (x) => x, `Flu patients in G&A beds at peak ${num(t.fluPeakBeds)} (winter sitrep, 7-day mean)`),
-        r("Effective bed pool size (beds)", "poolSize", 0, (x) => x, `Emergency admissions waiting >12h ${pct(t.wait12Share, 2)} (A&E); flexible system fixed at 1,000`),
+        r("Effective bed pool size (beds)", "poolSize", 0, (x) => x, `Emergency admissions waiting >12h ${pct(t.wait12Share, 2)} (A&E). Flexible system: ${c.flexibleFit ? `2018/19 waits counted from arrival, translated to ${pct(c.flexibleFit.target, 2)} from decision to admit (methods)` : "fitted to 2018/19"}`),
         ...(t.wardCorridor8am != null ? [r("Corridor care spaces on wards (% of beds)", "corridorPct", 1, (x) => x, `Patients in ward corridor care at 08:00: ${num(t.wardCorridor8am)} (NHS England, May-Sep 2026); flexible system uses the same spaces`)] : []),
         r("Mean delay for delayed patients (days, fixed)", "delayMeanDays", 2, (x) => x, `Gamma shape ${num(c.A.delayShape, 2)}, fitted to Discharge Ready Date delay bands`),
       ], [1, 2]);
@@ -244,7 +244,7 @@ async function renderValidation() {
       More likely, a high long-stay share marks trusts whose patients or local services (older, frailer populations; weaker community and social care)
       suffer most once flexibility is lost, or it shares a common cause with long waits.`;
   }
-  await renderPoolTests();
+  await renderPoolTests(base);
   if (v.effects) {
     const OUT = { emergency_all: "All emergency admissions", copd: "COPD", chd: "Coronary heart disease", stroke: "Stroke",
       pneumonia: "Pneumonia", respiratory: "Respiratory", falls65: "Falls, 65+ (placebo)", hip_fracture: "Hip fracture, 65+ (placebo)" };
@@ -261,8 +261,9 @@ async function renderValidation() {
 
 main().catch((e) => { document.body.insertAdjacentHTML("beforeend", `<p class="wrap">Could not load data: ${esc(e.message)}</p>`); });
 
-async function renderPoolTests() {
+async function renderPoolTests(base) {
   if (!$("poolTests")) return;
+  if (base?.calibration?.B) POOL_B = base.calibration.B.poolSize;
   const names = ["pool_tests", "deadline_test", "pool_slopes", "daily_tests", "infection_tests", "site_tests", "clock_test"];
   const J = Object.fromEntries(await Promise.all(names.map((n) => fetch(`data/${n}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => [n, d]))));
   const sg = (x, d = 0) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(d)}`;
@@ -338,11 +339,12 @@ async function renderPoolTests() {
       ${pct(st.sites.share_multi_site, 0)} of trusts have more than one; median ${st.sites.single_per_bed_median.toFixed(2)} single bedrooms per G&amp;A bed).</p>`;
   }
   $("poolTests").innerHTML = h;
-  if ($("poolSummary")) $("poolSummary").innerHTML = POOL_SUMMARY;
+  if ($("poolSummary")) $("poolSummary").innerHTML = poolSummary();
 }
 
 
-const POOL_SUMMARY = `<strong>What the pool tests show.</strong>
+let POOL_B = 96;
+const poolSummary = () => `<strong>What the pool tests show.</strong>
   The sixfold drop in pool size that the model needs is mostly a product of the 12-hour measure it is fitted to.
   Before the pandemic about 320,000 patients a year spent over 12 hours in A&amp;E from arrival, but only about 3,300 were counted
   as waiting 12 hours from the decision to admit (D). Measured from arrival, 12-hour waits rose about fivefold, not 140-fold.
@@ -352,5 +354,6 @@ const POOL_SUMMARY = `<strong>What the pool tests show.</strong>
   running out of them now matters less, because delays are common on ordinary days too (F). But the handover curve moved up at every
   occupancy, including around 80%, rather than changing shape, which points to pressures outside the bed pool as well (emergency department
   crowding, staffing, processes). Infection control (G), split sites and single rooms (H) do not explain which trusts got worse; a high
-  long-stay share does (C, H). Implication for the simulator: its "pre-pandemic flexibility" setting, fitted to 12-hour waits from the
-  decision to admit, overstates how much flexibility hospitals had and so overstates the gain from getting it back.`;
+  long-stay share does (C, H). Implication for the simulator: its "pre-pandemic flexibility" setting was fitted to 12-hour waits from the
+  decision to admit (pools of 1,000 beds), which overstated how flexible hospitals were. It is now fitted to 12-hour waits counted from
+  arrival (pools of about ${Math.round(POOL_B)} beds; see the methods page).`;

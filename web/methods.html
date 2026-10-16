@@ -54,8 +54,8 @@ admissions. The simple ratio is still shown as a check on the <a href="validatio
     this by splitting available beds into independent pools of size <code>S</code>; each simulation run models one pool with
     <code>1/(B/S)</code> of national demand, and results are scaled back to England. Smaller pools mean less sharing, so more waiting at the same
     average occupancy. <code>S</code> is not observable, so it is calibrated (see below). Results are shown for two values:
-    <strong>"today's system"</strong> (S fitted to 2024/25 waits) and a <strong>"more flexible system"</strong> (S = 1,000, which reproduces
-    2015/16's near-zero waits).</li>
+    <strong>"today's system"</strong> (S fitted to 2025/26 waits) and a <strong>"more flexible system"</strong> (S fitted to 2018/19,
+    see below).</li>
 </ul>
 
 <h3>Emergency patients</h3>
@@ -221,8 +221,8 @@ in people aged 65+ (50%) and their length of stay come from HES.</li>
 </ul>
 
 <h2 id="randomness">Randomness and accuracy</h2>
-<p>Each result is the average of many simulated years (30 for "today's system", 6 for the "more flexible system", whose larger pools are
-less noisy). The baseline and your scenario use the same simulated patients. Arrivals are drawn at a fixed reference rate and thinned to the
+<p>Each result is the average of many simulated years (30 for "today's system"; for the "more flexible system", whose pools are larger,
+enough years to simulate the same total number of beds). The baseline and your scenario use the same simulated patients. Arrivals are drawn at a fixed reference rate and thinned to the
 scenario's demand, and each patient has their own random numbers. A scenario with less demand removes some patients and leaves the rest
 unchanged, so differences reflect your changes rather than chance. Small differences (under about half a percentage point of occupancy) should not be over-interpreted. Long waits are much noisier
 than occupancy, because they depend on rare runs of busy days: the share of emergency patients waiting over 12 hours carries roughly
@@ -239,7 +239,13 @@ than occupancy, because they depend on rare runs of busy days: the share of emer
     change on its own, but that beds blocked by long-stay patients cannot explain the differences between trusts. Further
     <a href="validation.html#pool-tests">tests</a> found that the pre-pandemic level of 12-hour waits from the decision to admit was held down
     by when decisions were recorded: counted from arrival, 12-hour waits rose about fivefold, not 140-fold. The "more flexible" setting is
-    fitted to the decision-to-admit measure, so it overstates the gain from restoring pre-pandemic flexibility.</li>
+    therefore fitted to 12-hour waits counted from arrival. Its pool size reproduces, in 2018/19's conditions, a 12-hour share (from the
+    decision to admit, the model's measure) equal to 2024/25's share scaled by the fall in 12-hour waits from arrival between 2024/25 and
+    2018/19 (2.0% against 10.6% of attendances): about 1.6%. This assumes waits for a bed fell in the same proportion as all long A&amp;E
+    stays, which cannot be checked with published data. The fitted pool is about 96 beds; a second pair of years (2017/18 and 2022/23)
+    gives about 98. At that pool size the model gives fewer 4-hour waits in 2018/19 than were observed (about 4.5% against 9.8%), so it may
+    still overstate pre-pandemic flexibility somewhat. Until October 2026 the setting used pools of 1,000 beds, fitted to the
+    decision-to-admit measure, which overstated the gain from restoring pre-pandemic flexibility.</li>
   <li><strong>Demand responds to supply in reality.</strong> With more beds, hospitals may admit patients they currently treat elsewhere,
     which would use some of the extra capacity. The model holds admission rates fixed unless you change them.</li>
   <li><strong>National, not local.</strong> All trusts are treated as identical. Real pressure is uneven: some trusts are far fuller than average.</li>

@@ -26,6 +26,8 @@ const base = JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/baseline.json"
 const log = (...a) => console.log(...a);
 const pct = (x, d = 1) => (x == null ? "n/a" : (100 * x).toFixed(d) + "%");
 
+// model B runs: the same total number of simulated beds as model A
+const RB = (r) => Math.max(4, Math.round(r * base.calibration.A.poolSize / base.calibration.B.poolSize));
 function scenario(over, which = "A", reps = 24, paramOver = {}) {
   const s = { ...defaultSettings(base), ...over, flexibility: which };
   return run({ ...buildParams(base, s), ...paramOver }, reps);
@@ -49,7 +51,7 @@ const out = { generated: new Date().toISOString().slice(0, 10), checks: [], year
 // ---------------------------------------------------------------- V1 + V2: years
 for (const bt of base.backtests) {
   const set = { ...yearSettings(bt), otherGrowthPct: matchAdmissions(bt) };
-  const a = scenario(set, "A", 24), b = scenario(set, "B", 4);
+  const a = scenario(set, "A", 24), b = scenario(set, "B", RB(24));
   out.years.push({
     fy: bt.fy, beds: bt.beds, admissions: bt.emergency_admissions,
     occ_obs: bt.occupancy, occ_A: a.occMidnight, occ_B: b.occMidnight,
@@ -86,7 +88,7 @@ out.checks.push({
   modelB: old.map((y) => `${pct(y.wait12_B, 2)}`).join("; "),
   criterion: "reported, not scored (known structural change)",
   pass: null,
-  note: "Today's system (pool size fitted to 2025/26) over-predicts pre-pandemic waits; the more flexible system matches them. Waits depend on how flexibly beds are used, which has changed.",
+  note: "Today's system (pool size fitted to 2025/26) over-predicts pre-pandemic waits. The more flexible system is fitted to 2018/19 12-hour waits counted from arrival, not to the recorded decision-to-admit figures shown here, which were held down by when decisions were recorded (see the pool-size tests); so it gives more waits than recorded. These runs also keep 2025/26 stays, so occupancy is not matched to each year.",
 });
 
 // ---------------------------------------------------------------- V3/V4: winter daily pattern
@@ -130,7 +132,7 @@ out.checks.push({
 // ---------------------------------------------------------------- C1-C4: corridor care
 const cc = base.corridorCare;
 if (cc) {
-  const refB = scenario({}, "B", 8);
+  const refB = scenario({}, "B", RB(48));
   const days = cc.daily.map((d) => d.day);
   const avg = (series) => mean(days.map((d) => series[d]));
   // weekday (Mon=0) on each calendar: the data's own dates; in the model, day i falls on weekday i % 7

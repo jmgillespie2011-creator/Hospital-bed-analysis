@@ -11,6 +11,7 @@
 //   weekend discharging          -> weekend/weekday discharge-rate ratio (discharge sitrep)
 //   flu admissions               -> peak flu patients in G&A beds (winter sitrep)
 //   effective bed-pool size      -> share of emergency admissions waiting >12h from decision to admit
+//   (more flexible system: pool fitted to 2018/19 12-hour waits counted from arrival; see flexible_pool.mjs)
 //   corridor (escalation) spaces -> patients receiving corridor care on G&A wards at 08:00 (NHS England
 //                                   corridor-care collection, May 2026 onwards, same calendar days)
 // The delay-length distribution (gamma) is fixed from the DRD delay bands.
@@ -19,6 +20,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { run } from "../web/js/model.js";
 import { buildParams, defaultSettings } from "../web/js/demand.js";
+import { fitFlexiblePool, flexibleTarget } from "./flexible_pool.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const inp = JSON.parse(fs.readFileSync(path.join(ROOT, "data/processed/model_inputs.json"), "utf8"));
@@ -41,7 +43,9 @@ const base = {
   },
 };
 
-function measure(which, reps = which === "B" ? 4 : REPS) {
+// runs needed for model B: the same total number of simulated beds as model A
+const repsB = (r) => Math.max(4, Math.round(r * base.calibration.A.poolSize / (base.calibration.B?.poolSize || base.calibration.A.poolSize)));
+function measure(which, reps = which === "B" ? repsB(REPS) : REPS) {
   const s = defaultSettings(base);
   // exact (unrounded) corridor spaces while fitting; the website uses the value rounded to 0.1%
   return run(buildParams(base, { ...s, corridorPct: base.calibration[which].corridorPct ?? 0, flexibility: which }), reps);
@@ -81,7 +85,7 @@ function fitWeekly(which) {
   for (const fl of [0, 0.15, 0.3, 0.45]) for (const sg of [0.8, 1.2]) {
     Object.assign(c, { electiveFrontLoad: fl, electiveLosSigma: sg,
       electiveLosMedianDays: inp.elective.meanBedDays / Math.exp(sg ** 2 / 2) });
-    const e = weekShape(measure(which, which === "B" ? 4 : 12));
+    const e = weekShape(measure(which, which === "B" ? repsB(12) : 12));
     if (!best || e < best.e) best = { e, wd, fl, sg };
   }
   Object.assign(c, { weekendDischargePct: best.wd, electiveFrontLoad: best.fl, electiveLosSigma: best.sg,
@@ -138,7 +142,7 @@ function fitAll(which, rounds = 3, withPool = false, behaviour = true) {
         fitPoolAndCorridor(which, [25, 150], true, 96, true);
       }
     }
-    const m = measure(which, which === "B" ? 8 : 96);
+    const m = measure(which, which === "B" ? repsB(96) : 96);
     log(`[${which}] round ${r + 1}`, JSON.stringify(Object.fromEntries(Object.entries(base.calibration[which]).map(([k, v]) => [k, +(+v).toFixed(4)]))));
     log(`   occ ${m.occMidnight.toFixed(4)}/${T.occupancy.toFixed(4)}  bd/adm ${m.emBedDaysPerAdm.toFixed(2)}/${T.emBedDaysPerAdm.toFixed(2)}  21+ ${m.long21Share.toFixed(3)}/${T.long21Share.toFixed(3)}  delayed ${m.delayedShareOvernight.toFixed(3)}/${T.delayedShare.toFixed(3)}  wkend ${m.weekendDischargeRatio.toFixed(3)}/${T.weekendRatio.toFixed(3)}  week-shape ${weekShape(m).toFixed(2)}  flu ${Math.round(m.fluBedsPeak)}/${T.fluPeakBeds}  >12h ${m.wait12.toFixed(4)}/${T.wait12Share.toFixed(4)}  ward corridor ${Math.round(wardCorridor(m))}/${Math.round(T.wardCorridor8am ?? 0)}  nctr ${m.nctrShare.toFixed(3)} (validation ${T.nctrShare.toFixed(3)})`);
   }
@@ -146,11 +150,25 @@ function fitAll(which, rounds = 3, withPool = false, behaviour = true) {
 
 // Model A: everything, including pool size, fitted to 2025/26.
 // WARM=1 starts from the current web/data/baseline.json values and runs fewer rounds.
-const warm = process.env.WARM === "1" && fs.existsSync(path.join(ROOT, "web/data/baseline.json"));
-if (warm) Object.assign(base.calibration.A, JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/baseline.json"), "utf8")).calibration.A);
-fitAll("A", warm ? 1 : 6, true);
-// Model B: large pools (2015/16-like flexibility); same targets except >12h waits.
-base.calibration.B = { ...base.calibration.A, poolSize: 1000 };
+// ONLY_B=1 keeps model A exactly as in the current web/data/baseline.json and refits only model B.
+const prev = fs.existsSync(path.join(ROOT, "web/data/baseline.json")) ? JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/baseline.json"), "utf8")) : null;
+const onlyB = process.env.ONLY_B === "1" && prev;
+const warm = process.env.WARM === "1" && prev;
+if (onlyB) Object.assign(base, prev, { generated: base.generated, calibration: { ...prev.calibration, targets: prev.calibration.targets } });
+else {
+  if (warm) Object.assign(base.calibration.A, prev.calibration.A);
+  fitAll("A", warm ? 1 : 6, true);
+}
+// Model B: pre-pandemic flexibility. Pool size fitted to 2018/19 12-hour waits counted from arrival, translated into
+// the model's decision-to-admit units (scripts/flexible_pool.mjs); then the same 2025/26 targets as A except >12h waits.
+const clock = JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/clock_test.json"), "utf8"));
+const ft = flexibleTarget(clock, ["2018/19", "2024/25"]);
+log(`[B] target: ${(100 * ft.target).toFixed(2)}% of emergency admissions waiting >12h in 2018/19 conditions`);
+const fp = fitFlexiblePool(base, { target: ft.target, log });
+base.calibration.B = { ...base.calibration.A, poolSize: fp.pool };
+base.calibration.flexibleFit = { method: "12-hour waits from arrival", ...ft, fittedYear: fp.fy, pool: fp.pool,
+  model2018: { occupancy: fp.occupancy, wait12: fp.wait12, wait4: fp.wait4 } };
+log(`[B] pool ${fp.pool.toFixed(0)} beds`);
 fitAll("B", 2, false, false); // keeps model A's discharge behaviour (weekend, planned-admission timing)
 
 fs.mkdirSync(path.join(ROOT, "web/data"), { recursive: true });

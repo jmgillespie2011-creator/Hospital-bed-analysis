@@ -997,6 +997,59 @@
    }
   ]
  },
+ "readmissions": {
+  "year": "2024/25",
+  "rate": 0.1467061331598325,
+  "count": 948836,
+  "discharges": 6467596,
+  "dischargesPerEmergencyAdmission": 0.9915344831947557,
+  "history": [
+   {
+    "year": "2014/15",
+    "rate": 0.12597745048517045
+   },
+   {
+    "year": "2015/16",
+    "rate": 0.12978988163311736
+   },
+   {
+    "year": "2016/17",
+    "rate": 0.1308582478019524
+   },
+   {
+    "year": "2017/18",
+    "rate": 0.13600555121258287
+   },
+   {
+    "year": "2018/19",
+    "rate": 0.14157187026088053
+   },
+   {
+    "year": "2019/20",
+    "rate": 0.14277199316728725
+   },
+   {
+    "year": "2020/21",
+    "rate": 0.15437185754748117
+   },
+   {
+    "year": "2021/22",
+    "rate": 0.14353837358739793
+   },
+   {
+    "year": "2022/23",
+    "rate": 0.14191428033106424
+   },
+   {
+    "year": "2023/24",
+    "rate": 0.14808439775833931
+   },
+   {
+    "year": "2024/25",
+    "rate": 0.1467061331598325
+   }
+  ]
+ },
  "delays": {
   "shape": 0.48248522160587276,
   "mean": 5.146633900506387,
@@ -1555,7 +1608,7 @@
    "emergency_admissions": 5188050.642857144,
    "dta_over_12h": 57.85714285714285,
    "ae_months": 8,
-   "wait12_share": 1.11520004024633e-05,
+   "wait12_share": 0.0000111520004024633,
    "nctr_remaining": null,
    "nctr_share": null,
    "long21_share": null,
@@ -1732,7 +1785,7 @@
   },
   {
    "label": "Emergency admissions",
-   "value": 6451147.0,
+   "value": 6451147,
    "unit": "per year",
    "period": "2025/26",
    "source": "NHS England A&E attendances and emergency admissions",
@@ -1750,7 +1803,7 @@
   },
   {
    "label": "Planned overnight admissions",
-   "value": 1145001.0,
+   "value": 1145001,
    "unit": "per year",
    "period": "2023/24",
    "source": "NHS England Digital, Hospital Admitted Patient Care Activity 2023-24 (diagnosis tables)",
@@ -1822,7 +1875,7 @@
   },
   {
    "label": "Flu patients in G&A beds, winter peak (7-day mean)",
-   "value": 3065.0,
+   "value": 3065,
    "unit": "beds",
    "period": "2025/26",
    "source": "NHS England UEC daily sitrep, winter daily time series",
@@ -1858,7 +1911,7 @@
   },
   {
    "label": "England population",
-   "value": 58834812.0,
+   "value": 58834812,
    "unit": "people",
    "period": "2025",
    "source": "ONS mid-year population estimates",
@@ -1964,11 +2017,11 @@
    "corridorPct": 4.3
   },
   "B": {
-   "poolSize": 1000,
-   "losMedianDays": 4.244140625,
-   "losSigma": 1.1542968750000002,
+   "poolSize": 95.55175747025163,
+   "losMedianDays": 4.462890625,
+   "losSigma": 1.142578125,
    "sameDayFrac": 0.5994628906249999,
-   "delayProb": 0.20664062500000002,
+   "delayProb": 0.20429687500000002,
    "delayMeanDays": 5.146633900506387,
    "delayShape": 0.48248522160587276,
    "weekendDischargePct": 91.38671875,
@@ -1976,7 +2029,7 @@
    "electiveLosSigma": 1.2,
    "electiveLosMedianDays": 2.2101073382681045,
    "seasonAmp": 0.04,
-   "fluAdmissions": 41958.0078125,
+   "fluAdmissions": 37709.9609375,
    "corridorPct": 4.3
   },
   "targets": {
@@ -1989,59 +2042,21 @@
    "emBedDaysPerAdm": 4.52361697908072,
    "fluPeakBeds": 3065,
    "wardCorridor8am": 714.1633986928105
-  }
- },
- "readmissions": {
-  "year": "2024/25",
-  "rate": 0.1467061331598325,
-  "count": 948836.0,
-  "discharges": 6467596.0,
-  "dischargesPerEmergencyAdmission": 0.9915344831947557,
-  "history": [
-   {
-    "year": "2014/15",
-    "rate": 0.12597745048517045
-   },
-   {
-    "year": "2015/16",
-    "rate": 0.12978988163311736
-   },
-   {
-    "year": "2016/17",
-    "rate": 0.1308582478019524
-   },
-   {
-    "year": "2017/18",
-    "rate": 0.13600555121258287
-   },
-   {
-    "year": "2018/19",
-    "rate": 0.14157187026088053
-   },
-   {
-    "year": "2019/20",
-    "rate": 0.14277199316728725
-   },
-   {
-    "year": "2020/21",
-    "rate": 0.15437185754748117
-   },
-   {
-    "year": "2021/22",
-    "rate": 0.14353837358739793
-   },
-   {
-    "year": "2022/23",
-    "rate": 0.14191428033106424
-   },
-   {
-    "year": "2023/24",
-    "rate": 0.14808439775833931
-   },
-   {
-    "year": "2024/25",
-    "rate": 0.1467061331598325
+  },
+  "flexibleFit": {
+   "method": "12-hour waits from arrival",
+   "pre": "2018/19",
+   "post": "2024/25",
+   "ratio": 0.19113280404474725,
+   "dtaPost": 0.08162902059923514,
+   "target": 0.015601983598558248,
+   "fittedYear": "2018/19",
+   "pool": 95.55175747025163,
+   "model2018": {
+    "occupancy": 0.9028953838759171,
+    "wait12": 0.015893943660769908,
+    "wait4": 0.045298806140822476
    }
-  ]
+  }
  }
 }

@@ -1,7 +1,7 @@
 import { buildParams, defaultSettings, populationFor, demandBreakdown } from "./demand.js";
 
 const REPS_A = 30;   // replications for "today's hospitals" (small bed pools; fast)
-const REPS_B = 6;    // replications for "pre-pandemic flexibility" (large pools; slower, less noisy)
+let REPS_B = 6;      // replications for "pre-pandemic flexibility": set on load so both systems simulate the same total beds
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -11,6 +11,7 @@ const fmt = {
   k: (x) => x >= 1e6 ? `${(x / 1e6).toFixed(2)}m` : x >= 1e4 ? `${Math.round(x / 1e3)}k` : Math.round(x).toLocaleString("en-GB"),
 };
 
+let SWEEP_B = 3;
 let base, settings, baseline = {}, result = {}, dailyChart, sweepCharts = [];
 
 // Two workers: one for the scenario, one for the bed sweep, so a sweep never delays the next scenario.
@@ -223,7 +224,7 @@ async function runScenario() {
 let BY = "baseline";
 const SYS_NOTE = {
   A: "Today's hospitals: bed flexibility fitted to 2025/26 long waits and corridor care.",
-  B: "Pre-pandemic flexibility: beds shared as freely as in 2018/19, when long waits were rare at similar occupancy. Occupancy is almost the same; waits are not.",
+  B: "Pre-pandemic flexibility: beds shared as freely as in 2018/19, fitted to that year's 12-hour waits counted from arrival in A&E. Occupancy is almost the same; waits are not.",
 };
 
 // Is the change from the baseline bigger than simulation noise? Scenario and baseline share random numbers run by run,
@@ -420,7 +421,7 @@ async function runSweep() {
   try {
     const [a, b] = await Promise.all([
       callSweep("sweep", pA, 10, { sweep: { beds } }, (f) => { $("sweepStatus").textContent = `Updating… ${Math.round(f * 100)}%`; }),
-      callSweep("sweep", pB, 3, { sweep: { beds } }),
+      callSweep("sweep", pB, SWEEP_B, { sweep: { beds } }),
     ]);
     drawSweep(beds, a, b, cur);
     $("sweepStatus").textContent = "";
@@ -470,6 +471,9 @@ function readHash() {
 
 async function main() {
   base = await (await fetch("data/baseline.json")).json();
+  const ratioB = base.calibration.A.poolSize / base.calibration.B.poolSize;
+  REPS_B = Math.max(4, Math.round(REPS_A * ratioB));
+  SWEEP_B = Math.max(2, Math.round(10 * ratioB));
   BY = base.baseYearLabel || String(base.baseYear);
   document.querySelectorAll(".by").forEach((e) => (e.textContent = BY));
   settings = defaultSettings(base);

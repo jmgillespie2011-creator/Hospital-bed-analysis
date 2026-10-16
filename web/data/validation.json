@@ -6,8 +6,8 @@
    "name": "Forecast 2024/25 (beds and admissions of that year; parameters from 2025/26)",
    "observed": "occupancy 91.1%, >12h 8.16%",
    "modelA": "occupancy 90.6%, >12h 7.73%",
-   "modelB": "occupancy 90.4%, >12h 0.00%",
-   "criterion": "occupancy within ±1.5 pts; >12h within a factor of 1.5",
+   "modelB": "occupancy 91.2%, >12h 1.99%",
+   "criterion": "occupancy within \u00b11.5 pts; >12h within a factor of 1.5",
    "pass": true
   },
   {
@@ -15,7 +15,7 @@
    "name": "Back-cast occupancy, 2024/25, 2023/24, 2022/23, 2019/20, 2018/19, 2015/16, 2010/11",
    "observed": "2024/25: 91.1%; 2023/24: 91.1%; 2022/23: 91.1%; 2019/20: 90.2%; 2018/19: 90.2%; 2015/16: 89.0%; 2010/11: 87.1%",
    "modelA": "mean absolute error 3.6 pts",
-   "modelB": "mean absolute error 4.6 pts",
+   "modelB": "mean absolute error 3.8 pts",
    "criterion": "mean absolute error < 2 pts",
    "pass": false,
    "note": "Length of stay and delays are held at 2025/26 values, so this tests whether bed numbers and admissions alone explain the trend."
@@ -25,10 +25,10 @@
    "name": "Back-cast >12h waits before the pandemic (2015/16-2019/20)",
    "observed": "2019/20: 0.19%; 2018/19: 0.05%; 2015/16: 0.02%",
    "modelA": "9.27%; 8.46%; 1.48%",
-   "modelB": "0.00%; 0.00%; 0.00%",
+   "modelB": "2.27%; 2.13%; 0.19%",
    "criterion": "reported, not scored (known structural change)",
    "pass": null,
-   "note": "Today's system (pool size fitted to 2025/26) over-predicts pre-pandemic waits; the more flexible system matches them. Waits depend on how flexibly beds are used, which has changed."
+   "note": "Today's system (pool size fitted to 2025/26) over-predicts pre-pandemic waits. The more flexible system is fitted to 2018/19 12-hour waits counted from arrival, not to the recorded decision-to-admit figures shown here, which were held down by when decisions were recorded (see the pool-size tests); so it gives more waits than recorded. These runs also keep 2025/26 stays, so occupancy is not matched to each year."
   },
   {
    "id": "V3",
@@ -63,7 +63,7 @@
    "name": "Patients in corridor care on G&A wards at 08:00, 2026-05-01 to 2026-09-30",
    "observed": "714 a day",
    "modelA": "727 a day",
-   "modelB": "2 a day",
+   "modelB": "357 a day",
    "criterion": "calibration target (today's system)",
    "pass": null,
    "note": "Corridor spaces equal to 4.3% of beds (4,446) were fitted so that today's system matches. The more flexible system rarely fills every bed, so it rarely uses them."
@@ -93,7 +93,7 @@
    "name": "Corridor care in emergency departments (45+ minutes, per day)",
    "observed": "2364 patients a day",
    "modelA": "2459 admitted patients a day wait 45+ minutes for a bed",
-   "modelB": "0 a day",
+   "modelB": "1050 a day",
    "criterion": "reported: not the same measure",
    "pass": null,
    "note": "The NHS count includes patients who are not admitted and excludes patients waiting in a proper cubicle; the model counts only patients waiting for a bed, wherever they wait. Weekly pattern correlation 0.84."
@@ -136,10 +136,10 @@
    "admissions": 6522815,
    "occ_obs": 0.9110475871643836,
    "occ_A": 0.9064773264052909,
-   "occ_B": 0.9044130136986301,
+   "occ_B": 0.9122345590002402,
    "wait12_obs": 0.08162902059923514,
    "wait12_A": 0.07729765451994759,
-   "wait12_B": 0,
+   "wait12_B": 0.01986001059501133,
    "nctr_obs": 0.1318134394371835,
    "nctr_A": 0.08615263558600979
   },
@@ -149,10 +149,10 @@
    "admissions": 6410632,
    "occ_obs": 0.9113992377693235,
    "occ_A": 0.9026019524484332,
-   "occ_B": 0.8994486301369863,
+   "occ_B": 0.9080567171353041,
    "wait12_obs": 0.06854409986410076,
    "wait12_A": 0.06971580817051509,
-   "wait12_B": 0,
+   "wait12_B": 0.01735586909883424,
    "nctr_obs": 0.1333814687697478,
    "nctr_A": 0.08586766649294046
   },
@@ -162,10 +162,10 @@
    "admissions": 6020665,
    "occ_obs": 0.9107220819316533,
    "occ_A": 0.8781353330184222,
-   "occ_B": 0.8639335616438356,
+   "occ_B": 0.8766892573900503,
    "wait12_obs": 0.06811407045567225,
    "wait12_A": 0.03831020659882824,
-   "wait12_B": 0,
+   "wait12_B": 0.006412173559354476,
    "nctr_obs": 0.14051594731134942,
    "nctr_A": 0.08441653644593056
   },
@@ -175,10 +175,10 @@
    "admissions": 6405933,
    "occ_obs": 0.9017107196141357,
    "occ_A": 0.9171429696110849,
-   "occ_B": 0.9188253424657534,
+   "occ_B": 0.922845469838981,
    "wait12_obs": 0.0019411692254664543,
    "wait12_A": 0.0927323137058837,
-   "wait12_B": 0,
+   "wait12_B": 0.022734044783861037,
    "nctr_obs": null,
    "nctr_A": 0.08721552746515847
   },
@@ -188,10 +188,10 @@
    "admissions": 6369153,
    "occ_obs": 0.9015369012412664,
    "occ_A": 0.9137320894347347,
-   "occ_B": 0.913567808219178,
+   "occ_B": 0.9189367940398941,
    "wait12_obs": 0.0005121560119532377,
    "wait12_A": 0.08464182530347497,
-   "wait12_B": 0,
+   "wait12_B": 0.02127305597764,
    "nctr_obs": null,
    "nctr_A": 0.0870463470989455
   },
@@ -201,10 +201,10 @@
    "admissions": 5656122,
    "occ_obs": 0.8895046325764555,
    "occ_A": 0.8400527475988033,
-   "occ_B": 0.817045205479452,
+   "occ_B": 0.8343552030761838,
    "wait12_obs": 0.00017909797560943698,
    "wait12_A": 0.01484196060467247,
-   "wait12_B": 0,
+   "wait12_B": 0.0018896399538369836,
    "nctr_obs": null,
    "nctr_A": 0.08349702749658071
   },
@@ -214,10 +214,10 @@
    "admissions": 5188050.642857144,
    "occ_obs": 0.8707805906376571,
    "occ_A": 0.743833648244371,
-   "occ_B": 0.7155568493150685,
-   "wait12_obs": 0.0000111520004024633,
+   "occ_B": 0.7351848113434271,
+   "wait12_obs": 1.11520004024633e-05,
    "wait12_A": 0.002337012242928653,
-   "wait12_B": 0,
+   "wait12_B": 2.9266294009189618e-05,
    "nctr_obs": null,
    "nctr_A": 0.08112803094602414
   }
@@ -2092,7 +2092,7 @@
   "ward": {
    "obs": 714.1633986928105,
    "modelA": 727.0951588990322,
-   "modelB": 2.2810293346226453,
+   "modelB": 357.32058858272063,
    "weekdayObs": [
     731.4090909090909,
     810.7727272727273,
@@ -2129,7 +2129,7 @@
   "ed": {
    "obs": 2363.751633986928,
    "admittedWaiting45A": 2458.989543385414,
-   "admittedWaiting45B": 0,
+   "admittedWaiting45B": 1050.4981399493333,
    "weekdayObs": [
     2367.9545454545455,
     2684.181818181818,
@@ -2260,7 +2260,7 @@
    "pct": 0.039722363641492286,
    "lo": 0.023584260344922114,
    "hi": 0.055863070707795615,
-   "p": 0.0000014006142218542044,
+   "p": 1.4006142218542044e-06,
    "n": 143
   },
   {
@@ -2326,7 +2326,7 @@
    "pct": 1.0705706221910916,
    "lo": 0.5734633246866849,
    "hi": 1.5701349859738478,
-   "p": 0.000023046380285556208,
+   "p": 2.3046380285556208e-05,
    "n": 147
   },
   {
