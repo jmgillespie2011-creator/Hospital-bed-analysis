@@ -505,6 +505,37 @@ def fetch_catalogue(fx: Fetcher, name: str, manifest: dict, stamp: str, log) -> 
         w.writerows(inv)
 
 
+def fetch_ods_api(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
+    """NHS trust sites (role RO198) from the ODS ORD API, all pages, saved as one JSON file."""
+    out = RAW / "ods_api"
+    out.mkdir(parents=True, exist_ok=True)
+    base = "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations"
+    orgs, offset = [], 0
+    for status in ("Active", "Inactive"):
+        offset = 0
+        while True:
+            r = fx.s.get(base, params={"PrimaryRoleId": "RO198", "Status": status, "Limit": 1000, "Offset": offset},
+                         headers={"Accept": "application/json"}, timeout=120)
+            if r.status_code != 200:
+                log(f"  ! ORD API HTTP {r.status_code} at offset {offset}")
+                break
+            page = r.json().get("Organisations", [])
+            orgs += [dict(o, Status=status) for o in page]
+            log(f"  {status}: {len(page)} sites at offset {offset}")
+            if len(page) < 1000:
+                break
+            offset += 1000
+            time.sleep(0.5)
+    if orgs:
+        import json as _json
+        body = _json.dumps(orgs).encode()
+        dest = out / "trust_sites_RO198.json"
+        res = _write(dest, body)
+        manifest[base + "?PrimaryRoleId=RO198"] = dict(source="ods_api", url=base + "?PrimaryRoleId=RO198", page="ODS ORD API",
+                                                       link_text="NHS trust sites (RO198)", path=str(dest.relative_to(ROOT)),
+                                                       bytes=res[0], sha256=res[1], fetched_at=stamp)
+
+
 ERIC_YEARS = r"(20)?(17|18|19|22|23|24)[-_ /]?(18|19|20|23|24|25)"
 
 
@@ -627,6 +658,14 @@ def main() -> int:
             inventory += fetch_eric(s, manifest, stamp, log)
         except Exception as e:  # noqa: BLE001
             log(f"  ! eric failed: {e}")
+        write_manifest(manifest)
+
+    if not args.dry_run and args.only and "ods_api" in args.only:
+        log("[ods_api] NHS trust sites from the ODS ORD API")
+        try:
+            fetch_ods_api(s, manifest, stamp, log)
+        except Exception as e:  # noqa: BLE001
+            log(f"  ! ods_api failed: {e}")
         write_manifest(manifest)
 
     for name in CATALOGUE:
