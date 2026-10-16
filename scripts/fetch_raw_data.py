@@ -138,6 +138,12 @@ SOURCES = [
             f"{NHSD}/hospital-accident--emergency-activity/2024-25"],
            depth=0, files=r"(?i)\.(xlsx?|csv|ods)",
            notes="Hospital A&E activity (HES A&E / ECDS): time in department distribution, before and after the pandemic"),
+    Source("hes_ae_mirror",
+           [f"https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/hospital-accident--emergency-activity/{y}"
+            for y in ("2017-18", "2018-19", "2019-20", "2022-23", "2024-25")],
+           depth=0, files=r"(?i)\.(xlsx?|csv|ods)",
+           notes="Hospital A&E activity tables (HES A&E / ECDS) via a public mirror of the NHS England Digital pages, "
+                 "which block automated browsers; the files themselves come from files.digital.nhs.uk"),
     Source("ons_projections",
            ["https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/tablea14principalprojectionenglandpopulationinagegroups",
             "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/z1zippedpopulationprojectionsdatafilesuk"],
