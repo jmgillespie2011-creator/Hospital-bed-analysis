@@ -244,6 +244,7 @@ async function renderValidation() {
       More likely, a high long-stay share marks trusts whose patients or local services (older, frailer populations; weaker community and social care)
       suffer most once flexibility is lost, or it shares a common cause with long waits.`;
   }
+  await renderPoolTests();
   if (v.effects) {
     const OUT = { emergency_all: "All emergency admissions", copd: "COPD", chd: "Coronary heart disease", stroke: "Stroke",
       pneumonia: "Pneumonia", respiratory: "Respiratory", falls65: "Falls, 65+ (placebo)", hip_fracture: "Hip fracture, 65+ (placebo)" };
@@ -259,3 +260,97 @@ async function renderValidation() {
 }
 
 main().catch((e) => { document.body.insertAdjacentHTML("beforeend", `<p class="wrap">Could not load data: ${esc(e.message)}</p>`); });
+
+async function renderPoolTests() {
+  if (!$("poolTests")) return;
+  const names = ["pool_tests", "deadline_test", "pool_slopes", "daily_tests", "infection_tests", "site_tests", "clock_test"];
+  const J = Object.fromEntries(await Promise.all(names.map((n) => fetch(`data/${n}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => [n, d]))));
+  const sg = (x, d = 0) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(d)}`;
+  const ef = (r, d = 0) => `${sg(r.pct, d)}%`, ci = (r, d = 0) => `${r.lo.toFixed(d)}% to ${r.hi.toFixed(d)}%`;
+  const pv = (p) => (p < 0.05 ? `<b>${p < 0.001 ? "&lt;0.001" : p.toFixed(3)}</b>` : `<span class="na">${p.toFixed(3)}</span>`);
+  let h = "";
+  const pt = J.pool_tests;
+  if (pt) {
+    const rows = [];
+    for (const y of pt.years) {
+      rows.push([`<b>${esc(y.fy)}</b>`, "observed", "", pct(y.observed.wait4, 1), pct(y.observed.wait12, 2)]);
+      for (const f of y.fits) rows.push(["", `pool fitted to ${f.fittedTo === "wait12" ? "12-hour" : "4-hour"} waits`, `${num(f.pool)} beds`, pct(f.wait4, 1), pct(f.wait12, 2)]);
+    }
+    h += `<h4>A. Two outcomes, one setting</h4>` + table(["Year", "Run", "Pool size", "Waiting over 4 hours", "Waiting over 12 hours"], rows, [2, 3, 4]) +
+      `<p class="cap">Waits from decision to admit, share of emergency admissions. Each year with its own beds, admissions and occupancy.
+      A single pool size cannot match both outcomes before the pandemic: a plain queue cannot produce many 4-hour waits with almost no 12-hour ones.</p>`;
+  }
+  const dl = J.deadline_test;
+  if (dl) {
+    const rows = dl.runs.map((r) => [`${r.deadlineH} hours`, esc(r.fy), `${num(r.pool)} beds`, `${r.deadlinePct.toFixed(1)}%`, pct(r.wait4, 1) + ` (${pct(r.observed.wait4, 1)})`, pct(r.wait12, 2) + ` (${pct(r.observed.wait12, 2)})`, num(r.inDeadlineSpaces8am)]);
+    h += `<h4>B. A deadline: escalation space for patients approaching 12 hours</h4>` +
+      table(["Deadline", "Year", "Pool (fitted to 4h)", "Extra space, % of beds (fitted to 12h)", "Over 4h (observed)", "Over 12h (observed)", "In escalation spaces 08:00"], rows, [2, 3, 4, 5, 6]) +
+      `<p class="cap">The model's research option <code>deadlineH</code>/<code>deadlinePct</code>: once a patient has waited the deadline, extra spaces can take them.
+      Two settings are fitted to two figures, so the fit itself proves nothing; the checks are the size of the settings and the 08:00 count, which was not fitted
+      (NHS England's ward corridor count for 2025/26: ${num(dl.corridorObserved8am)}).</p>`;
+  }
+  const sl = J.pool_slopes;
+  if (sl) {
+    const rows = [];
+    for (const [k, r] of Object.entries(sl.slopes)) rows.push([k === "waits4" ? "Over 4 hours" : "Over 12 hours", `${ef(r.before, 1)} (${ci(r.before, 1)})`, `${ef(r.after, 1)} (${ci(r.after, 1)})`, pv(r.change_p)]);
+    const t = sl.tail_by_trust.terms;
+    h += `<h4>C. Slopes and which trusts lost the cap</h4>` + table(["Waits from decision to admit", "Per point of occupancy, before", "After", "p (change)"], rows, [1, 2, 3]) +
+      `<p class="cap">${sl.n_trusts} trusts, trust-years 2017/18–2019/20 and 2022/23–2025/26, trust and year fixed effects. Smaller pools predict a flatter proportional slope.
+      Share of 4-hour waiters reaching 12 hours: before ${pct(sl.ratio.before.share_of_4h_reaching_12h, 1)}, after ${pct(sl.ratio.after.share_of_4h_reaching_12h, 1)}.
+      That share rose more in trusts with more long-stay patients (${ef(t["post:long_stay_z"])} per SD, p=${t["post:long_stay_z"].p.toFixed(3)})
+      than in smaller trusts (bigger trusts ${ef(t["post:log_beds_z"])}, p=${t["post:log_beds_z"].p.toFixed(2)}).</p>`;
+  }
+  const ck = J.clock_test;
+  if (ck) h += `<h4>D. When does the clock start?</h4>${ck.html || ""}`;
+  const dt = J.daily_tests;
+  if (dt) {
+    const t2 = dt.test2, t5 = dt.test5;
+    const cv = dt.curve, bk = (c) => 2 * Math.round(c.occ / 2), bins = [...new Set(cv.map(bk))].sort((a, b) => a - b);
+    const rows = bins.map((b) => { const f = (per) => cv.find((c) => c.period === per && bk(c) === b); const x = f("before"), y = f("after");
+      return [`${b}%`, x ? pct(x.delay60_share, 1) : "", y ? pct(y.delay60_share, 1) : ""]; });
+    h += `<h4>E. Same-day curves: ambulance handover delays and that day's occupancy</h4>` +
+      table(["Occupancy of open G&A beds (band mean)", "Handovers delayed over 60 min, before", "After"], rows, [1, 2]) +
+      `<p class="cap">Winter daily sitreps, December–February, ${num(dt.n_trusts)} trusts, ${num(dt.n_trust_days)} trust-days (${dt.winters.join(", ")}).
+      Within a trust and winter, with date fixed effects, delays rise ${ef(t2.before, 1)} per point of occupancy before and ${ef(t2.after, 1)} after
+      (change p=${t2.change.p.toFixed(2)}). At the same occupancy, delays are ${ef(t2.level_after_same_occupancy)} higher after (p&lt;0.001).
+      Pure pool shrinkage would also flatten the slope; the curve has moved up, not changed shape.</p>` +
+      `<h4>F. Escalation used up</h4>` + table(["Period", "Days with escalation beds at the winter maximum", "Extra delays on those days, same occupancy", "95% CI", "p"],
+        ["before", "after"].map((k) => [k === "before" ? "Before (2017/18–2019/20)" : "After (2023/24–2025/26)", pct(t5[k].share_days_full, 0), ef(t5[k].esc_full), ci(t5[k].esc_full), pv(t5[k].esc_full.p)]), [1, 2, 3, 4]) +
+      `<p class="cap">Escalation beds open at 90% or more of the trust's 95th-percentile level that winter. Change in the effect p=${t5.change.p.toFixed(3)}.
+      Escalation beds as a share of open beds: before ${pct(dt.periods.before.escalation_share, 1)}, after ${pct(dt.periods.after.escalation_share, 1)}.
+      ${dt.test5_monthly_12h ? `Before the pandemic, ${pct(dt.test5_monthly_12h.share_of_12h_in_those_months, 0)} of 12-hour waits fell in the ${pct(dt.test5_monthly_12h.share_months_mostly_full, 0)} of trust-months with escalation used up on most days
+      (against ${pct(dt.test5_monthly_12h.share_of_4h_in_those_months, 0)} of 4-hour waits).` : ""}</p>`;
+  }
+  const it = J.infection_tests;
+  if (it) {
+    const rows = it.by_year.map((y) => [esc(y.fy), pct(y.wait12, 1), pct(y.covid_share, 1), pct(y.void_share, 2), pct(y.explained, 1)]);
+    h += `<h4>G. Infection control</h4>` + table(["Year", "Waiting over 12 hours", "G&A beds with COVID-19 patients", "COVID void beds", "Share of 12-hour waits explained"], rows, [1, 2, 3, 4]) +
+      `<p class="cap">${num(it.n_trust_months)} trust-months, ${it.months.join(" to ")}. Within trusts, holding occupancy: COVID inpatients ${ef(it.covid.covid_pts, 1)} per point of beds (p=${it.covid.covid_pts.p.toFixed(2)}),
+      void beds ${ef(it.void.void_pts, 1)} per point (p=${it.void.void_pts.p.toFixed(2)}). The "explained" column applies these estimates.</p>`;
+  }
+  const st = J.site_tests;
+  if (st) {
+    const NM = { post_sites_z: "Hospital sites (log, per SD)", post_log_beds_z: "Trust size (per SD)", post_long_stay_z: "Long-stay share (per SD)", post_beds_per_site_z: "Beds per site (per SD)", post_single_z: "Single bedrooms per bed (per SD)" };
+    const rows = [];
+    for (const [m, terms] of Object.entries(st.models)) for (const [k, r] of Object.entries(terms)) rows.push([esc(m), NM[k] || esc(k), ef(r), ci(r), pv(r.p)]);
+    h += `<h4>H. Split sites and single rooms</h4>` + table(["Model", "After the pandemic ×", "Change in 12-hour waits", "95% CI", "p"], rows, [2, 3, 4]) +
+      `<p class="cap">${st.n_trusts} trusts. General acute and mixed-service hospital sites per trust and single bedrooms, from ERIC 2018/19 site data (median ${st.sites.median} sites,
+      ${pct(st.sites.share_multi_site, 0)} of trusts have more than one; median ${st.sites.single_per_bed_median.toFixed(2)} single bedrooms per G&amp;A bed).</p>`;
+  }
+  $("poolTests").innerHTML = h;
+  if ($("poolSummary")) $("poolSummary").innerHTML = POOL_SUMMARY;
+}
+
+
+const POOL_SUMMARY = `<strong>What the pool tests show.</strong>
+  The sixfold drop in pool size that the model needs is mostly a product of the 12-hour measure it is fitted to.
+  Before the pandemic about 320,000 patients a year spent over 12 hours in A&amp;E from arrival, but only about 3,300 were counted
+  as waiting 12 hours from the decision to admit (D). Measured from arrival, 12-hour waits rose about fivefold, not 140-fold.
+  Other measures that do not depend on when a decision is recorded tell the same story: 4-hour waits from the decision to admit rose
+  about 2.5-fold, and ambulance handover delays about fourfold at the same occupancy (E). Fitted to 4-hour waits, pools shrink by about
+  40%, not sixfold (B). Part of what changed is the room to escalate: hospitals open fewer escalation beds at the same occupancy, and
+  running out of them now matters less, because delays are common on ordinary days too (F). But the handover curve moved up at every
+  occupancy, including around 80%, rather than changing shape, which points to pressures outside the bed pool as well (emergency department
+  crowding, staffing, processes). Infection control (G), split sites and single rooms (H) do not explain which trusts got worse; a high
+  long-stay share does (C, H). Implication for the simulator: its "pre-pandemic flexibility" setting, fitted to 12-hour waits from the
+  decision to admit, overstates how much flexibility hospitals had and so overstates the gain from getting it back.`;

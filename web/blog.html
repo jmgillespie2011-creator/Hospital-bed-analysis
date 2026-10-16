@@ -60,6 +60,12 @@ occupancy, with today's flexibility. Removing discharge delays entirely makes al
 everything else that matters as favourably as is plausible: steadier lengths of stay, 7-day discharging, no flu season and double
 today's corridor spaces. It still predicts <b data-k="flexFav"></b> of
 emergency admissions waiting over 12 hours, against <b data-k="flexObs"></b> observed. Matching 2018/19 needs bed pools <b data-k="flexPoolX"></b> times larger than today's. Average stays barely changed, so slower turnover overall is not the answer either.</p>
+<p>Part of that break is in how the waits are counted. The 12-hour figure starts when a doctor decides to admit. Counted from
+arrival instead, <b data-k="clkArr0"></b> patients spent over 12 hours in A&amp;E in 2018/19, against <b data-k="clkDta0"></b> counted from the
+decision to admit. From arrival, 12-hour waits rose about <b data-k="clkRiseA"></b>-fold since then; from the decision to admit, about
+<b data-k="clkRiseD"></b>-fold. Measures that do not depend on when a decision is recorded, such as 4-hour waits and ambulance handover delays,
+rose 2.5 to 4 times at the same occupancy. So hospitals did lose flexibility, but much less than the 12-hour figure alone suggests,
+and the simulator's pre-pandemic setting overstates it. The <a href="validation.html#pool-tests">validation page</a> has these tests.</p>
 <h3 id="long-stay">The long-stay clue</h3>
 <p>Comparing hospitals gives a clue. We followed <b data-k="lsTrusts"></b> acute trusts through three years before the pandemic and three
 after. Bigger trusts did not hold up better, which simple pooling theory would predict. What mattered was how many of a trust's beds

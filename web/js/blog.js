@@ -71,6 +71,12 @@ async function main() {
   const plT = tf?.models?.[mName("placebo")]?.terms?.["post:long_stay_z"], nbT = tf?.models?.[mName("robustness: without")]?.terms?.["post:long_stay_z"];
   if (plT) fill("lsPlacebo", fmtEff(plT));
   if (nbT) fill("lsNoBig", fmtEff(nbT));
+  const ck = await fetch("data/clock_test.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  if (ck) {
+    const y = ck.years.find((x) => x.fy === "2018/19");
+    if (y) { fill("clkArr0", Math.round(y.arrival_over12).toLocaleString("en-GB")); fill("clkDta0", Math.round(y.dta_over12).toLocaleString("en-GB")); }
+    if (ck.rise_from_arrival) { fill("clkRiseA", ck.rise_from_arrival.toFixed(0)); fill("clkRiseD", (10 * Math.round(ck.rise_from_decision / 10)).toFixed(0)); }
+  }
   const [lt, lm] = await Promise.all(["data/longstay_tests.json", "data/longstay_mechanism.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
   if (lt) {
     const e = (t, d = 0) => `${t.pct >= 0 ? "+" : "−"}${Math.abs(t.pct).toFixed(d)}% per SD, p ${t.p < 0.001 ? "&lt; 0.001" : "= " + t.p.toFixed(t.p < 0.05 ? 3 : 2)}`;
