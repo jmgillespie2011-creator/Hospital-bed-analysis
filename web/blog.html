@@ -76,14 +76,30 @@ even though occupancy was about the same (<span data-k="lsOcc"></span>).</p>
 <p>A statistical model that compares each trust with itself over time, and allows for year-to-year changes in its occupancy, puts the
 effect at <b data-k="flexLS"></b> more long waits for each standard deviation of long-stay share. Before the pandemic the same comparison
 shows nothing (<span data-k="lsPlacebo"></span>).</p>
-<p>Why would long stays matter more than average occupancy suggests? Patients who stay for weeks hold particular beds, mostly on medical
-and elderly-care wards, where most emergency patients need to go. Those beds turn over slowly, so the beds that emergency patients
-can actually use free up less often. The hospital behaves as if its pools are smaller, even though its average stay is unchanged.
-If that is right, the simulator understates the benefit of getting long-stay patients home. Its delayed-discharge setting only acts through
-average occupancy, not through which beds are blocked.</p>
-<p>Three cautions. This is an association across trusts, not proof of cause. The long-stay share comes from 2025/26, because trust-level
-length-of-stay data only starts in 2020. And the result weakens when the ten trusts with the most long waits are left out
-(<span data-k="lsNoBig"></span>). The <a href="validation.html#flexibility">validation page</a> has the full tests.</p>
+<p>Why would long stays only matter after 2020? We tested four ideas.</p>
+<ul>
+<li><b>Did long stays simply grow?</b> Not much. The winter sitreps of 2017/18 to 2019/20 show <span data-k="lsPreMean"></span> of beds held
+by patients in hospital three weeks or more, against <span data-k="lsPostMean"></span> since. The same trusts tended to have high shares
+in both periods. Even measured at the time, long stays did not predict long waits before the pandemic (<span data-k="lsB1"></span>).
+After it, both a trust's earlier level of long stays (<span data-k="lsB2pre"></span>) and its rise since (<span data-k="lsB2rise"></span>)
+predict the increase in waits.</li>
+<li><b>Is it really delayed discharge?</b> No. Patients who no longer meet the criteria to reside do not predict the rise
+(<span data-k="lsNctr"></span>). The long-stay result also holds when we allow each region its own change (<span data-k="lsRegion"></span>).</li>
+<li><b>Does one cause the other?</b> Month by month within a trust, months with more long-stay patients also have more long waits
+(<span data-k="lsMonth"></span> for each extra point of long-stay share). But last month's long stays do not predict this month's waits
+(<span data-k="lsLag"></span>), and earlier waits do not predict later long stays. The two move together but neither leads.</li>
+<li><b>Do long-stay patients block the beds that emergency patients need?</b> We built a separate simulation of a hospital split into
+20 specialty wards. With beds fully shared between wards, almost nobody waits 12 hours (<span data-k="lsMechFull"></span>). When patients
+can rarely be placed outside their own ward, waits reach today's level. So losing the ability to place patients flexibly is enough, on
+its own, to explain the national break. At today's level of flexibility, raising long-stay patients from <span data-k="lsMechLo"></span>,
+and it makes no difference whether they are spread out or concentrated on a few wards.</li>
+</ul>
+<p>So the clue is real, but blocked beds are probably not the explanation. A high long-stay share more likely marks hospitals whose
+patients or local services, such as older and frailer populations or weaker community and social care, struggle most once beds can no
+longer be shared flexibly. It may also share a common cause with long waits. Getting long-stay patients home matters for those patients,
+but on this evidence it is not a hidden lever that the simulator misses.</p>
+<p>Two cautions. These are associations, not proof of cause. And the trust-level result weakens when the ten trusts with the most long
+waits are left out (<span data-k="lsNoBig"></span>). The <a href="validation.html#flexibility">validation page</a> has the full tests.</p>
 
 <h2>3. The arithmetic of a full hospital</h2>
 <p>The simulator runs a full year of patients through England's G&amp;A beds. That is every emergency admission, planned operation, flu

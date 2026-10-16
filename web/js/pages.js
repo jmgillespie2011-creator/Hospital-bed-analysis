@@ -181,10 +181,68 @@ async function renderValidation() {
       Across trusts, size made no clear difference${bd ? ` (${bd.pct >= 0 ? "+" : ""}${bd.pct.toFixed(0)}% per SD, p=${bd.p.toFixed(2)})` : ""}, which is not what simple pooling theory predicts.
       Trusts with more long-stay patients saw much bigger rises${ls ? ` (${ls.pct >= 0 ? "+" : ""}${ls.pct.toFixed(0)}% per SD, p=${ls.p.toFixed(3)})` : ""},
       and the same pattern is absent before the pandemic${pl ? ` (placebo ${pl.pct >= 0 ? "+" : ""}${pl.pct.toFixed(0)}%, p=${pl.p.toFixed(2)})` : ""}.
-      One reading consistent with both: patients who stay for weeks hold particular beds, mostly on medical and elderly-care wards, so the beds
-      that emergency patients can actually use turn over less often. The hospital behaves as if it has smaller pools, even though average stays
-      are unchanged. This is an association across trusts, not proof of cause. Other explanations, such as changes in how decision-to-admit
-      times are recorded or in A&amp;E processes, cannot be tested with these data.`;
+      This is an association across trusts, not proof of cause. The follow-up tests below ask what lies behind it. Other explanations, such as
+      changes in how decision-to-admit times are recorded or in A&amp;E processes, cannot be tested with these data.`;
+  }
+  const [lt, lm] = await Promise.all(["data/longstay_tests.json", "data/longstay_mechanism.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  const sgn = (x, d = 0) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(d)}`;
+  const pv = (p) => (p < 0.05 ? `<b>${p < 0.001 ? "&lt;0.001" : p.toFixed(3)}</b>` : `<span class="na">${p.toFixed(3)}</span>`);
+  if (lt && $("lsTests")) {
+    const LAB = { occ_c: "Occupancy (per point)", ls_c: "Long-stay share (per point)", "occ_c:ls_c": "Occupancy × long-stay share",
+      nctr_pts: "Beds held by patients fit to leave (per point)", ls_pts_lag1: "Long-stay share last month (per point)",
+      "post:long_stay_z": "After × long-stay share (per SD)", "post:nctr_z": "After × fit-to-leave share (per SD)", "post:log_beds_z": "After × trust size (per SD)",
+      ls_pre_z: "Long-stay share before (per SD)", "post:ls_pre_z": "After × long-stay share before (per SD)", "post:ls_rise_z": "After × rise in long-stay share (per SD)" };
+    const GROUP = { A: "A. Month by month, within trusts (Aug 2023 onwards)", B: "B. Long stays measured before the pandemic", C: "C. Competing explanations (trust panel)" };
+    const rows = [];
+    for (const g of ["A", "B", "C"]) {
+      rows.push([`<b>${GROUP[g]}</b>`, "", "", "", "", ""]);
+      for (const [key, m] of Object.entries(lt)) {
+        if (key[0] !== g || !m.terms) continue;
+        if (key === "A6") {
+          for (const [lag, r] of Object.entries(m.terms))
+            rows.push([`${key}. Waits ${lag.slice(3)} month${lag === "lag1" ? "" : "s"} earlier predicting long stays now`, "Points of long-stay share per log-unit of the waits rate",
+              `${sgn(r.coef, 2)} pts`, `${r.lo.toFixed(2)} to ${r.hi.toFixed(2)}`, pv(r.p), `${num(r.n)} trust-months`]);
+          continue;
+        }
+        for (const [k, r] of Object.entries(m.terms)) {
+          const d = Math.abs(r.hi - r.lo) < 20 ? 1 : 0;
+          rows.push([`${key}. ${esc(m.label)}`, LAB[k] || esc(k), `${sgn(r.pct, d)}%`, `${r.lo.toFixed(d)}% to ${r.hi.toFixed(d)}%`, pv(r.p),
+            m.trusts ? `${num(m.n)} obs, ${m.trusts} trusts` : `${num(m.n)} obs`]);
+        }
+      }
+    }
+    const bd = lt.B_descriptive;
+    $("lsTests").innerHTML = table(["Test", "Term", "Change in long waits", "95% CI", "p", "Sample"], rows, [2, 3, 4]) +
+      `<p class="cap">Poisson regressions of 12-hour waits with emergency admissions as exposure, trust and period fixed effects, errors clustered by trust.
+      A4 is least squares on the log rate. Monthly long-stay share is the share of occupied G&amp;A beds held by patients in hospital 21 days or more.
+      ${bd ? `Before the pandemic (winter sitreps) the average trust had ${pct(bd.mean_before)} of beds held by long-stay patients, against ${pct(bd.mean_after)} after; the two measures correlate at ${bd.correlation.toFixed(2)} across ${bd.trusts} trusts.` : ""}</p>`;
+  }
+  if (lm && $("lsMech")) {
+    const rows = lm.calibration.map((c) => [`Outlying probability ${c.outlying}`, "spread", pct(c.longShare), pct(c.occupancy), pct(c.wait12, 2)]);
+    const r2 = lm.rows.map((r) => [`Outlying probability ${r.outlying}`, r.clustered ? "concentrated on a third of wards" : "spread", pct(r.longShare), pct(r.occupancy), pct(r.wait12, 2)]);
+    $("lsMech").innerHTML = `<h4>D. Ward-level simulation: ${esc(lm.hospital)}</h4>` +
+      table(["Run", "Long-stay patients", "Beds held 21+ days", "Occupancy", "Waiting over 12 hours"], [...rows, ["<b>Varying long stays</b>", "", "", "", ""], ...r2], [2, 3, 4]) +
+      `<p class="cap">Each emergency patient belongs to one ward. "Outlying probability" is the chance that a patient can be placed in, or a freed bed can take a patient from, another ward:
+      1 means fully shared beds, 0 means every patient waits for their own ward. Ward demand is matched to ward capacity, and occupancy is held at 91.5%. Six runs of three years each.
+      An outlying probability of about ${lm.outlyingToday} reproduces today's national rate of 12-hour waits.</p>`;
+  }
+  if (lt && lm && $("lsSummary")) {
+    const a1 = lt.A1.terms.ls_c, a5 = lt.A5.terms.ls_pts_lag1, b1 = lt.B1.terms.ls_pre_z, b2 = lt.B2.terms, c2 = lt.C2.terms["post:nctr_z"], c4 = lt.C4.terms["post:long_stay_z"];
+    const at = (o, lf, cl) => lm.rows.find((r) => r.outlying === o && r.longFrac === lf && r.clustered === cl);
+    const lo = at(lm.outlyingToday, 0.025, false), hi = at(lm.outlyingToday, 0.045, false), full = lm.calibration.find((c) => c.outlying === 1);
+    $("lsSummary").innerHTML = `<strong>What the follow-up tests show.</strong>
+      Before the pandemic, trusts with more long-stay patients did not have more long waits (B1: ${sgn(b1.pct)}% per SD, p=${b1.p.toFixed(2)}).
+      Long stays themselves changed little: ${pct(lt.B_descriptive.mean_before)} of beds before, ${pct(lt.B_descriptive.mean_after)} after.
+      After the pandemic, both the level of long stays before (${sgn(b2["post:ls_pre_z"].pct)}%, p=${b2["post:ls_pre_z"].p.toFixed(2)}) and the rise since
+      (${sgn(b2["post:ls_rise_z"].pct)}%, p=${b2["post:ls_rise_z"].p.toFixed(3)}) predict the increase in long waits.
+      Within trusts, months with more long-stay patients have more long waits (A1: ${sgn(a1.pct, 1)}% per point, p=${a1.p.toFixed(3)}), but last month's long stays do not predict this month's waits
+      (A5: ${sgn(a5.pct, 1)}%, p=${a5.p.toFixed(2)}) and earlier waits do not predict long stays (A6). The link is same-month only, so neither clearly drives the other.
+      Patients fit to leave do not explain it (C2: ${sgn(c2.pct)}%, p=${c2.p.toFixed(2)}), and the long-stay effect survives regional differences (C4: ${sgn(c4.pct)}%, p=${c4.p.toFixed(3)}).
+      The ward simulation explains the national break: with fully shared beds, waits over 12 hours are ${pct(full.wait12, 2)}; when patients can rarely be placed outside their own ward
+      they reach today's level. But in that simulation, raising long stays from ${pct(lo.longShare, 0)} to ${pct(hi.longShare, 0)} of beds only moves waits from ${pct(lo.wait12, 1)} to ${pct(hi.wait12, 1)},
+      and concentrating long-stay patients on some wards makes no difference. So beds blocked by long-stay patients are probably not the mechanism.
+      More likely, a high long-stay share marks trusts whose patients or local services (older, frailer populations; weaker community and social care)
+      suffer most once flexibility is lost, or it shares a common cause with long waits.`;
   }
   if (v.effects) {
     const OUT = { emergency_all: "All emergency admissions", copd: "COPD", chd: "Coronary heart disease", stroke: "Stroke",

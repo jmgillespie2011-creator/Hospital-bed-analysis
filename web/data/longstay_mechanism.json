@@ -1,0 +1,153 @@
+{
+ "generated": "2026-10-16",
+ "hospital": "20 wards x 28 beds, occupancy 91.5%",
+ "rows": [
+  {
+   "outlying": 1,
+   "clustered": false,
+   "longFrac": 0.025,
+   "occupancy": 0.9159371932722236,
+   "longShare": 0.15011804239484602,
+   "wait12": 0.000058329751110888496
+  },
+  {
+   "outlying": 1,
+   "clustered": false,
+   "longFrac": 0.033,
+   "occupancy": 0.9157917442799773,
+   "longShare": 0.18875146894065867,
+   "wait12": 0.0000933461616754971
+  },
+  {
+   "outlying": 1,
+   "clustered": false,
+   "longFrac": 0.045,
+   "occupancy": 0.9145021636894842,
+   "longShare": 0.24317441609482768,
+   "wait12": 0.0005895117359412111
+  },
+  {
+   "outlying": 1,
+   "clustered": true,
+   "longFrac": 0.025,
+   "occupancy": 0.9158956008959057,
+   "longShare": 0.12079631486302962,
+   "wait12": 0.0006067280061376163
+  },
+  {
+   "outlying": 1,
+   "clustered": true,
+   "longFrac": 0.033,
+   "occupancy": 0.9155446343299549,
+   "longShare": 0.14448292194520804,
+   "wait12": 0.0002624243817851462
+  },
+  {
+   "outlying": 1,
+   "clustered": true,
+   "longFrac": 0.045,
+   "occupancy": 0.9172262384168951,
+   "longShare": 0.176155582294893,
+   "wait12": 0.00015042589793740405
+  },
+  {
+   "outlying": 0.1,
+   "clustered": false,
+   "longFrac": 0.025,
+   "occupancy": 0.9164689357261716,
+   "longShare": 0.14846684922458453,
+   "wait12": 0.11072203845960797
+  },
+  {
+   "outlying": 0.1,
+   "clustered": false,
+   "longFrac": 0.033,
+   "occupancy": 0.9143477182708696,
+   "longShare": 0.18817644728921615,
+   "wait12": 0.10950563281984353
+  },
+  {
+   "outlying": 0.1,
+   "clustered": false,
+   "longFrac": 0.045,
+   "occupancy": 0.9152082833675865,
+   "longShare": 0.24283213308729254,
+   "wait12": 0.12166477698447666
+  },
+  {
+   "outlying": 0.1,
+   "clustered": true,
+   "longFrac": 0.025,
+   "occupancy": 0.9166909278684128,
+   "longShare": 0.12016777909368259,
+   "wait12": 0.09539861479630414
+  },
+  {
+   "outlying": 0.1,
+   "clustered": true,
+   "longFrac": 0.033,
+   "occupancy": 0.9183982451554132,
+   "longShare": 0.14454866157503307,
+   "wait12": 0.10396525553919445
+  },
+  {
+   "outlying": 0.1,
+   "clustered": true,
+   "longFrac": 0.045,
+   "occupancy": 0.9191984794432918,
+   "longShare": 0.1756550685612476,
+   "wait12": 0.1043681325306703
+  }
+ ],
+ "calibration": [
+  {
+   "outlying": 1,
+   "occupancy": 0.9157917442799773,
+   "longShare": 0.18875146894065867,
+   "wait12": 0.0000933461616754971
+  },
+  {
+   "outlying": 0.5,
+   "occupancy": 0.9187442934350486,
+   "longShare": 0.19200456266813729,
+   "wait12": 0.00026914802842148807
+  },
+  {
+   "outlying": 0.3,
+   "occupancy": 0.9163946018680877,
+   "longShare": 0.18877753733363614,
+   "wait12": 0.002392360248642269
+  },
+  {
+   "outlying": 0.2,
+   "occupancy": 0.9166650495606538,
+   "longShare": 0.1886954471581114,
+   "wait12": 0.01415053371581945
+  },
+  {
+   "outlying": 0.15,
+   "occupancy": 0.9145817742181611,
+   "longShare": 0.18931833981822876,
+   "wait12": 0.03869055192704165
+  },
+  {
+   "outlying": 0.1,
+   "occupancy": 0.9143477182708696,
+   "longShare": 0.18817644728921615,
+   "wait12": 0.10950563281984353
+  },
+  {
+   "outlying": 0.05,
+   "occupancy": 0.9196477574649567,
+   "longShare": 0.18899622691258286,
+   "wait12": 0.2615113269670418
+  },
+  {
+   "outlying": 0,
+   "occupancy": 0.9154694069681065,
+   "longShare": 0.18903686129680372,
+   "wait12": 0.44480731777437804
+  }
+ ],
+ "outlyingToday": 0.1
+}

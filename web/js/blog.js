@@ -71,6 +71,27 @@ async function main() {
   const plT = tf?.models?.[mName("placebo")]?.terms?.["post:long_stay_z"], nbT = tf?.models?.[mName("robustness: without")]?.terms?.["post:long_stay_z"];
   if (plT) fill("lsPlacebo", fmtEff(plT));
   if (nbT) fill("lsNoBig", fmtEff(nbT));
+  const [lt, lm] = await Promise.all(["data/longstay_tests.json", "data/longstay_mechanism.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  if (lt) {
+    const e = (t, d = 0) => `${t.pct >= 0 ? "+" : "−"}${Math.abs(t.pct).toFixed(d)}% per SD, p ${t.p < 0.001 ? "&lt; 0.001" : "= " + t.p.toFixed(t.p < 0.05 ? 3 : 2)}`;
+    fill("lsPreMean", pct(lt.B_descriptive.mean_before, 0));
+    fill("lsPostMean", pct(lt.B_descriptive.mean_after, 0));
+    fill("lsB1", e(lt.B1.terms.ls_pre_z));
+    fill("lsB2pre", e(lt.B2.terms["post:ls_pre_z"]));
+    fill("lsB2rise", e(lt.B2.terms["post:ls_rise_z"]));
+    fill("lsNctr", e(lt.C2.terms["post:nctr_z"]));
+    fill("lsRegion", e(lt.C4.terms["post:long_stay_z"]));
+    const a1 = lt.A1.terms.ls_c, a5 = lt.A5.terms.ls_pts_lag1;
+    fill("lsMonth", `${a1.pct >= 0 ? "+" : "−"}${Math.abs(a1.pct).toFixed(1)}%`);
+    fill("lsLag", `${a5.pct >= 0 ? "+" : "−"}${Math.abs(a5.pct).toFixed(1)}%, p = ${a5.p.toFixed(2)}`);
+  }
+  if (lm) {
+    const full = lm.calibration.find((c) => c.outlying === 1);
+    const at = (lf) => lm.rows.find((r) => r.outlying === lm.outlyingToday && r.longFrac === lf && !r.clustered);
+    const lo = at(0.025), hi = at(0.045);
+    fill("lsMechFull", `${pct(full.wait12, 2)} of emergency admissions`);
+    fill("lsMechLo", `${pct(lo.longShare, 0)} to ${pct(hi.longShare, 0)} of beds only moves waits from ${pct(lo.wait12, 1)} to ${pct(hi.wait12, 1)}`);
+  }
   Chart.defaults.color = css("--text-2");
   Chart.defaults.borderColor = css("--grid");
   Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;

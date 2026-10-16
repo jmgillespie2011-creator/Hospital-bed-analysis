@@ -1,0 +1,275 @@
+{
+ "A1": {
+  "label": "Long-stay share and occupancy, within trusts",
+  "n": 2764,
+  "trusts": 122,
+  "terms": {
+   "occ_c": {
+    "pct": 4.356875595572185,
+    "lo": 2.3373838418588644,
+    "hi": 6.416219325075878,
+    "p": 1.8908520152740032e-05,
+    "unit": "point of occupancy"
+   },
+   "ls_c": {
+    "pct": 3.583347857173047,
+    "lo": 1.4206663602380765,
+    "hi": 5.7921461015623565,
+    "p": 0.0010739419270989704,
+    "unit": "point of long-stay share"
+   }
+  }
+ },
+ "A2": {
+  "label": "With occupancy x long-stay interaction",
+  "n": 2764,
+  "terms": {
+   "occ_c": {
+    "pct": 4.607119565013007,
+    "lo": 2.453274735182376,
+    "hi": 6.80624403634833,
+    "p": 2.202427677185071e-05,
+    "unit": "point of occupancy"
+   },
+   "ls_c": {
+    "pct": 3.646906574430364,
+    "lo": 1.4383714245271184,
+    "hi": 5.903526363704881,
+    "p": 0.0011157417792709047,
+    "unit": "point of long-stay share"
+   },
+   "occ_c:ls_c": {
+    "pct": -0.13661521085520656,
+    "lo": -0.3956536512047304,
+    "hi": 0.12309690404808116,
+    "p": 0.30223859948574605,
+    "unit": "point x point (interaction)"
+   }
+  }
+ },
+ "A3": {
+  "label": "Adding patients no longer meeting the criteria to reside",
+  "n": 1768,
+  "trusts": 118,
+  "terms": {
+   "occ_c": {
+    "pct": 4.229559578734721,
+    "lo": 2.2275655615548784,
+    "hi": 6.270760046961343,
+    "p": 2.8332368682713847e-05,
+    "unit": "point of occupancy"
+   },
+   "ls_c": {
+    "pct": 4.041982395344612,
+    "lo": 2.5680773555479597,
+    "hi": 5.537067475972202,
+    "p": 5.2302103531906115e-08,
+    "unit": "point of long-stay share"
+   },
+   "nctr_pts": {
+    "pct": -0.9428015474954421,
+    "lo": -1.7957270907083323,
+    "hi": -0.08246815978950606,
+    "p": 0.03179402365982437,
+    "unit": "point of beds held by patients fit to leave"
+   }
+  }
+ },
+ "A4": {
+  "label": "Least squares, log rate",
+  "n": 2764,
+  "terms": {
+   "occ_c": {
+    "pct": 4.13894355805684,
+    "lo": -0.9535782045271723,
+    "hi": 9.493299897117979,
+    "p": 0.1128680648834625,
+    "unit": "point of occupancy"
+   },
+   "ls_c": {
+    "pct": 3.9255647821920814,
+    "lo": -0.7127324387772638,
+    "hi": 8.780544379849719,
+    "p": 0.0983428981702374,
+    "unit": "point of long-stay share"
+   }
+  }
+ },
+ "A5": {
+  "label": "Long stays last month predicting waits this month",
+  "n": 2398,
+  "terms": {
+   "ls_pts_lag1": {
+    "pct": -0.35187070735942516,
+    "lo": -1.015186232073495,
+    "hi": 0.31588981723469356,
+    "p": 0.3009320872953143,
+    "unit": "point of long-stay share last month"
+   }
+  }
+ },
+ "A6": {
+  "label": "Waits earlier predicting long stays now (points of long-stay share per log-unit of the waits rate)",
+  "terms": {
+   "lag1": {
+    "coef": 0.14205397723081126,
+    "lo": -0.04101622772568561,
+    "hi": 0.3251241821873081,
+    "p": 0.12829272042329226,
+    "n": 2398
+   },
+   "lag3": {
+    "coef": -0.034532299873914506,
+    "lo": -0.32194776523975377,
+    "hi": 0.2528831654919248,
+    "p": 0.8138288720188103,
+    "n": 1793
+   }
+  }
+ },
+ "C1": {
+  "label": "Long stays (as before)",
+  "n": 683,
+  "trusts": 114,
+  "terms": {
+   "post:long_stay_z": {
+    "pct": 61.79983950819257,
+    "lo": 18.302028161059525,
+    "hi": 121.29111792771488,
+    "p": 0.002594852596969023,
+    "unit": "SD of long-stay share"
+   },
+   "post:log_beds_z": {
+    "pct": 16.01477388212773,
+    "lo": -9.994989523853903,
+    "hi": 49.54087208831957,
+    "p": 0.25140711021199935,
+    "unit": "SD of trust size"
+   }
+  }
+ },
+ "C2": {
+  "label": "Patients fit to leave instead of long stays",
+  "n": 683,
+  "trusts": 114,
+  "terms": {
+   "post:nctr_z": {
+    "pct": -4.852313102403727,
+    "lo": -31.804206894335618,
+    "hi": 32.75133127253065,
+    "p": 0.7697348669478083,
+    "unit": "SD of fit-to-leave share"
+   },
+   "post:log_beds_z": {
+    "pct": 18.605470392407298,
+    "lo": -9.532445864752159,
+    "hi": 55.49505832747319,
+    "p": 0.21684762185314355,
+    "unit": "SD of trust size"
+   }
+  }
+ },
+ "C3": {
+  "label": "Long stays and patients fit to leave together",
+  "n": 683,
+  "trusts": 114,
+  "terms": {
+   "post:long_stay_z": {
+    "pct": 63.55230550989288,
+    "lo": 20.14348269182531,
+    "hi": 122.6450910051852,
+    "p": 0.0017711520271712785,
+    "unit": "SD of long-stay share"
+   },
+   "post:nctr_z": {
+    "pct": -12.225722122988703,
+    "lo": -37.89283562660274,
+    "hi": 24.048874788603868,
+    "p": 0.4599738226422484,
+    "unit": "SD of fit-to-leave share"
+   },
+   "post:log_beds_z": {
+    "pct": 13.347018870524273,
+    "lo": -12.933091460394364,
+    "hi": 47.559467797008104,
+    "p": 0.35189305785711533,
+    "unit": "SD of trust size"
+   }
+  }
+ },
+ "C4": {
+  "label": "Plus region x after",
+  "n": 683,
+  "trusts": 114,
+  "terms": {
+   "post:long_stay_z": {
+    "pct": 95.73403425497331,
+    "lo": 33.66741246228606,
+    "hi": 186.62043694858426,
+    "p": 0.0005580188093730179,
+    "unit": "SD of long-stay share"
+   },
+   "post:nctr_z": {
+    "pct": -7.7108848529012,
+    "lo": -33.06632911823901,
+    "hi": 27.24956904993787,
+    "p": 0.6244017726884119,
+    "unit": "SD of fit-to-leave share"
+   },
+   "post:log_beds_z": {
+    "pct": 10.379616050525131,
+    "lo": -17.06576801270685,
+    "hi": 46.90748738504114,
+    "p": 0.498358772341864,
+    "unit": "SD of trust size"
+   }
+  }
+ },
+ "B_descriptive": {
+  "trusts": 117,
+  "mean_before": 0.17420510664456337,
+  "mean_after": 0.1899475526253864,
+  "correlation": 0.5444603953335958
+ },
+ "B1": {
+  "label": "Before only: long stays then vs waits then",
+  "n": 344,
+  "terms": {
+   "ls_pre_z": {
+    "pct": -18.712031981181166,
+    "lo": -45.223975301430244,
+    "hi": 20.631860033483697,
+    "p": 0.3036410900247939,
+    "unit": "SD of long-stay share before"
+   }
+  }
+ },
+ "B2": {
+  "label": "After the pandemic: long-stay level before vs rise since",
+  "n": 689,
+  "trusts": 115,
+  "terms": {
+   "post:ls_pre_z": {
+    "pct": 41.13732680880051,
+    "lo": -1.5381094257888916,
+    "hi": 102.30918685966701,
+    "p": 0.0607071017442731,
+    "unit": "SD of long-stay share before"
+   },
+   "post:ls_rise_z": {
+    "pct": 67.2888835406475,
+    "lo": 10.655899253218838,
+    "hi": 152.9062683972745,
+    "p": 0.014679617709670011,
+    "unit": "SD of rise in long-stay share"
+   },
+   "post:log_beds_z": {
+    "pct": 19.5510207223607,
+    "lo": -8.652317825663758,
+    "hi": 56.46206029049878,
+    "p": 0.19333138251462112,
+    "unit": "SD of trust size"
+   }
+  }
+ }
+}

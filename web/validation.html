@@ -79,6 +79,16 @@ characteristic. Effects are per standard deviation of the characteristic, with 9
 (<code>scripts/trust_flexibility.py</code>).</p>
 <div id="trustTest"></div>
 <div class="callout" id="flexSummary"></div>
+<h3>3. Why did long stays only matter after the pandemic?</h3>
+<p>Four follow-up tests (<code>scripts/longstay_tests.py</code> and <code>scripts/longstay_mechanism.mjs</code>).
+<b>A</b> uses the monthly bed sitrep (August 2023 onwards) to compare each trust with itself month by month.
+<b>B</b> measures long stays <i>before</i> the pandemic, from the winter daily sitreps of 2017/18 to 2019/20.
+<b>C</b> checks competing explanations: patients no longer meeting the criteria to reside, and regional differences.
+<b>D</b> is a separate simulation of a hospital split into 20 specialty wards, testing whether long-stay patients blocking
+particular beds can produce the pattern.</p>
+<div id="lsTests"></div>
+<div id="lsMech"></div>
+<div class="callout" id="lsSummary"></div>
 
 <h2>Can area data measure the effect of public-health policies?</h2>
 <p>Estimates from <code>scripts/effects_analysis.py</code>: how emergency admission rates vary with risk factors across ~150 local
