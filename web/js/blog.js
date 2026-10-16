@@ -138,6 +138,7 @@ async function main() {
 
   // ---------------------------------------------------------------- 1b. beds per person, and how hospital use changed
   const [TR, PH] = await Promise.all(["data/blog_trends.json", "data/beds_per_head.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  NARR.PH = PH; NARR.beds = obs.beds;
   if (TR) {
     const Y = TR.years.filter((y) => y.occupied_per1000 != null && y.fy >= "2010/11");
     const y0 = Y[0], yN = Y.at(-1);
@@ -477,7 +478,28 @@ function renderBlame(HM, HD, HT, TP, C) {
     ${HM.flexTarget ? `(This run gives ${HM.from} its measured stays and same-day share, so it starts a little fuller than observed, at
     ${pct(HM.start.occupancy)} against ${pct(HM.observedFrom.occupancy)}, and at ${pct(HM.start.wait12)} rather than the ${pct(HM.flexTarget)} in section 2.)` : ""}
     Flexibility is not measured directly. It is what the simulator needs, once patients and beds are accounted for, to match each year's waits,
-    so it stands for everything else that changed. That is where the three explanations have to be tested.`;
+    so it stands for everything else that changed. That is where the explanations below have to be tested.`;
+
+  // too few beds
+  {
+    const B = NARR.beds || [], bf = B.find((r) => r.fy === HM.from), bn = B.find((r) => r.fy === C.BY) || B.at(-1);
+    const rows = (NARR.PH?.rows || []).filter((r) => r.kind === "per head"), at = (fy) => rows.find((r) => r.label === fy);
+    const now = at(C.BY), r19 = at("2019/20"), r10 = at("2010/11");
+    if (bf && bn && now && r19 && r10) {
+      $("bedsText1").innerHTML = `England has far fewer beds per person than it used to, and section 1 showed that is why its hospitals run so full.
+        But beds were not cut when the waits broke. Between ${bf.fy} and ${bn.fy} the number of G&amp;A beds rose from ${int(bf.beds)} to ${int(bn.beds)},
+        beds per 1,000 people slipped only from ${bf.perThousand.toFixed(2)} to ${bn.perThousand.toFixed(2)}, and occupancy went from ${pct(bf.occupancy)}
+        to ${pct(bn.occupancy)}. In the decomposition above, the change in bed numbers slightly <i>reduced</i> long waits. Giving today's patients
+        ${r19.label}'s beds per person (about ${int(100 * Math.round(r19.beds / 100))} beds, ${int(100 * Math.round(r19.extraBeds / 100))} more than now)
+        would cut simulated 12-hour waits from about ${r1k(now.A.wait12PerYear)} to about ${r1k(r19.A.wait12PerYear)} a year: a help, not a cure.`;
+      $("bedsText2").innerHTML = `Where the cuts matter is in how much the loss of flexibility hurts. With ${r10.label}'s beds per person (about
+        ${int(100 * Math.round(r10.beds / 100))} beds), losing pre-pandemic flexibility would add only about ${r1k(r10.A.wait12PerYear - r10.B.wait12PerYear)}
+        long waits a year in the simulator (from ${r1k(r10.B.wait12PerYear)} to ${r1k(r10.A.wait12PerYear)}). With today's beds it adds about
+        ${r1k(now.A.wait12PerYear - now.B.wait12PerYear)} (from ${r1k(now.B.wait12PerYear)} to ${r1k(now.A.wait12PerYear)}). <b>Fewer beds did not break the
+        system, but they took away the slack that would have absorbed the break.</b>`;
+      NARR.bedsSlack = { extra10: r10.A.wait12PerYear - r10.B.wait12PerYear, extraNow: now.A.wait12PerYear - now.B.wait12PerYear, from: r10.label };
+    }
+  }
 
   // social care
   const R = HD.delays.reasons["7+"], G = R.byGroup, gk = R.byGroupKind;
@@ -608,7 +630,8 @@ function renderBlame(HM, HD, HT, TP, C) {
   $("tVerdict").innerHTML = table(["Fix", "Tests", "Size", "Occupancy", "Beds freed", "12-hour waits a year"],
     V.map((x) => [esc(x.label), esc(x.hyp), esc(x.note), pp(x.dOcc), signed(-x.dBeds, int), signed(x.dWait12PerYear, int)]), [3, 4, 5]);
   const ad = HM.scenarios.find((x) => x.id === "allDelays");
-  $("verdictText").innerHTML = `<b>Is it social care?</b> Partly. It explains about ${pct(G["Social care"], 0)} of the patients stuck in hospital, more if
+  $("verdictText").innerHTML = `<b>Is it the loss of beds?</b> Not directly: beds were not cut when the waits broke. But the long run of cuts left
+    hospitals so full that losing flexibility hurt several times more than it would have with ${NARR.bedsSlack ? NARR.bedsSlack.from + "'s" : "earlier"} beds per person. <b>Is it social care?</b> Partly. It explains about ${pct(G["Social care"], 0)} of the patients stuck in hospital, more if
     joint arrangements are counted, and fixing it would free one to two thousand beds. But social care delays do not move with long waits from month to
     month, and there is no comparable count from before the pandemic to show whether they grew. <b>Is it all the GPs' fault?</b> No. Emergency admissions per person have not risen since ${d19.fy}, nor have
     admissions for conditions GPs can manage. Preventing more of those admissions would help a full hospital a lot, but their growth is not what
@@ -637,7 +660,7 @@ function renderBlame(HM, HD, HT, TP, C) {
     const NH = NARR.perHead, fl = HM.scenarios.find((x) => x.id === "flex"), b5 = HM.scenarios.find((x) => x.id === "beds5k");
     const items = [
       NH ? `<b>No slack.</b> Since ${NH.from} beds per person have fallen ${pct(-NH.bedsCh, 0)}. Hospitals kept up by using ${pct(-NH.useCh, 0)} fewer beds per
-        person, mostly by cutting planned and other non-emergency stays, so they now run ${pct(NH.occ)} full.` : "",
+        person, mostly by cutting planned and other non-emergency stays, so they now run ${pct(NH.occ)} full. Beds were not cut when the waits broke, but the cuts removed the slack that would have absorbed it.` : "",
       `<b>The break.</b> After 2020 the same fullness began producing far longer waits${NARR.riseArrival ? `: counted from arrival, 12-hour waits in A&amp;E rose
         about ${NARR.riseArrival.toFixed(0)}-fold` : ""}, while occupancy barely moved.`,
       `<b>Mostly flow.</b> In the simulator, ${pct(sh("flex").wait12 / tot, 0)} of the rise in long waits since ${HM.from} comes from beds being used less flexibly,

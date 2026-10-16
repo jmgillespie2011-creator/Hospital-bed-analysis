@@ -114,11 +114,12 @@ longer waits: beds that are less interchangeable, slower turnover, staffing, inf
 imply. At the same occupancy, removing discharge delays makes almost no difference (delays matter by making hospitals fuller), and nor does
 any other single change. Only every favourable assumption at once (steadier stays, 7-day discharging, no flu season and double today's
 corridor spaces) comes close, at <b data-k="flexFav"></b>.</p>
-<p class="bridge">So something about how hospitals work changed. The next section tests the three usual suspects.</p>
+<p class="bridge">So something about how hospitals work changed. The next section tests the four usual suspects.</p>
 
-<h2 id="blame">3. What broke? Social care, GPs, or how hospitals run</h2>
-<p>Three explanations dominate the debate. Social care cannot take patients who are ready to leave, so they block beds. GPs are too hard to
-see, so patients end up in A&amp;E and then in hospital. Or hospitals themselves manage the flow of patients badly. We tested each against
+<h2 id="blame">3. What broke? Beds, social care, GPs, or how hospitals run</h2>
+<p>Four explanations dominate the debate. There are simply too few beds. Social care cannot take patients who are ready to leave, so they
+block beds. GPs are too hard to see, so patients end up in A&amp;E and then in hospital. Or hospitals themselves manage the flow of patients
+badly. We tested each against
 published data, then asked the simulator how much each could matter. No single test proves cause, but together they point one way.</p>
 <div class="stats" id="blameStats"></div>
 
@@ -134,7 +135,11 @@ many go home the same day, and how flexibly beds are used. Averaging over every 
   <details><summary>Show as table</summary><div id="tDecomp"></div></details></figure>
 <p id="decompText"></p>
 
-<h3 id="social-care">Suspect 1: social care</h3>
+<h3 id="beds">Suspect 1: too few beds</h3>
+<p id="bedsText1"></p>
+<p id="bedsText2"></p>
+
+<h3 id="social-care">Suspect 2: social care</h3>
 <p id="scText1"></p>
 <figure class="chart-card"><h3>Why patients who are ready to leave are still in hospital</h3>
   <p class="cap">Patients in hospital 7 days or more who no longer meet the criteria to reside, by the reason they are still there, grouped
@@ -151,7 +156,7 @@ many go home the same day, and how flexibly beds are used. Averaging over every 
   <details><summary>Show as table</summary><div id="tTd"></div></details></figure>
 <p id="scText3"></p>
 
-<h3 id="gps">Suspect 2: general practice</h3>
+<h3 id="gps">Suspect 3: general practice</h3>
 <p id="gpText1"></p>
 <div class="grid2">
   <figure class="chart-card"><h3>A&amp;E attendances and emergency admissions per person</h3>
@@ -168,7 +173,7 @@ many go home the same day, and how flexibly beds are used. Averaging over every 
 </div>
 <p id="gpText2"></p>
 
-<h3 id="flow">Suspect 3: how hospitals run</h3>
+<h3 id="flow">Suspect 4: how hospitals run</h3>
 <p id="flowText1"></p>
 <p id="flowText2"></p>
 
