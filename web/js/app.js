@@ -1,34 +1,39 @@
 import { buildParams, defaultSettings, populationFor, demandBreakdown } from "./demand.js";
 
-const REPS_A = 30;   // replications for "today's system" (small bed pools; fast)
-const REPS_B = 6;    // replications for the "more flexible system" (large pools; slower, less noisy)
+const REPS_A = 30;   // replications for "today's hospitals" (small bed pools; fast)
+const REPS_B = 6;    // replications for "pre-pandemic flexibility" (large pools; slower, less noisy)
 
 const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const fmt = {
   pct: (x, d = 1) => `${(100 * x).toFixed(d)}%`,
   int: (x) => Math.round(x).toLocaleString("en-GB"),
   k: (x) => x >= 1e6 ? `${(x / 1e6).toFixed(2)}m` : x >= 1e4 ? `${Math.round(x / 1e3)}k` : Math.round(x).toLocaleString("en-GB"),
 };
 
-let base, settings, baselineA, baselineB, resultA, resultB, dailyChart, sweepCharts = [];
-const worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
-let msgId = 0;
-const pending = new Map();
-worker.onmessage = (e) => {
-  const { id, progress, result, error } = e.data;
-  const p = pending.get(id);
-  if (!p) return;
-  if (progress != null) { p.onProgress && p.onProgress(progress); return; }
-  pending.delete(id);
-  error ? p.reject(new Error(error)) : p.resolve(result);
-};
-function call(kind, params, reps, extra = {}, onProgress) {
-  const id = ++msgId;
-  return new Promise((resolve, reject) => {
+let base, settings, baseline = {}, result = {}, dailyChart, sweepCharts = [];
+
+// Two workers: one for the scenario, one for the bed sweep, so a sweep never delays the next scenario.
+function makeWorker() {
+  const w = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
+  const pending = new Map();
+  let msgId = 0;
+  w.onmessage = (e) => {
+    const { id, progress, result: r, error } = e.data;
+    const p = pending.get(id);
+    if (!p) return;
+    if (progress != null) { p.onProgress && p.onProgress(progress); return; }
+    pending.delete(id);
+    error ? p.reject(new Error(error)) : p.resolve(r);
+  };
+  return (kind, params, reps, extra = {}, onProgress) => new Promise((resolve, reject) => {
+    const id = ++msgId;
     pending.set(id, { resolve, reject, onProgress });
-    worker.postMessage({ id, kind, params, reps, ...extra });
+    w.postMessage({ id, kind, params, reps, ...extra });
   });
 }
+const call = makeWorker();
+const callSweep = makeWorker();
 
 // ---------------------------------------------------------------- controls
 function controlSpec() {
@@ -42,16 +47,16 @@ function controlSpec() {
   }));
   return [
     { section: "Hospital capacity" },
-    { key: "beds", label: "General & acute beds", min: 80000, max: 160000, step: 1, fmt: fmt.int,
-      help: `Beds open overnight in England. Today: ${fmt.int(base.national.beds)}. Use the presets above for historical levels.` },
+    { key: "beds", label: "General & acute beds", min: 80000, max: 160000, step: 1, fmt: fmt.int, number: true,
+      help: `Beds open overnight in England. Today: ${fmt.int(base.national.beds)}. Type an exact number, or use the presets above for historical levels.` },
     { key: "staffingPct", label: "Nursing posts filled", min: 70, max: 100, step: 1, fmt: (v) => v + "%",
       help: "A bed can only be used if it is staffed. Recruitment and retention policies move this. Available beds = beds × % filled." },
     { key: "escalationPct", label: "Extra winter beds", min: 0, max: 10, step: 0.5, fmt: (v) => "+" + v + "%",
       help: "Additional beds opened from December to March." },
     { key: "corridorPct", label: "Corridor care spaces on wards", min: 0, max: 15, step: 0.1, fmt: (v) => v + "% of beds",
       help: "Trolleys or chairs outside a bed space on wards, used only when every proper bed is full. The starting value is fitted to NHS England's count of ward corridor care (2026). Fewer spaces means patients wait in A&E instead; 0 means no corridor care on wards." },
-    { key: "electivePct", label: "Planned surgery & treatment (elective activity)", min: 50, max: 150, step: 5, fmt: (v) => v + "% of today",
-      help: "Planned overnight admissions, e.g. to clear waiting lists. These compete with emergency patients for beds." },
+    { key: "electivePct", label: "Planned surgery & treatment", min: 50, max: 150, step: 5, fmt: (v) => v + "% of today",
+      help: "Planned (elective) overnight admissions, e.g. to clear waiting lists. These compete with emergency patients for beds." },
     { section: "Public health" },
     { key: "evidence", label: "Evidence for public-health effects", type: "select",
       options: [["published", "OHID attributable estimates and cohort studies"], ["area", "This project's area analysis (where available)"]],
@@ -64,12 +69,12 @@ function controlSpec() {
     { section: "Hospital flow" },
     { key: "sameDayPct", label: "Same day emergency care", min: 20, max: 80, step: 1, fmt: (v) => v + "% of emergency patients",
       help: "Emergency patients assessed and treated without an overnight stay (SDEC units, frailty assessment)." },
-    { key: "delayChangePct", label: "Delayed discharges (social care & community capacity)", min: -100, max: 50, step: 5, fmt: (v) => sign(v),
-      help: "Change in the time medically fit patients wait to leave hospital for care homes, home care or community beds. −100% removes delays entirely." },
+    { key: "delayChangePct", label: "Delayed discharges", min: -100, max: 50, step: 5, fmt: (v) => sign(v),
+      help: "Change in the time medically fit patients wait to leave hospital for care homes, home care or community beds (social care and community capacity). −100% removes delays entirely." },
     { key: "weekendDischargePct", label: "7-day discharging", min: 0, max: 100, step: 5, fmt: (v) => v + "% at weekends",
       help: "Share of patients ready to leave at the weekend who are discharged then, rather than waiting for Monday." },
-    { key: "prepHours", label: "Time from ward round to leaving", min: 0.5, max: 6, step: 0.5, fmt: (v) => v + " h after ward round",
-      help: "Average time from the morning ward round to the patient leaving (medicines to take home, transport, discharge lounges, criteria-led discharge). Not measured nationally: 3 hours is an assumption. Discharge timing within the day is not measured nationally, so treat this setting as exploratory." },
+    { key: "prepHours", label: "Time from ward round to leaving", min: 0.5, max: 6, step: 0.5, fmt: (v) => v + " h",
+      help: "Average time from the morning ward round to the patient leaving (medicines to take home, transport, discharge lounges, criteria-led discharge). Discharge timing within the day is not measured nationally: 3 hours is an assumption, so treat this setting as exploratory." },
     { key: "virtualWardPct", label: "Virtual wards / hospital at home", min: 0, max: 30, step: 1, fmt: (v) => v + "% of stay",
       help: "Share of older patients' (75+) hospital stay delivered at home instead." },
     { key: "admissionAvoidancePct", label: "Community urgent response for older people", min: 0, max: 30, step: 1, fmt: (v) => v + "% avoided",
@@ -88,124 +93,211 @@ function controlSpec() {
   ];
 }
 
-function getVal(key) { return key.startsWith("risk:") ? settings.risk[key.slice(5)] : settings[key]; }
+const getVal = (key, s = settings) => key.startsWith("risk:") ? s.risk[key.slice(5)] : s[key];
 function setVal(key, v) { if (key.startsWith("risk:")) settings.risk[key.slice(5)] = v; else settings[key] = v; }
+const ctlId = (key) => "ctl-" + key.replace(/[^a-z0-9]/gi, "_");
+let SPEC = [];
 
 function buildControls() {
+  SPEC = controlSpec();
   const root = $("ctl-root");
   root.innerHTML = "";
-  for (const c of controlSpec()) {
-    if (c.section) { const h = document.createElement("h2"); h.textContent = c.section; root.append(h); continue; }
-    const div = document.createElement("div");
-    div.className = "ctl";
-    const id = "ctl-" + c.key.replace(/[^a-z0-9]/gi, "_");
-    if (c.type === "select") {
-      div.innerHTML = `<label for="${id}"><span>${c.label}</span></label><select id="${id}">${c.options.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")}</select>${c.help ? `<div class="help">${c.help}</div>` : ""}`;
-      root.append(div);
-      const sel = div.querySelector("select");
-      sel.value = getVal(c.key);
-      sel.addEventListener("change", () => { setVal(c.key, sel.value); schedule(); });
+  const narrow = matchMedia("(max-width: 960px)").matches;
+  let sec = null, nSec = 0;
+  for (const c of SPEC) {
+    if (c.section) {
+      sec = document.createElement("details");
+      sec.className = "sec";
+      sec.open = !narrow || nSec === 0; // on phones only the first section starts open
+      sec.innerHTML = `<summary><h2>${c.section}</h2><span class="sec-count"></span></summary>`;
+      root.append(sec); nSec++;
       continue;
     }
-    div.innerHTML = `<label for="${id}"><span>${c.label}</span><output id="${id}-out"></output></label>
-      <input type="range" id="${id}" min="${c.min}" max="${c.max}" step="${c.step}">
-      ${c.help ? `<div class="help">${c.help}</div>` : ""}`;
-    root.append(div);
-    const input = div.querySelector("input"), out = div.querySelector("output");
-    input.value = getVal(c.key);
-    out.textContent = c.fmt(Number(input.value));
-    input.addEventListener("input", () => { out.textContent = c.fmt(Number(input.value)); });
-    input.addEventListener("change", () => { setVal(c.key, Number(input.value)); schedule(); });
-    c.input = input; c.out = out;
+    const div = document.createElement("div");
+    div.className = "ctl";
+    const id = ctlId(c.key);
+    const helpBtn = c.help ? `<button type="button" class="info" aria-expanded="false" aria-controls="${id}-help" title="What is this?">i</button>` : "";
+    const resetBtn = `<button type="button" class="undo" title="Back to ${BY}" aria-label="Reset ${esc(c.label)} to ${BY}">↺</button>`;
+    const help = c.help ? `<div class="help" id="${id}-help" hidden>${esc(c.help)}</div>` : "";
+    if (c.type === "select") {
+      div.innerHTML = `<div class="ctl-head"><label for="${id}">${esc(c.label)}</label>${helpBtn}${resetBtn}</div>
+        <select id="${id}">${c.options.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>${help}`;
+    } else {
+      const value = c.number
+        ? `<input type="number" class="num-in" id="${id}-num" min="${c.min}" max="${c.max}" step="100" aria-label="${esc(c.label)} (exact)">`
+        : `<output id="${id}-out" for="${id}"></output>`;
+      div.innerHTML = `<div class="ctl-head"><label for="${id}">${esc(c.label)}</label>${helpBtn}${resetBtn}${value}</div>
+        <input type="range" id="${id}" min="${c.min}" max="${c.max}" step="${c.step}">${help}`;
+    }
+    (sec || root).append(div);
+    const input = div.querySelector(c.type === "select" ? "select" : "input[type=range]");
+    const commit = (v) => { setVal(c.key, v); syncControls(); schedule(); };
+    if (c.type === "select") input.addEventListener("change", () => commit(input.value));
+    else {
+      input.addEventListener("input", () => showValue(c, Number(input.value)));
+      input.addEventListener("change", () => commit(Number(input.value)));
+      const num = div.querySelector(".num-in");
+      if (num) num.addEventListener("change", () => {
+        const v = Math.min(c.max, Math.max(c.min, Math.round(Number(num.value) || getVal(c.key))));
+        commit(v);
+      });
+    }
+    const info = div.querySelector(".info");
+    if (info) info.onclick = () => {
+      const h = div.querySelector(".help"), open = h.hidden;
+      h.hidden = !open; info.setAttribute("aria-expanded", String(open));
+    };
+    div.querySelector(".undo").onclick = () => commit(getVal(c.key, defaultSettings(base)));
   }
-  const pre = $("presets");
-  pre.innerHTML = "";
-  for (const p of base.presets) {
-    const b = document.createElement("button");
-    b.textContent = p.label;
-    b.title = p.note || "";
-    b.onclick = () => { settings.beds = Math.round(p.beds); syncControls(); schedule(); };
-    pre.append(b);
+  // presets: actual bed numbers, and bed numbers scaled to today's population
+  for (const [box, perHead] of [[$("presets-year"), false], [$("presets-head"), true]]) {
+    box.innerHTML = "";
+    for (const p of base.presets.filter((x) => /per head/.test(x.label) === perHead)) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = p.label.replace(/ per head/, "");
+      b.dataset.beds = Math.round(p.beds);
+      b.title = `${fmt.int(p.beds)} beds${perHead ? ` (that year's beds per person, applied to today's population)` : ""}${p.note ? ". " + p.note : ""}`;
+      b.onclick = () => { settings.beds = Math.round(p.beds); syncControls(); schedule(); };
+      box.append(b);
+    }
   }
+  syncControls();
 }
+
+function showValue(c, v) {
+  const id = ctlId(c.key);
+  if (c.number) $(id + "-num").value = v; else $(id + "-out").textContent = c.fmt(v);
+}
+
 function syncControls() {
-  for (const c of controlSpec()) {
+  const d = defaultSettings(base);
+  const changedBySection = new Map();
+  let secEl = null;
+  for (const c of SPEC) {
     if (c.section) continue;
-    const id = "ctl-" + c.key.replace(/[^a-z0-9]/gi, "_");
-    const input = $(id); if (!input) continue;
-    if (c.type === "select") { input.value = getVal(c.key); continue; }
+    const id = ctlId(c.key), input = $(id);
+    if (!input) continue;
     input.value = getVal(c.key);
-    $(id + "-out").textContent = c.fmt(Number(input.value));
+    if (c.type !== "select") showValue(c, Number(input.value));
+    const changed = getVal(c.key) !== getVal(c.key, d);
+    const div = input.closest(".ctl");
+    div.classList.toggle("changed", changed);
+    secEl = div.closest("details");
+    if (secEl) changedBySection.set(secEl, (changedBySection.get(secEl) || 0) + (changed ? 1 : 0));
   }
+  for (const [el, n] of changedBySection) el.querySelector(".sec-count").textContent = n ? `${n} changed` : "";
+  document.querySelectorAll(".presets button").forEach((b) => {
+    const on = Number(b.dataset.beds) === settings.beds;
+    b.classList.toggle("active", on); b.setAttribute("aria-pressed", String(on));
+  });
 }
 
 // ---------------------------------------------------------------- running
 let timer = null, runToken = 0;
-function schedule() { clearTimeout(timer); timer = setTimeout(runScenario, 150); writeHash(); }
+function schedule() { clearTimeout(timer); timer = setTimeout(runScenario, 150); writeHash(); setStale(true); }
+function setStale(on) {
+  $("resultsBody").classList.toggle("stale", on);
+  $("mbar").classList.toggle("stale", on);
+  if (on) $("status").textContent = "Updating…";
+}
 
 async function runScenario() {
   const token = ++runToken;
   const status = $("status");
-  status.textContent = "Simulating…";
   const pA = buildParams(base, { ...settings, flexibility: "A" });
   const pB = buildParams(base, { ...settings, flexibility: "B" });
   const [a, b] = await Promise.all([
-    call("run", pA, REPS_A, {}, (f) => { if (token === runToken) status.textContent = `Simulating… ${Math.round(f * 100)}%`; }),
+    call("run", pA, REPS_A, {}, (f) => { if (token === runToken) status.textContent = `Updating… ${Math.round(f * 100)}%`; }),
     call("run", pB, REPS_B),
   ]);
   if (token !== runToken) return;
-  resultA = a; resultB = b;
-  status.textContent = `Simulated ${REPS_A} years of patients (today's system) and ${REPS_B} (more flexible system).`;
+  result = { A: a, B: b };
+  setStale(false);
+  status.textContent = `Simulated ${REPS_A} years of patients (today's hospitals) and ${REPS_B} (pre-pandemic flexibility).`;
   render(pA);
+  scheduleSweep();
 }
 
 // ---------------------------------------------------------------- rendering
 let BY = "baseline";
-function delta(x, base0, kind = "pct", goodWhenLower = true) {
-  const d = x - base0;
-  if (Math.abs(d) < 1e-9) return `<span>same as ${BY}</span>`;
-  const cls = d > 0 ? "delta-up" : "delta-down";
-  const txt = kind === "pts" ? `${(100 * Math.abs(d)).toFixed(1)} pts` : kind === "int" ? fmt.k(Math.abs(d)) : `${Math.abs(d).toFixed(1)}`;
-  return `<span class="${cls}">${txt} vs ${BY}</span>`;
+const SYS_NOTE = {
+  A: "Today's hospitals: bed flexibility fitted to 2025/26 long waits and corridor care.",
+  B: "Pre-pandemic flexibility: beds shared as freely as in 2018/19, when long waits were rare at similar occupancy. Occupancy is almost the same; waits are not.",
+};
+
+// Is the change from the baseline bigger than simulation noise? Scenario and baseline share random numbers run by run,
+// so test the run-by-run differences: a change smaller than about two standard errors is reported as "no clear change".
+// `pick` is a per-run key, or a function returning the per-run values from perRep. Returns full and short text.
+function change(pick, now, then, size, judge = true) {
+  const get = typeof pick === "function" ? pick : (p) => p[pick];
+  const a = get(result[sys()].perRep), b = get(baseline[sys()].perRep);
+  const d = a.map((x, i) => x - b[i]);
+  const m = d.reduce((s, x) => s + x, 0) / d.length;
+  const sd = Math.sqrt(d.reduce((s, x) => s + (x - m) ** 2, 0) / Math.max(d.length - 1, 1));
+  const se = sd / Math.sqrt(d.length);
+  const diff = now - then;
+  if (Math.abs(diff) < 1e-12 && sd < 1e-12) return { full: `<span class="chg same">Same as ${BY}</span>`, short: `<span class="chg same">no change</span>` };
+  if (Math.abs(m) < 2 * se || Math.abs(diff) < 1e-9) return {
+    full: `<span class="chg same" title="The change is smaller than the simulation's random noise">No clear change from ${BY}</span>`,
+    short: `<span class="chg same">no clear change</span>` };
+  const lower = diff < 0; // where judged, lower is better
+  const arrow = `<span aria-hidden="true">${lower ? "▼" : "▲"}</span>`, verdict = lower ? "better" : "worse";
+  const cls = judge ? verdict : "same", tail = judge ? ` · <b>${verdict}</b>` : "";
+  return {
+    full: `<span class="chg ${cls}">${arrow} ${size(Math.abs(diff))} ${lower ? "lower" : "higher"} than ${BY}${tail}</span>`,
+    short: `<span class="chg ${cls}">${arrow} ${size(Math.abs(diff)).replace(" a year", "")}${judge ? "<br>" + verdict : ""}</span>` };
 }
+const pts = (x) => `${(100 * x).toFixed(1)} pts`;
+const sys = () => (settings.flexibility === "B" ? "B" : "A");
 
 function render(pA) {
-  const A = resultA, B = resultB, A0 = baselineA, B0 = baselineB;
-  const tiles = [
-    { name: "Average bed occupancy (midnight)", val: fmt.pct(A.occMidnight),
-      sub: `${delta(A.occMidnight, A0.occMidnight, "pts")}<br>Flexible system: ${fmt.pct(B.occMidnight)}` },
-    { name: "Nights with every bed full", val: fmt.pct(A.nightsFull, 0),
-      sub: `${delta(A.nightsFull, A0.nightsFull, "pts")}<br>Share of nights an effective bed pool is 100% full` },
-    { name: "Emergency patients waiting >12h for a bed", val: fmt.k(A.wait12PerYear) + "/yr",
-      sub: `${fmt.pct(A.wait12)} of emergency admissions. ${delta(A.wait12PerYear, A0.wait12PerYear, "int")}<br>Flexible system: ${fmt.k(B.wait12PerYear)}/yr` },
-    { name: "Corridor care on wards at 8am", val: fmt.k(A.inEscalationSpaces8am),
-      sub: `Year average, plus ${fmt.k(A.waitingForBed8am)} waiting in A&E for a bed.${base.corridorCare ? ` NHS count May-Sep 2026: ${fmt.k(base.corridorCare.wardMean)}.` : ""} ${delta(A.inEscalationSpaces8am, A0.inEscalationSpaces8am, "int")}` },
-    { name: "Waiting >4h for a bed", val: fmt.pct(A.wait4),
-      sub: `${delta(A.wait4, A0.wait4, "pts")}<br>Flexible system: ${fmt.pct(B.wait4)}` },
-    { name: "Planned admission slots lost for lack of a bed", val: fmt.pct(A.elecCancelRate),
-      sub: `${delta(A.elecCancelRate, A0.elecCancelRate, "pts")}<br>Flexible system: ${fmt.pct(B.elecCancelRate)}` },
-    { name: "Occupancy in the busiest month", val: fmt.pct(peakMonth(A.daily).v),
-      sub: `${peakMonth(A.daily).m}. ${delta(peakMonth(A.daily).v, peakMonth(A0.daily).v, "pts")}` },
-    ...(base.flu ? [{ name: "Flu patients in beds at the winter peak", val: fmt.k(A.fluBedsPeak),
-      sub: `${delta(A.fluBedsPeak, A0.fluBedsPeak, "int")}` }] : []),
-    { name: "Beds occupied by patients fit to leave", val: fmt.k(A.nctrBedsNational),
-      sub: `${fmt.pct(A.nctrShare)} of occupied beds. ${delta(A.nctrBedsNational, A0.nctrBedsNational, "int")}` },
+  const s = sys(), R = result[s], R0 = baseline[s];
+  const emerg = pA.emergPerYear + pA.fluPerYear;
+  // simulation noise on 12-hour waits (95% range for the level)
+  const w = R.perRep.wait12, wm = w.reduce((a, b) => a + b, 0) / w.length;
+  const wse = Math.sqrt(w.reduce((a, b) => a + (b - wm) ** 2, 0) / Math.max(w.length - 1, 1) / w.length);
+  const waitRange = wse > 0 ? ` <span class="range">± ${fmt.k(1.96 * wse * emerg)} simulation noise</span>` : "";
+  const wardCount = base.corridorCare ? ` NHS England counted ${fmt.int(base.corridorCare.wardMean)} a day (May–Sep 2026).` : "";
+  const head = [
+    { name: "Average bed occupancy", val: fmt.pct(R.occMidnight),
+      unit: "of beds in use at midnight", chg: change("occ", R.occMidnight, R0.occMidnight, pts) },
+    { name: "Waits over 12 hours for a bed", val: fmt.k(R.wait12PerYear), unit: `a year (${fmt.pct(R.wait12)} of emergency admissions)${waitRange}`,
+      chg: change("wait12", R.wait12PerYear, R0.wait12PerYear, (x) => fmt.k(x) + " a year") },
+    { name: "Corridor care", val: fmt.k(R.inEscalationSpaces8am),
+      unit: `patients on wards outside a bed space at 8am, year average; plus ${fmt.k(R.waitingForBed8am)} waiting in A&E for a bed.${wardCount}`,
+      chg: change("ward8", R.inEscalationSpaces8am, R0.inEscalationSpaces8am, (x) => fmt.k(x)) },
   ];
-  $("kpis").innerHTML = tiles.map((t) => `<div class="kpi"><div class="name">${t.name}</div><div class="val">${t.val}</div><div class="sub">${t.sub}</div></div>`).join("");
+  $("headline").innerHTML = head.map((t) => `<div class="kpi big"><div class="name">${t.name}</div><div class="val">${t.val}</div><div class="unit">${t.unit}</div>${t.chg.full}</div>`).join("");
+  const pm = peakMonth(R.daily), pm0 = peakMonth(R0.daily);
+  const tiles = [
+    { name: "Nights with every bed full", val: fmt.pct(R.nightsFull, 0), sub: "Share of nights a bed pool is 100% full", chg: change("nightsFull", R.nightsFull, R0.nightsFull, pts) },
+    { name: "Waiting over 4h for a bed", val: fmt.pct(R.wait4), sub: "Share of emergency admissions", chg: change("wait4", R.wait4, R0.wait4, pts) },
+    { name: "Planned admissions lost", val: fmt.pct(R.elecCancelRate), sub: "Slots lost for lack of a bed", chg: change("elec", R.elecCancelRate, R0.elecCancelRate, pts) },
+    { name: "Busiest month", val: fmt.pct(pm.v), sub: `Average occupancy in ${pm.m}`, chg: change((p) => p.monthly.map((m) => m[pm.i]), pm.v, pm0.v, pts) },
+    ...(base.flu ? [{ name: "Flu patients at the winter peak", val: fmt.k(R.fluBedsPeak), sub: "7-day average", chg: change("fluPeak", R.fluBedsPeak, R0.fluBedsPeak, (x) => fmt.k(x), false) }] : []),
+    { name: "Beds held by patients fit to leave", val: fmt.k(R.nctrBedsNational), sub: `${fmt.pct(R.nctrShare)} of occupied beds`, chg: change("nctrBeds", R.nctrBedsNational, R0.nctrBedsNational, (x) => fmt.k(x)) },
+  ];
+  $("kpis").innerHTML = tiles.map((t) => `<div class="kpi"><div class="name">${t.name}</div><div class="val">${t.val}</div><div class="sub">${t.sub}</div>${t.chg.full}</div>`).join("");
+  $("sysNote").textContent = SYS_NOTE[s];
+  const SHORT = ["Occupancy", "12h waits / yr", "Corridor care"];
+  $("mbarItems").innerHTML = head.map((t, i) => `<div><span class="n">${SHORT[i]}</span><b>${t.val}</b>${t.chg.short}</div>`).join("");
+  document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.sys === s)));
   renderDaily();
   renderInputs(pA);
 }
 
 function peakMonth(daily) {
-  let best = { v: -1, m: "" };
+  let best = { v: -1, m: "", i: 0 };
   for (let i = 0; i < 12; i++) {
     const a = daily.slice(MONTH_START[i], MONTH_START[i + 1]);
     const v = a.reduce((x, y) => x + y, 0) / a.length;
-    if (v > best.v) best = { v, m: MONTHS[i] };
+    if (v > best.v) best = { v, m: MONTHS_LONG[i], i };
   }
   return best;
 }
 const MONTHS = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
+const MONTHS_LONG = ["April", "May", "June", "July", "August", "September", "October", "November", "December", "January", "February", "March"];
 const MONTH_START = [0, 30, 61, 91, 122, 153, 183, 214, 245, 275, 306, 334, 365];
 function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
 function chartDefaults() {
@@ -213,35 +305,40 @@ function chartDefaults() {
   Chart.defaults.borderColor = css("--grid");
   Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
 }
+const roll7 = (a) => a.map((_, i) => { const lo = Math.max(0, i - 3), hi = Math.min(a.length, i + 4); let t = 0; for (let j = lo; j < hi; j++) t += a[j]; return t / (hi - lo); });
+
 function renderDaily() {
   chartDefaults();
-  const n = resultA.daily.length;
+  const s = sys(), R = result[s], R0 = baseline[s];
+  const raw = $("rawDaily").checked;
+  const n = R.daily.length;
   const labels = Array.from({ length: n }, (_, i) => {
-    const m = MONTH_START.findIndex((s) => s > i) - 1;
-    return `${MONTHS[m]} day ${i - MONTH_START[m] + 1}`;
+    const m = MONTH_START.findIndex((st) => st > i) - 1;
+    return `${i - MONTH_START[m] + 1} ${MONTHS[m]}`;
   });
+  const prep = (a) => (raw ? a : roll7(a)).map((x) => 100 * x);
   const data = {
     labels,
     datasets: [
-      { label: "This scenario", data: resultA.daily.map((x) => 100 * x), borderColor: css("--series-scn"), borderWidth: 2, pointRadius: 0, tension: 0 },
-      { label: `${BY} baseline`, data: baselineA.daily.map((x) => 100 * x), borderColor: css("--series-base"), borderWidth: 1.5, pointRadius: 0, borderDash: [4, 3] },
+      { label: "This scenario", data: prep(R.daily), borderColor: css("--series-scn"), borderWidth: 2, pointRadius: 0, tension: 0 },
+      { label: `${BY} baseline`, data: prep(R0.daily), borderColor: css("--series-base"), borderWidth: 1.5, pointRadius: 0, borderDash: [4, 3] },
     ],
   };
   const opts = {
     responsive: true, maintainAspectRatio: false, animation: false,
     interaction: { mode: "index", intersect: false },
-    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}%` } } },
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}%${raw ? "" : " (7-day average)"}` } } },
     scales: {
       x: { ticks: { callback: (v, i) => { const m = MONTH_START.indexOf(i); return m >= 0 && m < 12 ? MONTHS[m] : null; }, autoSkip: false, maxRotation: 0 }, grid: { display: false } },
-      y: { title: { display: true, text: "Beds occupied (%)" }, suggestedMin: 60, suggestedMax: 100 },
+      y: { title: { display: true, text: "Beds occupied (%)" }, suggestedMin: 70, suggestedMax: 100 },
     },
   };
-  if (dailyChart) { dailyChart.data = data; dailyChart.update(); }
+  if (dailyChart) { dailyChart.data = data; dailyChart.options = opts; dailyChart.update(); }
   else dailyChart = new Chart($("dailyChart"), { type: "line", data, options: opts });
-  const rows = MONTHS.map((m, i) => {
-    const s = MONTH_START[i], e = MONTH_START[i + 1];
-    const avg = (a) => a.slice(s, e).reduce((x, y) => x + y, 0) / (e - s);
-    return `<tr><td>${m}</td><td class="num">${fmt.pct(avg(resultA.daily))}</td><td class="num">${fmt.pct(avg(baselineA.daily))}</td></tr>`;
+  const rows = MONTHS_LONG.map((m, i) => {
+    const st = MONTH_START[i], e = MONTH_START[i + 1];
+    const avg = (a) => a.slice(st, e).reduce((x, y) => x + y, 0) / (e - st);
+    return `<tr><td>${m}</td><td class="num">${fmt.pct(avg(R.daily))}</td><td class="num">${fmt.pct(avg(R0.daily))}</td></tr>`;
   });
   $("dailyTable").innerHTML = `<table><thead><tr><th>Month</th><th class="num">This scenario</th><th class="num">${BY} baseline</th></tr></thead><tbody>${rows.join("")}</tbody></table>`;
 }
@@ -268,14 +365,13 @@ function renderInputs(pA) {
     ["Weekend discharging", `${p0.weekendDischargePct}%`, `${pA.weekendDischargePct}%`],
     ["Emergency admissions with flu per year", fmt.int(p0.fluPerYear), fmt.int(pA.fluPerYear)],
   ];
-  // age mix
   const ageRows = base.ageBands.map((b) => {
     const p = populationFor(base, b, settings.popYear), p0b = populationFor(base, b, base.baseYear);
     return `<tr><td>${b.band}</td><td class="num">${fmt.k(p0b)}</td><td class="num">${fmt.k(p)}</td><td class="num">${fmt.int(b.emergAdm)}</td><td class="num">${fmt.int(b.emergAdm * p / p0b)}</td></tr>`;
   }).join("");
   $("inputsTable").innerHTML =
     `<table><thead><tr><th>Input</th><th class="num">${BY} baseline</th><th class="num">This scenario</th></tr></thead><tbody>` +
-    rows.map((r) => `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join("") +
+    rows.map((r) => `<tr${r[1] !== r[2] && r[2] !== "+0.0%" && r[2] !== "−0.0%" ? ' class="diff"' : ""}><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join("") +
     `</tbody></table><h4 style="margin:14px 0 4px">Population and emergency admissions by age</h4>
     <table><thead><tr><th>Age</th><th class="num">Population ${base.baseYear} (baseline)</th><th class="num">Population ${settings.popYear} (scenario)</th><th class="num">Emergency admissions ${base.baseYear}</th><th class="num">Scenario (population change only)</th></tr></thead><tbody>${ageRows}</tbody></table>`;
 }
@@ -292,37 +388,66 @@ function demandRows() {
   ];
 }
 
+// ---------------------------------------------------------------- bed sweep (runs by itself when visible)
+let sweepVisible = false, sweepBusy = false, sweepWanted = false, sweepTimer = null;
+function scheduleSweep() {
+  sweepWanted = true;
+  clearTimeout(sweepTimer);
+  sweepTimer = setTimeout(() => { if (sweepVisible) runSweep(); }, 400);
+}
+const vline = (getX, label) => ({
+  id: "vline",
+  afterDatasetsDraw(chart) {
+    const { ctx, chartArea: a, scales } = chart;
+    const px = scales.x.getPixelForValue(getX());
+    if (!(px >= a.left && px <= a.right)) return;
+    ctx.save(); ctx.strokeStyle = css("--text-3"); ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle = css("--text-2"); ctx.font = "12px " + Chart.defaults.font.family;
+    ctx.textAlign = px > (a.left + a.right) / 2 ? "right" : "left";
+    ctx.fillText(label, px + (ctx.textAlign === "right" ? -6 : 6), a.top + 12); ctx.restore();
+  },
+});
 async function runSweep() {
-  const btn = $("sweepBtn");
-  btn.disabled = true;
-  const beds = [];
-  const cur = settings.beds;
-  for (let b = Math.max(80000, Math.round(cur * 0.85 / 1000) * 1000); b <= Math.min(170000, cur * 1.45); b += 3000) beds.push(b);
-  const pA = buildParams(base, { ...settings, flexibility: "A" });
-  const pB = buildParams(base, { ...settings, flexibility: "B" });
-  btn.textContent = "Running…";
-  const [a, b] = await Promise.all([
-    call("sweep", pA, 16, { sweep: { beds } }, (f) => { btn.textContent = `Running… ${Math.round(f * 100)}%`; }),
-    call("sweep", pB, 3, { sweep: { beds } }),
-  ]);
-  btn.textContent = "Run bed-number sweep";
-  btn.disabled = false;
-  $("sweepCharts").hidden = false;
+  if (sweepBusy) return; // the finished run checks sweepWanted and goes again
+  sweepBusy = true; sweepWanted = false;
+  const snap = JSON.parse(JSON.stringify(settings));
+  const cur = snap.beds, beds = [];
+  for (let b = Math.max(80000, Math.round(cur * 0.85 / 1000) * 1000); b <= Math.min(170000, cur * 1.45); b += 4000) beds.push(b);
+  const pA = buildParams(base, { ...snap, flexibility: "A" }), pB = buildParams(base, { ...snap, flexibility: "B" });
+  $("sweepCard").classList.add("stale");
+  $("sweepStatus").textContent = "Updating…";
+  try {
+    const [a, b] = await Promise.all([
+      callSweep("sweep", pA, 10, { sweep: { beds } }, (f) => { $("sweepStatus").textContent = `Updating… ${Math.round(f * 100)}%`; }),
+      callSweep("sweep", pB, 3, { sweep: { beds } }),
+    ]);
+    drawSweep(beds, a, b, cur);
+    $("sweepStatus").textContent = "";
+  } finally {
+    sweepBusy = false;
+    $("sweepCard").classList.remove("stale");
+    if (sweepWanted && sweepVisible) runSweep();
+  }
+}
+function drawSweep(beds, a, b, cur) {
   chartDefaults();
   sweepCharts.forEach((c) => c.destroy());
   const mk = (canvas, key, scale, ytitle, tip) => new Chart(canvas, {
     type: "line",
-    data: { labels: beds.map((x) => fmt.k(x)), datasets: [
-      { label: "Today's system", data: a.map((p) => scale(p[key])), borderColor: css("--series-scn"), borderWidth: 2, pointRadius: 3 },
-      { label: "More flexible system", data: b.map((p) => scale(p[key])), borderColor: css("--series-b"), borderWidth: 2, pointRadius: 3, borderDash: [5, 3] },
+    data: { datasets: [
+      { label: "Today's hospitals", data: a.map((p) => ({ x: p.beds, y: scale(p[key]) })), borderColor: css("--series-scn"), backgroundColor: css("--series-scn"), borderWidth: 2, pointRadius: 3 },
+      { label: "Pre-pandemic flexibility", data: b.map((p) => ({ x: p.beds, y: scale(p[key]) })), borderColor: css("--series-b"), backgroundColor: css("--series-b"), borderWidth: 2, pointRadius: 3, borderDash: [5, 3] },
     ] },
     options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: "index", intersect: false },
-      plugins: { legend: { display: false }, tooltip: { callbacks: { title: (c) => `${beds[c[0].dataIndex].toLocaleString("en-GB")} beds`, label: tip } } },
-      scales: { x: { title: { display: true, text: "G&A beds" }, grid: { display: false } }, y: { title: { display: true, text: ytitle }, beginAtZero: key !== "occ" } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { title: (c) => `${fmt.int(c[0].parsed.x)} beds`, label: tip } } },
+      scales: { x: { type: "linear", title: { display: true, text: "G&A beds" }, ticks: { callback: (v) => fmt.k(v) }, grid: { display: false } },
+        y: { title: { display: true, text: ytitle }, beginAtZero: key !== "occ" } } },
+    plugins: [vline(() => cur, "This scenario")],
   });
   sweepCharts = [
     mk($("sweepOcc"), "occ", (x) => 100 * x, "Average occupancy (%)", (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}%`),
-    mk($("sweepWait"), "wait12PerYear", (x) => x / 1000, ">12h waits for a bed (thousands/yr)", (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(0)}k a year`),
+    mk($("sweepWait"), "wait12PerYear", (x) => x / 1000, "Waits over 12 hours (thousands a year)", (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(0)}k a year`),
   ];
 }
 
@@ -350,19 +475,30 @@ async function main() {
   settings = defaultSettings(base);
   readHash();
   buildControls();
-  $("reset").onclick = () => { settings = defaultSettings(base); syncControls(); schedule(); };
+  $("reset").onclick = () => { const f = settings.flexibility; settings = defaultSettings(base); settings.flexibility = f; syncControls(); schedule(); };
   $("share").onclick = async () => { writeHash(); try { await navigator.clipboard.writeText(location.href); $("share").textContent = "Link copied"; } catch { $("share").textContent = "Copy the address bar"; } setTimeout(() => ($("share").textContent = "Copy link to this scenario"), 2000); };
   $("download").onclick = () => {
-    const blob = new Blob([JSON.stringify({ settings, params: buildParams(base, { ...settings, flexibility: "A" }), todaysSystem: { ...resultA, daily: undefined }, flexibleSystem: { ...resultB, daily: undefined }, baseline: { ...baselineA, daily: undefined } }, null, 2)], { type: "application/json" });
+    const strip = (r) => ({ ...r, daily: undefined, daily8: undefined, perRep: undefined });
+    const blob = new Blob([JSON.stringify({ settings, params: buildParams(base, { ...settings, flexibility: "A" }), todaysHospitals: strip(result.A), prePandemicFlexibility: strip(result.B), baseline: strip(baseline.A) }, null, 2)], { type: "application/json" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "bed-scenario.json"; a.click();
   };
-  $("sweepBtn").onclick = runSweep;
+  document.querySelectorAll(".seg button").forEach((b) => b.onclick = () => {
+    settings.flexibility = b.dataset.sys; writeHash();
+    if (result.A) render(buildParams(base, { ...settings, flexibility: "A" }));
+  });
+  $("rawDaily").onchange = () => result.A && renderDaily();
+  // bed sweep: run when its card is on screen
+  new IntersectionObserver((es) => { sweepVisible = es.some((e) => e.isIntersecting); if (sweepVisible && sweepWanted) runSweep(); }, { rootMargin: "200px" }).observe($("sweepCard"));
+  // phone results bar: shown while the results are off screen
+  new IntersectionObserver((es) => { $("mbar").classList.toggle("hide", es.some((e) => e.isIntersecting)); }, { threshold: 0.05 }).observe($("headline"));
   $("status").textContent = `Simulating the ${BY} baseline…`;
+  setStale(true);
   const d = defaultSettings(base);
-  [baselineA, baselineB] = await Promise.all([
+  const [bA, bB] = await Promise.all([
     call("run", buildParams(base, { ...d, flexibility: "A" }), REPS_A),
     call("run", buildParams(base, { ...d, flexibility: "B" }), REPS_B),
   ]);
+  baseline = { A: bA, B: bB };
   await runScenario();
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { dailyChart && dailyChart.destroy(); dailyChart = null; renderDaily(); });
 }

@@ -490,6 +490,22 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
     corridorCare8am: mean((x) => x.queue8 + x.tes8) * nPools,
     corridorCarePeak: Math.max(...corridor8),
     corridorDaily8: corridor8,
+    // one value per replication, for telling real changes from simulation noise. Scenario and baseline use the
+    // same random numbers replication by replication, so compare them pair by pair (see app.js)
+    perRep: {
+      occ: out.map((x) => x.occMidnight),
+      nightsFull: out.map((x) => x.nightsFull),
+      wait12: out.map((x) => x.wait12),
+      wait4: out.map((x) => x.wait4),
+      elec: out.map((x) => x.elecCancelled / Math.max(x.elecOffered, 1)),
+      ward8: out.map((x) => x.tes8 * nPools),
+      queue8: out.map((x) => x.queue8 * nPools),
+      nctrBeds: out.map((x) => x.nctrBeds * nPools),
+      monthly: out.map((x) => [0, 30, 61, 91, 122, 153, 183, 214, 245, 275, 306, 334, 365].slice(0, 12)
+        .map((st, i, a) => { const e = i < 11 ? a[i + 1] : 365; let t = 0; for (let d = st; d < e; d++) t += x.daily[d]; return t / (e - st); })),
+      fluPeak: out.map((x) => { let best = 0, run7 = 0; const f = x.fluDaily;
+        for (let i = 0; i < f.length; i++) { run7 += f[i] - (i >= 7 ? f[i - 7] : 0); if (i >= 6) best = Math.max(best, run7 / 7); } return best * nPools; }),
+    },
     // 08:00 snapshot, as NHS England's corridor-care collection: emergency patients waiting 45+ minutes for a
     // bed, and patients in temporary escalation spaces on wards (day 0 = 1 April)
     waiting45Daily8: ed45Daily8, escalationDaily8: wardDaily8,
