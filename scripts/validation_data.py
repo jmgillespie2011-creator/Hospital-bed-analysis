@@ -3,7 +3,9 @@
   monthly        G&A occupancy at 08:00 (monthly bed sitrep) and the share of emergency admissions waiting over 12 hours
                  from decision to admit (A&E monthly), financial years 2022/23 onwards
   flu            peak 7-day mean of G&A beds occupied by patients with flu, and its date, each winter (UEC daily sitreps)
-  trustLos       each acute trust's mean length of stay relative to England (HES provider table, 2024/25)
+  trustLos       each acute trust's bed days per admission relative to England (HES provider table, 2024/25):
+                 FCE bed days / (admissions - day cases), i.e. per admission, not per episode. (The provider table's
+                 zero-night columns are not usable at trust level: for many trusts they exceed emergency admissions.)
   waits          4-hour and 12-hour waits from decision to admit, 2025/26 (A&E monthly)
 Writes data/processed/validation_extra_inputs.json.  Usage: python scripts/validation_data.py
 """
@@ -74,16 +76,25 @@ def trust_los() -> list[dict]:
     d = pd.read_excel(f, sheet_name=0, header=None)
     h = next(i for i in range(30) if d.iloc[i].astype(str).str.contains("Mean length of stay").any())
     hd = d.iloc[h].map(lambda v: re.sub(r"\s+", " ", str(v)).strip().lower())
-    c_los = next(j for j, v in enumerate(hd) if v.startswith("mean length of stay"))
-    c_em = next(j for j, v in enumerate(hd) if v.startswith("emergency"))
-    c_fae = next(j for j, v in enumerate(hd) if v.startswith("admissions") or v.startswith("finished admission"))
+    c = lambda pat: next(j for j, v in enumerate(hd) if re.match(pat, v))  # noqa: E731
+    c_em, c_fae, c_dc, c_bd = c(r"emergency"), c(r"admissions|finished admission"), c(r"day case"), c(r"fce bed days")
+    num = lambda r, j: float(pd.to_numeric(r.iloc[j], errors="coerce"))  # noqa: E731
+    per = lambda r: num(r, c_bd) / (num(r, c_fae) - num(r, c_dc))  # noqa: E731
     tot = next(i for i in range(h + 1, h + 5) if str(d.iloc[i, 0]).strip().lower() == "total")
-    nat = float(d.iloc[tot, c_los])
+    nat = per(d.iloc[tot])
     body = d.iloc[h + 1:]
     body = body[body.iloc[:, 0].astype(str).str.match(r"^R[A-Z0-9]{2}$")]
-    return [{"org": str(r.iloc[0]).strip(), "mean_los": float(r.iloc[c_los]), "los_rel": float(r.iloc[c_los]) / nat,
-             "emergency": float(r.iloc[c_em]), "admissions": float(r.iloc[c_fae])} for _, r in body.iterrows()
-            if pd.notna(pd.to_numeric(r.iloc[c_los], errors="coerce"))]
+    out = []
+    for _, r in body.iterrows():
+        try:
+            v = per(r)
+        except (ZeroDivisionError, TypeError, ValueError):
+            continue
+        if np.isfinite(v) and v > 0 and num(r, c_em) > 0:
+            out.append({"org": str(r.iloc[0]).strip(), "bd_per_adm": v, "los_rel": v / nat,
+                        "emergency": num(r, c_em), "admissions": num(r, c_fae)})
+    print(f"England bed days per admission (excluding day cases) 2024/25: {nat:.2f}")
+    return out
 
 
 def main() -> int:

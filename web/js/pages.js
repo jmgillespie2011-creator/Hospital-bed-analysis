@@ -400,16 +400,24 @@ async function renderExtra() {
   const E1 = g("E1"), E2 = g("E2"), E4 = g("E4"), E5 = g("E5"), E6 = g("E6");
   const amp = E2.perYear ? [E2.perYear.reduce((s, y) => s + y.ampObs, 0) / E2.perYear.length, E2.perYear.reduce((s, y) => s + y.ampModel, 0) / E2.perYear.length] : null;
   const slope = E4.rows ? E4.rows.find((r) => r.measure.startsWith("Rise in 12-hour")) : null;
-  $("extraTakeaway").innerHTML = `<strong>What the further tests show.</strong> Occupancy is well founded: it is forecast within about half a
-    point from 2023/24 (E1), back-cast within 1.3 points once each year's stays are used (V2c), and the mix of short and long stays matches (V6).
-    Waits are not. The model's waits respond to occupancy far more steeply than hospitals' do:
+  const V = await fetch("data/validation.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const v2c = V ? V.checks.find((c) => c.id === "V2c") : null, v2cMae = v2c ? +((v2c.modelA.match(/error ([\d.]+) pts/) || [])[1]) : null;
+  const e1r = E1.rows || [], e1Occ = e1r.length ? Math.max(...e1r.map((r) => Math.abs(r.occ_model - r.occ_obs))) : null;
+  const e1Occ1 = e1r.length ? e1r.map((r) => r.occ_model - r.occ_obs).reduce((s, d) => s + d, 0) / e1r.length : 0;
+  const e1Wait = e1r.length ? e1r.map((r) => r.wait12_model / r.wait12_obs - 1) : [];
+  $("extraTakeaway").innerHTML = `<strong>What the further tests show.</strong> Stays are measured per admission (HES bed days divided by
+    admissions, the same measure the model is calibrated to). On that basis occupancy is only partly founded. The mix of short and long stays
+    matches (V6), but forecasting forward from 2023/24 ${e1Occ1 > 0 ? "over" : "under"}-predicts occupancy by up to ${(100 * e1Occ).toFixed(1)} points (E1), and
+    back-casting earlier years with each year's own stays and admissions misses by ${v2cMae != null ? v2cMae.toFixed(1) : "?"} points on average (V2c): nights per
+    emergency admission changed less over time than beds in use did, so admissions and stays alone do not explain past occupancy.
+    ${e1Wait.length ? `Forecast 12-hour waits were within ${(100 * Math.max(...e1Wait.map(Math.abs))).toFixed(0)}% of the published figures (E1), ` : ""}but the model's waits respond to
+    occupancy far more steeply than hospitals' do:
     ${slope ? `${(100 * slope.model).toFixed(0)}% more 12-hour waits per point of occupancy, against about ${(100 * slope.observed).toFixed(0)}% within trusts (E4)` : ""};
     ${amp ? `a winter peak ${amp[1].toFixed(0)} times the summer trough, against about ${amp[0].toFixed(0)} times (E2)` : ""}; and too few 4-hour waits with too many of them
     reaching 12 hours (E4). Real hospitals have buffers a plain queue lacks: escalation, moving patients, flexing staff. So <b>the simulator
-    probably overstates how much waits fall when beds are added or stays shortened</b>; treat its wait effects as upper bounds, and its occupancy
-    effects as the firmer result. Forecasting forward from 2023/24 also under-predicts later waits (E1), so flexibility kept worsening after 2023/24.
+    probably overstates how much waits fall when beds are added or stays shortened</b>; treat its wait effects as upper bounds.
     Discharge timing assumptions barely change the answers, but the size of the seasonal swing does (E6), and the model still cannot explain
-    why some trusts wait longer than others, even with each trust's own length of stay (E3).`;
+    why some trusts wait longer than others, even with each trust's own bed days per admission (E3).`;
 }
 let BASE0 = null;
 const base0 = () => BASE0;

@@ -2,9 +2,11 @@
 
   beds and occupied beds per 1,000 people    KH03 (consistent G&A definition) and ONS population, from web/data/blog_observed.json
   emergency admissions per 1,000 people      A&E monthly situation reports (all emergency admissions), full financial years
-  length of stay                             HES admitted patient care, primary-diagnosis summary table, TOTAL row: mean and
-                                             median length of stay (nights per finished consultant episode, among episodes with at least one night:
-                                             HES leaves out day cases and other same-day stays; 2019/20 check: 44.8m bed days / 4.46 = 10.0m episodes)
+  length of stay per admission               HES primary diagnosis 3-character tables, general and acute scope (scripts/hes_admissions.py):
+                                             emergency bed days per emergency admission, per overnight emergency admission and
+                                             bed days per overnight admission; share of emergency admissions aged 75+; same-day share
+  (per episode, kept for reference)          HES summary table TOTAL row: mean length of stay per finished consultant episode
+                                             with at least one night (ep_mean_los)
   admissions by type                         HES finished admission episodes: emergency and waiting-list/planned
   long stays                                 winter daily sitreps (2017/18-2019/20) and UEC daily sitreps (2022/23 onwards):
                                              England, share of occupied G&A beds held by patients in hospital over 7 and over
@@ -20,6 +22,9 @@ import json
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hes_admissions import hes_admissions  # noqa: E402
 
 import numpy as np
 import pandas as pd
@@ -178,11 +183,15 @@ def main() -> int:
     t["emergency_per1000_75"] = np.nan
     hes = hes_los()
     if not hes.empty:
-        t = t.merge(hes[["fy", "fae", "emergency", "waiting_list", "planned", "mean_los", "median_los", "mean_age"]], on="fy", how="outer")
+        t = t.merge(hes[["fy", "fae", "emergency", "waiting_list", "planned", "mean_los"]].rename(columns={"mean_los": "ep_mean_los"}), on="fy", how="outer")
+    adm = hes_admissions()
+    t = t.merge(adm[["fy", "em_bd_per_adm", "em_bd_per_overnight", "bd_per_overnight", "share75_emergency", "em_same_day_share",
+                     "bed_days", "emergency_bed_days"]].rename(columns={"bed_days": "ga_bed_days"}), on="fy", how="left")
     t = t.sort_values("fy")
     if "emergency" in t:
         t["hes_emergency_per1000"] = 1000 * t.emergency / t.population
         t["hes_planned_per1000"] = 1000 * (t.waiting_list + t.planned) / t.population
+        t["em_bed_days_per1000"] = 1000 * t.emergency_bed_days / t.population
     ls = long_stays()
     nctr = pd.read_csv(OUT / "nctr_daily_england.csv", parse_dates=["date"])
     nfy = nctr.groupby("fy").agg(nctr=("nctr_remaining", "mean"), days=("nctr", "size")).reset_index()  # still in hospital at the end of the day
@@ -198,7 +207,7 @@ def main() -> int:
     }
     for r in out["years"]:
         if r.get("fy") in ("2010/11", "2015/16", "2019/20", "2022/23", "2025/26"):
-            print({k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items() if k in ("fy", "perThousand", "occupied_per1000", "occupancy", "emergency_per1000", "mean_los", "median_los")})
+            print({k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items() if k in ("fy", "perThousand", "occupied_per1000", "occupancy", "emergency_per1000", "em_bd_per_adm", "em_bd_per_overnight", "bd_per_overnight", "share75_emergency")})
     print("HES years:", out["sources"]["hes_years"])
     print(ls[["winter", "share7", "share21", "days"]].round(3).to_string(index=False))
     print(nfy.round(0).to_string(index=False))

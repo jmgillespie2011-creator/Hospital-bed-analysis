@@ -67,7 +67,10 @@ season(d) = 1 + a × cos(2π (day-of-year − 15) / 365)    (peak mid-January; a
     peaks at midday-afternoon (both normalised to average 1; see <code>HOURLY</code> and <code>WEEKDAY</code> in the code). These shapes are assumptions informed by
     typical A&amp;E patterns.</li>
   <li><strong>Same-day patients</strong>: a share leave within 3 to 10 hours (same day emergency care) and are never in a bed at midnight.
-    The share is fitted so the model reproduces the number of midnights per emergency admission in Hospital Episode Statistics.</li>
+    The share is fitted so the model reproduces the number of midnights per emergency admission in Hospital Episode Statistics. This is
+    counted per admission (HES bed days of all a stay's consultant episodes, divided by emergency admissions), not per episode: HES's own
+    "mean length of stay" is per consultant episode with at least one night, and a stay under several consultants counts as several episodes.
+    How the fitted share and stays split between same-day and overnight patients is checked against HES zero bed day cases (validation V6b).</li>
   <li><strong>Length of stay</strong> for the rest: lognormal, <code>LOS = median × m<sub>age</sub> × (1 + LOS change) × e<sup>σZ</sup></code>.
     The age multipliers come from HES bed days per emergency admission by age; the median and spread σ are fitted to occupancy and to the
     number of patients in hospital for 21 days or more.</li>
@@ -246,8 +249,14 @@ than occupancy, because they depend on rare runs of busy days: the share of emer
     gives about 98. At that pool size the model gives fewer 4-hour waits in 2018/19 than were observed (about 4.5% against 9.8%), so it may
     still overstate pre-pandemic flexibility somewhat. Until October 2026 the setting used pools of 1,000 beds, fitted to the
     decision-to-admit measure, which overstated the gain from restoring pre-pandemic flexibility.</li>
-  <li><strong>Wait effects are probably overstated.</strong> In the <a href="validation.html#further">further validation</a>, occupancy is
-    forecast and back-cast well, but the model's 12-hour waits respond to occupancy about five times more steeply than measured within trusts,
+  <li><strong>Past occupancy is not fully explained by admissions and stays.</strong> Measured per admission, nights per emergency admission
+    changed less over time than beds in use per person did, so back-casting earlier years with each year's own admissions and stays
+    under-predicts their occupancy (validation V2c), and forecasting from 2023/24 over-predicts later years (E1). Part of the gap is planned
+    and other non-emergency stays, which the model holds at today's level although HES shows they used more beds per person in the past; part
+    may be differences between HES bed days and KH03 beds in use, which have diverged since 2022/23. An earlier version used HES stays per
+    consultant episode, which fell faster than stays per admission (episodes per admission rose from 1.15 to 1.22 between 2008/09 and
+    2024/25) and so appeared to fit the past better.</li>
+  <li><strong>Wait effects are probably overstated.</strong> In the <a href="validation.html#further">further validation</a>, the model's 12-hour waits respond to occupancy about five times more steeply than measured within trusts,
     its winter peak in long waits is about three times too sharp, and it has too few 4-hour waits. Real hospitals have buffers (escalation,
     moving patients, flexing staff) that a plain queue lacks. Treat changes in waits as upper bounds and changes in occupancy as the firmer result.</li>
   <li><strong>Demand responds to supply in reality.</strong> With more beds, hospitals may admit patients they currently treat elsewhere,

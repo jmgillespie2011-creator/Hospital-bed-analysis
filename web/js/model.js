@@ -277,7 +277,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
   const occMid = [], occ8 = [], nctrMid = [], capMid = [], fluMid = [];
   const fluInBed = new Set();
   const admitOf = new Map();
-  let emBedDays = 0, emCount = 0, emDelayed = 0, emOvernight = 0, elDelayed = 0, elOvernight = 0;
+  let emBedDays = 0, emCount = 0, emZero = 0, emDelayed = 0, emOvernight = 0, elDelayed = 0, elOvernight = 0;
   const long21_8 = [], long7_8 = [], long14_8 = [];
   // discharges of patients who were medically fit before the day began, by weekday (Mon=0),
   // and the matching midnight stock, to compare with NHS England's discharge sitrep
@@ -328,7 +328,8 @@ export function simulate(p, seed = 1, wantDaily = true) {
     if (t >= warmH) {
       // midnights spent in hospital (KH03 bed days); for overnight patients, whether they left on a
       // later date than the date they became medically fit (the Discharge Ready Date measure)
-      emBedDays += Math.floor(dis / 24) - Math.floor(t / 24); emCount++;
+      const mid = Math.floor(dis / 24) - Math.floor(t / 24);
+      emBedDays += mid; emCount++; if (mid === 0) emZero++;
       if (overnight) { emOvernight++; if (Math.floor(dis / 24) > Math.floor(ready / 24)) emDelayed++; }
     }
   };
@@ -444,6 +445,8 @@ export function simulate(p, seed = 1, wantDaily = true) {
     long21Share8: sum(long21_8) / Math.max(sum(occ8), 1),          // share of occupied beds with stay >= 21 days (08:00)
     long7Share8: sum(long7_8) / Math.max(sum(occ8), 1), long14Share8: sum(long14_8) / Math.max(sum(occ8), 1),
     emBedDaysPerAdm: emBedDays / Math.max(emCount, 1),               // midnights per emergency admission
+    emZeroNightShare: emZero / Math.max(emCount, 1),                 // emergency admissions with no midnight in hospital (HES zero bed day cases)
+    emBedDaysPerOvernight: emBedDays / Math.max(emCount - emZero, 1), // midnights per emergency admission with at least one
     // share of overnight discharges (emergency and planned) leaving after their Discharge Ready Date
     delayedShareOvernight: (emDelayed + elDelayed) / Math.max(emOvernight + elOvernight, 1),
     queue8: sum(queue8) / queue8.length,          // patients waiting in A&E for a bed at 08:00
@@ -510,6 +513,7 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
     long21Share: mean((x) => x.long21Share8),
     long7Share: mean((x) => x.long7Share8), long14Share: mean((x) => x.long14Share8),
     emBedDaysPerAdm: mean((x) => x.emBedDaysPerAdm),
+    emZeroNightShare: mean((x) => x.emZeroNightShare), emBedDaysPerOvernight: mean((x) => x.emBedDaysPerOvernight),
     delayedShareOvernight: mean((x) => x.delayedShareOvernight),
     waitingForBed8am: mean((x) => x.queue8) * nPools,
     inEscalationSpaces8am: mean((x) => x.tes8) * nPools,

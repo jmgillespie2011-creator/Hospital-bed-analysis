@@ -157,22 +157,48 @@ async function main() {
       Y.map((y) => [y.fy, y.perThousand.toFixed(3), y.occupied_per1000.toFixed(3), pct(y.occupancy)]), [1, 2, 3]);
     const y19 = Y.find((y) => y.fy === "2019/20");
     $("perHeadText").innerHTML = `Between ${y0.fy} and ${yN.fy}, beds per person fell ${pct(-bedsCh, 0)}. On its own, that would have
-      pushed occupancy above 100%. It did not, because hospitals also used ${pct(-useCh, 0)} fewer beds per person, mainly through shorter stays.
+      pushed occupancy above 100%. It did not, because hospitals also used ${pct(-useCh, 0)} fewer beds per person, mainly through shorter stays per admission and more patients going home the same day.
       Had beds kept pace with the population, today's use per person would fill only about <b>${pct(occNoCut, 0)}</b> of them. Instead it fills
       <b>${pct(yN.occupancy)}</b>. So the cut in beds per person is why hospitals now run so full; the fall in use per person is why they are not
       fuller still. Most of the cut happened before ${y19 ? "2019/20" : "the pandemic"}: since then beds per person have fallen only from
       ${y19 ? y19.perThousand.toFixed(2) : ""} to ${yN.perThousand.toFixed(2)}. That is why the cuts cannot explain the sudden rise in long waits
       after 2020, but they explain why hospitals were so exposed to it.`;
-    const H = TR.years.filter((y) => y.mean_los != null);
+    const H = TR.years.filter((y) => y.em_bd_per_adm != null);
     const lineOne = (id, tid, rows, f, yTitle, fmt, extra = {}) => {
       new Chart($(id), { type: "line", data: { labels: rows.map((r) => r.fy), datasets: [{ data: rows.map(f), borderColor: BLUE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: BLUE }] },
         options: lineOpts(yTitle, { scales: { x: { grid: { display: false } }, y: { title: { display: true, text: yTitle }, ...extra } },
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => fmt(c.parsed.y) } } } }) });
       $(tid).innerHTML = table(["Year", yTitle], rows.map((r) => [r.fy, fmt(f(r))]), [1]);
     };
-    lineOne("cLos", "tLos", H, (r) => r.mean_los, "Days", (v) => v.toFixed(2) + " days", { min: 0 });
+    const nights = (v) => (v == null ? "" : v.toFixed(2) + " nights");
+    legend("lLos", [["All emergency admissions", BLUE], ["Emergency admissions staying at least one night", ORANGE]]);
+    new Chart($("cLos"), { type: "line", data: { labels: H.map((r) => r.fy), datasets: [
+      { label: "All emergency admissions", data: H.map((r) => r.em_bd_per_adm), borderColor: BLUE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: BLUE },
+      { label: "Staying at least one night", data: H.map((r) => r.em_bd_per_overnight), borderColor: ORANGE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: ORANGE, spanGaps: false }] },
+      options: lineOpts("Nights per admission", { interaction: { mode: "index", intersect: false }, scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: "Nights per admission" } } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)}` } } } }) });
+    $("tLos").innerHTML = table(["Year", "All emergency admissions", "Staying at least one night", "All overnight admissions (any type)"],
+      H.map((r) => [r.fy, nights(r.em_bd_per_adm), nights(r.em_bd_per_overnight), nights(r.bd_per_overnight)]), [1, 2, 3]);
     lineOne("cEmerg", "tEmerg", TR.years.filter((y) => y.hes_emergency_per1000 != null), (r) => r.hes_emergency_per1000, "Per 1,000 people", (v) => v.toFixed(1) + " per 1,000", { min: 0 });
-    lineOne("cAge", "tAge", H.filter((r) => r.mean_age != null), (r) => r.mean_age, "Years", (v) => v.toFixed(1) + " years");
+    lineOne("cSame", "tSame", H.filter((r) => r.em_same_day_share != null), (r) => 100 * r.em_same_day_share, "% of emergency admissions", (v) => v.toFixed(1) + "%", { min: 0 });
+    lineOne("cAge", "tAge", H, (r) => 100 * r.share75_emergency, "% of emergency admissions", (v) => v.toFixed(1) + "%", { min: 0 });
+    lineOne("cEbd", "tEbd", H.filter((r) => r.em_bed_days_per1000 != null), (r) => r.em_bed_days_per1000, "Bed days per 1,000 people", (v) => Math.round(v) + " per 1,000", { min: 0 });
+    {
+      const f = (fy) => H.find((r) => r.fy === fy), h0 = H[0], h19 = f("2019/20"), hN = H.at(-1), z0 = H.find((r) => r.em_same_day_share != null);
+      const ch = (a, b) => pct(b / a - 1, 0);
+      if (h19) {
+        fill("bdOvernight19", nights(h19.bd_per_overnight)); fill("bdOvernightLast", nights(hN.bd_per_overnight)); fill("hesLast", hN.fy);
+        $("trendsText").innerHTML = `All of these are counted per admission (one per hospital stay), not per consultant episode. Between ${h0.fy}
+          and ${h19.fy}, nights per emergency admission fell ${ch(h0.em_bd_per_adm, h19.em_bd_per_adm).replace("-", "")} (${h0.em_bd_per_adm.toFixed(2)} to
+          ${h19.em_bd_per_adm.toFixed(2)}), while emergency admissions per person rose. Part of that fall was more patients going home the same day
+          (${pct(z0.em_same_day_share, 0)} of emergency admissions in ${z0.fy}, ${pct(h19.em_same_day_share, 0)} in ${h19.fy}): among patients who stayed
+          at least one night, stays barely changed (${z0.em_bd_per_overnight.toFixed(2)} to ${h19.em_bd_per_overnight.toFixed(2)} nights). After the
+          pandemic, stays got longer: ${hN.em_bd_per_overnight.toFixed(2)} nights per overnight emergency admission in ${hN.fy}, ${ch(h19.em_bd_per_overnight, hN.em_bd_per_overnight)}
+          more than in ${h19.fy}. So nights spent in hospital after an emergency admission, per person, are now higher than in ${h0.fy}
+          (${Math.round(hN.em_bed_days_per1000)} against ${Math.round(h0.em_bed_days_per1000)} per 1,000 people). The share of beds held by people in hospital for
+          three weeks or more has also crept up.`;
+      }
+    }
     const LS = TR.longStays;
     legend("lLong", [["In hospital over 7 days", BLUE], ["Over 21 days", ORANGE]]);
     new Chart($("cLong"), { type: "bar", data: { labels: LS.map((r) => r.winter), datasets: [

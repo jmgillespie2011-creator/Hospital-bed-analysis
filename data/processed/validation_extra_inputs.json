@@ -366,1072 +366,988 @@
  "trustLos": [
   {
    "org": "RCF",
-   "mean_los": 4.075529,
-   "los_rel": 0.8698249200345154,
+   "bd_per_adm": 4.2593196860089275,
+   "los_rel": 0.8637962018286837,
    "emergency": 24910.0,
    "admissions": 73120.0
   },
   {
    "org": "RBS",
-   "mean_los": 3.591543,
-   "los_rel": 0.7665295972070186,
+   "bd_per_adm": 3.6747575360419398,
+   "los_rel": 0.7452461510933666,
    "emergency": 14145.0,
    "admissions": 46465.0
   },
   {
    "org": "RTK",
-   "mean_los": 3.291966,
-   "los_rel": 0.7025919979237893,
+   "bd_per_adm": 3.276914026388772,
+   "los_rel": 0.6645629110704482,
    "emergency": 40370.0,
    "admissions": 111835.0
   },
   {
-   "org": "RVN",
-   "mean_los": 95.967619,
-   "los_rel": 20.482010193665126,
-   "emergency": 590.0,
-   "admissions": 1710.0
-  },
-  {
    "org": "RF4",
-   "mean_los": 3.252651,
-   "los_rel": 0.694201144434302,
+   "bd_per_adm": 3.307198539757387,
+   "los_rel": 0.6707046542478784,
    "emergency": 104985.0,
    "admissions": 192700.0
   },
   {
    "org": "RFF",
-   "mean_los": 3.616887,
-   "los_rel": 0.7719386723904745,
+   "bd_per_adm": 3.581881206670414,
+   "los_rel": 0.7264106969680418,
    "emergency": 41245.0,
    "admissions": 83575.0
   },
   {
    "org": "R1H",
-   "mean_los": 5.508933,
-   "los_rel": 1.1757509776523496,
+   "bd_per_adm": 5.612068142015603,
+   "los_rel": 1.1381355481253432,
    "emergency": 72115.0,
    "admissions": 220145.0
   },
   {
    "org": "RC9",
-   "mean_los": 3.30144,
-   "los_rel": 0.704613998329726,
+   "bd_per_adm": 3.250534560407284,
+   "los_rel": 0.6592131171594798,
    "emergency": 83225.0,
    "admissions": 204415.0
   },
   {
-   "org": "RWX",
-   "mean_los": 34.147156,
-   "los_rel": 7.287899862105293,
-   "emergency": 690.0,
-   "admissions": 3325.0
-  },
-  {
    "org": "RYW",
-   "mean_los": 12.714749,
-   "los_rel": 2.713661351001044,
+   "bd_per_adm": 15.529351316634553,
+   "los_rel": 3.1493749408468514,
    "emergency": 50.0,
    "admissions": 7785.0
   },
   {
    "org": "RQ3",
-   "mean_los": 3.458114,
-   "los_rel": 0.7380523444981592,
+   "bd_per_adm": 3.5796047988708537,
+   "los_rel": 0.7259490381689776,
    "emergency": 14455.0,
    "admissions": 66235.0
   },
   {
    "org": "RXL",
-   "mean_los": 5.407529,
-   "los_rel": 1.154108700983191,
+   "bd_per_adm": 5.415903574119025,
+   "los_rel": 1.098353089616998,
    "emergency": 45975.0,
    "admissions": 119320.0
   },
   {
    "org": "RMC",
-   "mean_los": 3.960232,
-   "los_rel": 0.845217512307759,
+   "bd_per_adm": 4.106956309494752,
+   "los_rel": 0.8328966883774966,
    "emergency": 38615.0,
    "admissions": 86935.0
   },
   {
    "org": "RAE",
-   "mean_los": 3.232845,
-   "los_rel": 0.6899740238896552,
+   "bd_per_adm": 3.287711639431302,
+   "los_rel": 0.6667526826355153,
    "emergency": 47685.0,
    "admissions": 133365.0
   },
   {
    "org": "RXQ",
-   "mean_los": 2.832485,
-   "los_rel": 0.6045266856459528,
+   "bd_per_adm": 2.8427437841650502,
+   "los_rel": 0.5765125570639599,
    "emergency": 60625.0,
    "admissions": 134390.0
   },
   {
    "org": "RWY",
-   "mean_los": 5.120535,
-   "los_rel": 1.092856644354374,
+   "bd_per_adm": 5.094304585048339,
+   "los_rel": 1.0331323488062738,
    "emergency": 39425.0,
    "admissions": 102920.0
   },
   {
    "org": "RGT",
-   "mean_los": 6.612103,
-   "los_rel": 1.4111964270736337,
+   "bd_per_adm": 6.8120639311510685,
+   "los_rel": 1.381496432322533,
    "emergency": 38130.0,
    "admissions": 158890.0
   },
   {
    "org": "RV3",
-   "mean_los": 33.819967,
-   "los_rel": 7.218069136876451,
+   "bd_per_adm": 33.97400295420975,
+   "los_rel": 6.889977009511878,
    "emergency": 4560.0,
    "admissions": 6770.0
   },
   {
    "org": "RQM",
-   "mean_los": 4.437849,
-   "los_rel": 0.9471535232727466,
+   "bd_per_adm": 4.535111531986532,
+   "los_rel": 0.9197271876697584,
    "emergency": 62260.0,
    "admissions": 169415.0
   },
   {
    "org": "RFS",
-   "mean_los": 3.131095,
-   "los_rel": 0.6682579017338537,
+   "bd_per_adm": 3.158387660995389,
+   "los_rel": 0.6405255924865272,
    "emergency": 48435.0,
    "admissions": 93235.0
   },
   {
-   "org": "RJ8",
-   "mean_los": 29.640886,
-   "los_rel": 6.326143500562058,
-   "emergency": 1170.0,
-   "admissions": 4955.0
-  },
-  {
    "org": "RJR",
-   "mean_los": 4.267481,
-   "los_rel": 0.9107925178728488,
+   "bd_per_adm": 4.466815050344462,
+   "los_rel": 0.9058765622671929,
    "emergency": 33870.0,
    "admissions": 84790.0
   },
   {
    "org": "RXP",
-   "mean_los": 4.804524,
-   "los_rel": 1.0254115978818723,
+   "bd_per_adm": 4.977750223875456,
+   "los_rel": 1.0094949555346635,
    "emergency": 55825.0,
    "admissions": 130075.0
   },
   {
    "org": "RJ6",
-   "mean_los": 6.5613,
-   "los_rel": 1.400353732686595,
+   "bd_per_adm": 6.624513361926756,
+   "los_rel": 1.3434609052220605,
    "emergency": 19880.0,
    "admissions": 61870.0
   },
   {
-   "org": "RX4",
-   "mean_los": 127.615384,
-   "los_rel": 27.23647437743026,
-   "emergency": 0.0,
-   "admissions": 115.0
-  },
-  {
    "org": "RY8",
-   "mean_los": 20.447516,
-   "los_rel": 4.364036906522926,
+   "bd_per_adm": 20.46123595505618,
+   "los_rel": 4.149568289216453,
    "emergency": 110.0,
    "admissions": 2645.0
   },
   {
    "org": "RP5",
-   "mean_los": 3.660528,
-   "los_rel": 0.7812528078892591,
+   "bd_per_adm": 3.7057492813398327,
+   "los_rel": 0.7515313219304601,
    "emergency": 62255.0,
    "admissions": 127890.0
   },
   {
    "org": "RBD",
-   "mean_los": 3.857693,
-   "los_rel": 0.8233329968312603,
+   "bd_per_adm": 3.9714626865671643,
+   "los_rel": 0.8054183853890384,
    "emergency": 27895.0,
    "admissions": 63340.0
   },
   {
-   "org": "RDY",
-   "mean_los": 53.250513,
-   "los_rel": 11.365057937760207,
-   "emergency": 445.0,
-   "admissions": 2130.0
-  },
-  {
    "org": "RWH",
-   "mean_los": 3.885427,
-   "los_rel": 0.8292521607808329,
+   "bd_per_adm": 3.9353208602902607,
+   "los_rel": 0.7980887706696524,
    "emergency": 41120.0,
    "admissions": 149305.0
   },
   {
    "org": "RJN",
-   "mean_los": 6.038427,
-   "los_rel": 1.2887589028097355,
+   "bd_per_adm": 6.056512667660209,
+   "los_rel": 1.2282695416916005,
    "emergency": 12635.0,
    "admissions": 28260.0
   },
   {
    "org": "RVV",
-   "mean_los": 5.476408,
-   "los_rel": 1.168809288481662,
+   "bd_per_adm": 5.4705530444030845,
+   "los_rel": 1.1094360813488424,
    "emergency": 51850.0,
    "admissions": 145380.0
   },
   {
    "org": "RXR",
-   "mean_los": 6.521454,
-   "los_rel": 1.3918495498519996,
+   "bd_per_adm": 6.597709666554396,
+   "los_rel": 1.3380250769761386,
    "emergency": 38360.0,
    "admissions": 115970.0
   },
   {
-   "org": "RWK",
-   "mean_los": 73.937869,
-   "los_rel": 15.780282998954853,
-   "emergency": 3195.0,
-   "admissions": 4835.0
-  },
-  {
    "org": "RXC",
-   "mean_los": 5.240619,
-   "los_rel": 1.1184857235971972,
+   "bd_per_adm": 5.223470342949536,
+   "los_rel": 1.0593273516016435,
    "emergency": 47175.0,
    "admissions": 117615.0
   },
   {
    "org": "RDU",
-   "mean_los": 6.063512,
-   "los_rel": 1.2941127005913402,
+   "bd_per_adm": 6.1901633840644585,
+   "los_rel": 1.255374100567727,
    "emergency": 52445.0,
    "admissions": 165665.0
   },
   {
    "org": "RLT",
-   "mean_los": 4.202751,
-   "los_rel": 0.8969774359353054,
+   "bd_per_adm": 4.197041420118343,
+   "los_rel": 0.8511660792977376,
    "emergency": 28955.0,
    "admissions": 56920.0
   },
   {
    "org": "RTQ",
-   "mean_los": 33.992821,
-   "los_rel": 7.2549607199636155,
+   "bd_per_adm": 33.88251366120219,
+   "los_rel": 6.871422848370249,
    "emergency": 1830.0,
    "admissions": 1830.0
   },
   {
    "org": "RTE",
-   "mean_los": 3.392551,
-   "los_rel": 0.7240594784843919,
+   "bd_per_adm": 3.3785717634922867,
+   "los_rel": 0.685179247403445,
    "emergency": 72680.0,
    "admissions": 178650.0
   },
   {
    "org": "RP4",
-   "mean_los": 6.382821,
-   "los_rel": 1.36226162687583,
+   "bd_per_adm": 6.312265818310357,
+   "los_rel": 1.2801366510947745,
    "emergency": 2015.0,
    "admissions": 48695.0
   },
   {
    "org": "RN3",
-   "mean_los": 3.68494,
-   "los_rel": 0.7864629697965557,
+   "bd_per_adm": 3.6673273459275317,
+   "los_rel": 0.7437392977757409,
    "emergency": 45275.0,
    "admissions": 109880.0
   },
   {
    "org": "RW1",
-   "mean_los": 36.278815,
-   "los_rel": 7.742851874277419,
+   "bd_per_adm": 35.955462769659015,
+   "los_rel": 7.291819930174408,
    "emergency": 3265.0,
    "admissions": 10395.0
   },
   {
    "org": "RCD",
-   "mean_los": 4.444399,
-   "los_rel": 0.9485514652886728,
+   "bd_per_adm": 4.52614092037426,
+   "los_rel": 0.9179079346411083,
    "emergency": 19660.0,
    "admissions": 68685.0
   },
   {
    "org": "R1A",
-   "mean_los": 24.243695,
-   "los_rel": 5.174241200275149,
+   "bd_per_adm": 24.305892857142858,
+   "los_rel": 4.9292702778381985,
    "emergency": 1050.0,
    "admissions": 5600.0
   },
   {
-   "org": "RY4",
-   "mean_los": 28.025056,
-   "los_rel": 5.98128294367745,
-   "emergency": 0.0,
-   "admissions": 880.0
-  },
-  {
    "org": "RWR",
-   "mean_los": 107.35152,
-   "los_rel": 22.911633630771284,
+   "bd_per_adm": 111.15585585585586,
+   "los_rel": 22.542568573732478,
    "emergency": 65.0,
    "admissions": 1110.0
   },
   {
    "org": "RQX",
-   "mean_los": 2.937814,
-   "los_rel": 0.6270066603933574,
+   "bd_per_adm": 3.021688942891859,
+   "los_rel": 0.612802894450841,
    "emergency": 23230.0,
    "admissions": 77055.0
   },
   {
    "org": "RWA",
-   "mean_los": 4.56753,
-   "los_rel": 0.9748308543517294,
+   "bd_per_adm": 4.567247915087187,
+   "los_rel": 0.9262444927112282,
    "emergency": 65375.0,
    "admissions": 177705.0
   },
   {
    "org": "RV9",
-   "mean_los": 38.921487,
-   "los_rel": 8.306867480859399,
+   "bd_per_adm": 32.703947368421055,
+   "los_rel": 6.632407897073747,
    "emergency": 960.0,
    "admissions": 1520.0
   },
   {
    "org": "RYJ",
-   "mean_los": 4.0283,
-   "los_rel": 0.8597450111077698,
+   "bd_per_adm": 4.080298117815487,
+   "los_rel": 0.8274903684912928,
    "emergency": 60330.0,
    "admissions": 244700.0
   },
   {
    "org": "RGP",
-   "mean_los": 5.268748,
-   "los_rel": 1.1244891909202495,
+   "bd_per_adm": 5.740560534926732,
+   "los_rel": 1.1641939915253767,
    "emergency": 24960.0,
    "admissions": 71500.0
   },
   {
-   "org": "RYY",
-   "mean_los": 29.125742,
-   "los_rel": 6.216198242263991,
-   "emergency": 0.0,
-   "admissions": 2035.0
-  },
-  {
    "org": "RNQ",
-   "mean_los": 3.944591,
-   "los_rel": 0.8418793121442318,
+   "bd_per_adm": 4.062819334681125,
+   "los_rel": 0.8239456459541129,
    "emergency": 41770.0,
    "admissions": 100725.0
   },
   {
    "org": "RJZ",
-   "mean_los": 6.192978,
-   "los_rel": 1.3217441450239988,
+   "bd_per_adm": 6.291950008186433,
+   "los_rel": 1.2760165753747568,
    "emergency": 49100.0,
    "admissions": 191600.0
   },
   {
    "org": "RAX",
-   "mean_los": 3.181692,
-   "los_rel": 0.6790566303109258,
+   "bd_per_adm": 3.1640054127198916,
+   "los_rel": 0.6416648806734134,
    "emergency": 32620.0,
    "admissions": 87905.0
   },
   {
-   "org": "RW5",
-   "mean_los": 36.287422,
-   "los_rel": 7.744688834114225,
-   "emergency": 900.0,
-   "admissions": 1460.0
-  },
-  {
    "org": "RXN",
-   "mean_los": 3.999154,
-   "los_rel": 0.8535244892762908,
+   "bd_per_adm": 4.185651150777708,
+   "los_rel": 0.8488561161769684,
    "emergency": 53595.0,
    "admissions": 142455.0
   },
   {
-   "org": "RY6",
-   "mean_los": 42.008733,
-   "los_rel": 8.965766854431978,
-   "emergency": 0.0,
-   "admissions": 230.0
-  },
-  {
    "org": "RR8",
-   "mean_los": 6.606913,
-   "los_rel": 1.4100887447739912,
+   "bd_per_adm": 6.62055231274832,
+   "los_rel": 1.342657598711204,
    "emergency": 57455.0,
    "admissions": 189040.0
   },
   {
    "org": "RT5",
-   "mean_los": 38.295998,
-   "los_rel": 8.17337170168387,
+   "bd_per_adm": 37.38573975044563,
+   "los_rel": 7.581882173594351,
    "emergency": 1470.0,
    "admissions": 5610.0
   },
   {
    "org": "RJ2",
-   "mean_los": 4.089647,
-   "los_rel": 0.872838072001057,
+   "bd_per_adm": 4.097658516369664,
+   "los_rel": 0.8310110824641342,
    "emergency": 67750.0,
    "admissions": 147300.0
   },
   {
    "org": "RBQ",
-   "mean_los": 5.773528,
-   "los_rel": 1.2322224994392226,
+   "bd_per_adm": 5.752425665101722,
+   "los_rel": 1.1666002571111755,
    "emergency": 2135.0,
    "admissions": 14775.0
   },
   {
    "org": "REM",
-   "mean_los": 6.239212,
-   "los_rel": 1.3316116948200807,
+   "bd_per_adm": 6.462822458270106,
+   "los_rel": 1.310669755755716,
    "emergency": 76135.0,
    "admissions": 178120.0
   },
   {
    "org": "REP",
-   "mean_los": 1.437759,
-   "los_rel": 0.30685552898872875,
+   "bd_per_adm": 1.4340497737556561,
+   "los_rel": 0.29082737129884983,
    "emergency": 1575.0,
    "admissions": 41320.0
   },
   {
    "org": "R1K",
-   "mean_los": 4.028616,
-   "los_rel": 0.8598124538065536,
+   "bd_per_adm": 4.08268092419324,
+   "los_rel": 0.8279736050761297,
    "emergency": 79095.0,
    "admissions": 201415.0
   },
   {
    "org": "RWF",
-   "mean_los": 2.854088,
-   "los_rel": 0.6091373331833658,
+   "bd_per_adm": 2.8784073040831855,
+   "los_rel": 0.5837451705609742,
    "emergency": 78490.0,
    "admissions": 162935.0
   },
   {
    "org": "RPA",
-   "mean_los": 5.655642,
-   "los_rel": 1.207062531120217,
+   "bd_per_adm": 5.541085983239582,
+   "los_rel": 1.1237402635098839,
    "emergency": 28510.0,
    "admissions": 73670.0
   },
   {
    "org": "RBN",
-   "mean_los": 3.847284,
-   "los_rel": 0.8211114428703784,
+   "bd_per_adm": 3.816852718761253,
+   "los_rel": 0.7740632599697624,
    "emergency": 96345.0,
    "admissions": 204405.0
   },
   {
    "org": "RAJ",
-   "mean_los": 4.204091,
-   "los_rel": 0.8972634271263499,
+   "bd_per_adm": 4.250310346791185,
+   "los_rel": 0.8619690947855483,
    "emergency": 126010.0,
    "admissions": 302480.0
   },
   {
    "org": "RBT",
-   "mean_los": 3.693147,
-   "los_rel": 0.7882145591285721,
+   "bd_per_adm": 3.724558850281972,
+   "los_rel": 0.7553459297570633,
    "emergency": 40810.0,
    "admissions": 89145.0
   },
   {
    "org": "RRE",
-   "mean_los": 13.323212,
-   "los_rel": 2.8435233346402136,
+   "bd_per_adm": 15.259167809785094,
+   "los_rel": 3.0945813343044875,
    "emergency": 8915.0,
    "admissions": 16485.0
   },
   {
    "org": "RD8",
-   "mean_los": 4.654821,
-   "los_rel": 0.9934610461856566,
+   "bd_per_adm": 5.18367296222664,
+   "los_rel": 1.0512563851456413,
    "emergency": 27445.0,
    "admissions": 71770.0
   },
   {
    "org": "RP6",
-   "mean_los": 0.354227,
-   "los_rel": 0.07560134450007994,
+   "bd_per_adm": 0.35422740524781343,
+   "los_rel": 0.07183783087279864,
    "emergency": 2575.0,
    "admissions": 40230.0
   },
   {
    "org": "RM1",
-   "mean_los": 4.933026,
-   "los_rel": 1.0528372993979886,
+   "bd_per_adm": 4.9549125,
+   "los_rel": 1.004863432052913,
    "emergency": 50410.0,
    "admissions": 158640.0
   },
   {
    "org": "RY3",
-   "mean_los": 26.869484,
-   "los_rel": 5.734653531276232,
+   "bd_per_adm": 26.815100154083204,
+   "los_rel": 5.438141152174665,
    "emergency": 110.0,
    "admissions": 3245.0
   },
   {
    "org": "RNN",
-   "mean_los": 5.381723,
-   "los_rel": 1.1486010228667032,
+   "bd_per_adm": 5.389540577143452,
+   "los_rel": 1.093006635644284,
    "emergency": 37740.0,
    "admissions": 77200.0
   },
   {
-   "org": "RAT",
-   "mean_los": 26.837029,
-   "los_rel": 5.727726781943883,
-   "emergency": 10.0,
-   "admissions": 2110.0
-  },
-  {
    "org": "RAP",
-   "mean_los": 7.532171,
-   "los_rel": 1.6075631010750495,
+   "bd_per_adm": 7.16166628727521,
+   "los_rel": 1.452396296533796,
    "emergency": 13870.0,
    "admissions": 45850.0
   },
   {
    "org": "RLY",
-   "mean_los": 33.477946,
-   "los_rel": 7.145072873330021,
+   "bd_per_adm": 34.21805054151625,
+   "los_rel": 6.9394702137137765,
    "emergency": 650.0,
    "admissions": 1425.0
   },
   {
    "org": "RVW",
-   "mean_los": 3.266999,
-   "los_rel": 0.6972633844410975,
+   "bd_per_adm": 3.2654200905584436,
+   "los_rel": 0.6622319242354113,
    "emergency": 47860.0,
    "admissions": 98000.0
   },
   {
    "org": "RGN",
-   "mean_los": 4.154185,
-   "los_rel": 0.8866121760963014,
+   "bd_per_adm": 4.250941332258622,
+   "los_rel": 0.8620970595523093,
    "emergency": 67400.0,
    "admissions": 149535.0
   },
   {
    "org": "RNS",
-   "mean_los": 3.566382,
-   "los_rel": 0.7611595790295038,
+   "bd_per_adm": 3.5638077157773407,
+   "los_rel": 0.7227453668359778,
    "emergency": 48290.0,
    "admissions": 125360.0
   },
   {
    "org": "RP1",
-   "mean_los": 76.262895,
-   "los_rel": 16.276504607126004,
+   "bd_per_adm": 79.425,
+   "los_rel": 16.107505044902936,
    "emergency": 230.0,
    "admissions": 520.0
   },
   {
    "org": "RM3",
-   "mean_los": 4.314929,
-   "los_rel": 0.9209191671509666,
+   "bd_per_adm": 4.42931221523107,
+   "los_rel": 0.8982709329843835,
    "emergency": 112660.0,
    "admissions": 245965.0
   },
   {
    "org": "RTF",
-   "mean_los": 3.390301,
-   "los_rel": 0.7235792693949515,
+   "bd_per_adm": 3.424289522945147,
+   "los_rel": 0.6944508752413879,
    "emergency": 58820.0,
    "admissions": 146190.0
   },
   {
    "org": "RX1",
-   "mean_los": 3.999043,
-   "los_rel": 0.8535007989612117,
+   "bd_per_adm": 4.139278376990242,
+   "los_rel": 0.8394516504831976,
    "emergency": 101070.0,
    "admissions": 286900.0
   },
   {
-   "org": "RHA",
-   "mean_los": 130.838568,
-   "los_rel": 27.92438649020299,
-   "emergency": 535.0,
-   "admissions": 3190.0
-  },
-  {
    "org": "RNU",
-   "mean_los": 107.372463,
-   "los_rel": 22.916103416975798,
+   "bd_per_adm": 63.019504132231404,
+   "los_rel": 12.780446720015094,
    "emergency": 555.0,
    "admissions": 3025.0
   },
   {
    "org": "RTH",
-   "mean_los": 3.566435,
-   "los_rel": 0.7611708906213884,
+   "bd_per_adm": 3.598611868163814,
+   "los_rel": 0.7298036993528011,
    "emergency": 99835.0,
    "admissions": 218885.0
   },
   {
    "org": "RPG",
-   "mean_los": 107.047661,
-   "los_rel": 22.84678214023429,
+   "bd_per_adm": 95.07826086956521,
+   "los_rel": 19.282009022563667,
    "emergency": 530.0,
    "admissions": 1380.0
   },
   {
    "org": "RHU",
-   "mean_los": 4.528102,
-   "los_rel": 0.966415883694639,
+   "bd_per_adm": 4.583913513513513,
+   "los_rel": 0.9296243002117428,
    "emergency": 71395.0,
    "admissions": 158580.0
   },
   {
    "org": "RPC",
-   "mean_los": 1.201703,
-   "los_rel": 0.25647497929231694,
+   "bd_per_adm": 1.2020050125313284,
+   "los_rel": 0.2437683576121749,
    "emergency": 6815.0,
    "admissions": 23485.0
   },
   {
    "org": "RXE",
-   "mean_los": 50.781774,
-   "los_rel": 10.83816420120206,
+   "bd_per_adm": 49.93982300884956,
+   "los_rel": 10.12786844263902,
    "emergency": 520.0,
    "admissions": 1695.0
   },
   {
    "org": "RHW",
-   "mean_los": 3.441911,
-   "los_rel": 0.7345941987754029,
+   "bd_per_adm": 3.7515903051775505,
+   "los_rel": 0.7608279479641971,
    "emergency": 36865.0,
    "admissions": 111675.0
   },
   {
    "org": "RH8",
-   "mean_los": 4.054594,
-   "los_rel": 0.8653568412401005,
+   "bd_per_adm": 4.411173637515843,
+   "los_rel": 0.8945924031505103,
    "emergency": 76400.0,
    "admissions": 224020.0
   },
   {
    "org": "RAL",
-   "mean_los": 4.730024,
-   "los_rel": 1.0095113413648482,
+   "bd_per_adm": 4.773255921113261,
+   "los_rel": 0.9680232147301816,
    "emergency": 56805.0,
    "admissions": 197220.0
   },
   {
    "org": "RAN",
-   "mean_los": 6.651531,
-   "los_rel": 1.419611397730724,
+   "bd_per_adm": 6.648427672955975,
+   "los_rel": 1.3483107621380004,
    "emergency": 420.0,
    "admissions": 16030.0
   },
   {
    "org": "RGM",
-   "mean_los": 5.994105,
-   "los_rel": 1.279299424026547,
+   "bd_per_adm": 5.9793859649122805,
+   "los_rel": 1.2126281346584373,
    "emergency": 1630.0,
    "admissions": 25385.0
   },
   {
    "org": "RA2",
-   "mean_los": 3.482759,
-   "los_rel": 0.7433122347244956,
+   "bd_per_adm": 3.4589835478090896,
+   "los_rel": 0.7014868737371253,
    "emergency": 42570.0,
    "admissions": 99935.0
   },
   {
    "org": "RD1",
-   "mean_los": 3.83294,
-   "los_rel": 0.8180500565686307,
+   "bd_per_adm": 3.8550227237110173,
+   "los_rel": 0.7818041922617649,
    "emergency": 49875.0,
    "admissions": 102805.0
   },
   {
    "org": "RNZ",
-   "mean_los": 4.75519,
-   "los_rel": 1.0148824266736727,
+   "bd_per_adm": 4.755319446386132,
+   "los_rel": 0.9643856716750351,
    "emergency": 27375.0,
    "admissions": 64665.0
   },
   {
    "org": "RCU",
-   "mean_los": 3.636471,
-   "los_rel": 0.776118412304963,
+   "bd_per_adm": 3.6590683845391476,
+   "los_rel": 0.7420643684433008,
    "emergency": 5110.0,
    "admissions": 24770.0
   },
   {
    "org": "RHQ",
-   "mean_los": 4.550714,
-   "los_rel": 0.9712418783303834,
+   "bd_per_adm": 4.542963020752067,
+   "los_rel": 0.9213194809640719,
    "emergency": 79485.0,
    "admissions": 271465.0
   },
   {
    "org": "RK5",
-   "mean_los": 4.029756,
-   "los_rel": 0.8600557597452032,
+   "bd_per_adm": 4.012305549106106,
+   "los_rel": 0.813701377071686,
    "emergency": 45245.0,
    "admissions": 109305.0
   },
   {
    "org": "R1D",
-   "mean_los": 18.537848,
-   "los_rel": 3.956463603672554,
+   "bd_per_adm": 19.12515337423313,
+   "los_rel": 3.8786088065470894,
    "emergency": 340.0,
    "admissions": 3345.0
   },
   {
    "org": "R1C",
-   "mean_los": 33.350758,
-   "los_rel": 7.117927613922137,
+   "bd_per_adm": 32.63801652892562,
+   "los_rel": 6.619037027325085,
    "emergency": 10.0,
    "admissions": 605.0
   },
   {
    "org": "RH5",
-   "mean_los": 5.372265,
-   "los_rel": 1.1465824372809579,
+   "bd_per_adm": 5.4867922300289305,
+   "los_rel": 1.1127294117157727,
    "emergency": 60620.0,
    "admissions": 157615.0
   },
   {
    "org": "RTR",
-   "mean_los": 3.626149,
-   "los_rel": 0.7739154264288728,
+   "bd_per_adm": 3.6239100277447482,
+   "los_rel": 0.7349342027594948,
    "emergency": 59145.0,
    "admissions": 180490.0
   },
   {
    "org": "R0B",
-   "mean_los": 5.180387,
-   "los_rel": 1.1056306329860106,
+   "bd_per_adm": 5.271804944124619,
+   "los_rel": 1.0691296787312754,
    "emergency": 53360.0,
    "admissions": 152865.0
   },
   {
    "org": "RJC",
-   "mean_los": 3.848582,
-   "los_rel": 0.82138847015842,
+   "bd_per_adm": 3.86458224406567,
+   "los_rel": 0.7837428768363878,
    "emergency": 35470.0,
    "admissions": 85905.0
   },
   {
-   "org": "RQY",
-   "mean_los": 105.60458,
-   "los_rel": 22.538790756679337,
-   "emergency": 385.0,
-   "admissions": 885.0
+   "org": "RXG",
+   "bd_per_adm": 82.2419098143236,
+   "los_rel": 16.67877843546327,
+   "emergency": 1560.0,
+   "admissions": 1885.0
   },
   {
    "org": "RJ7",
-   "mean_los": 5.328726,
-   "los_rel": 1.1372900712608947,
+   "bd_per_adm": 5.588582737098493,
+   "los_rel": 1.1333726739901977,
    "emergency": 37865.0,
    "admissions": 121965.0
   },
   {
    "org": "RWJ",
-   "mean_los": 4.332933,
-   "los_rel": 0.9247616935715369,
+   "bd_per_adm": 4.345673425054309,
+   "los_rel": 0.8813088651880757,
    "emergency": 42305.0,
    "admissions": 88180.0
   },
   {
    "org": "RXX",
-   "mean_los": 77.352583,
-   "los_rel": 16.50907264368336,
+   "bd_per_adm": 72.18297872340426,
+   "los_rel": 14.638812640142973,
    "emergency": 535.0,
    "admissions": 705.0
   },
   {
    "org": "RTP",
-   "mean_los": 4.279998,
-   "los_rel": 0.9134639743939709,
+   "bd_per_adm": 4.622145606157793,
+   "los_rel": 0.9373778239781253,
    "emergency": 49345.0,
    "admissions": 104065.0
   },
   {
    "org": "RDR",
-   "mean_los": 29.431632,
-   "los_rel": 6.28148320153906,
+   "bd_per_adm": 29.41387631975867,
+   "los_rel": 5.965176722828629,
    "emergency": 20.0,
    "admissions": 3315.0
   },
   {
    "org": "RX2",
-   "mean_los": 286.898604,
-   "los_rel": 61.231696617129714,
+   "bd_per_adm": 564.2137931034483,
+   "los_rel": 114.4233744893625,
    "emergency": 1035.0,
    "admissions": 4205.0
   },
   {
    "org": "RMP",
-   "mean_los": 4.317502,
-   "los_rel": 0.9214683129230242,
+   "bd_per_adm": 4.585464073920838,
+   "los_rel": 0.9299387561082919,
    "emergency": 27980.0,
    "admissions": 52980.0
   },
   {
    "org": "RBV",
-   "mean_los": 4.559498,
-   "los_rel": 0.9731166146155584,
+   "bd_per_adm": 4.570142700329308,
+   "los_rel": 0.9268315593513461,
    "emergency": 8915.0,
    "admissions": 29665.0
   },
   {
    "org": "REN",
-   "mean_los": 12.652191,
-   "los_rel": 2.700309830904507,
+   "bd_per_adm": 12.610567514677104,
+   "los_rel": 2.5574413580327424,
    "emergency": 1475.0,
    "admissions": 8150.0
   },
   {
    "org": "RNA",
-   "mean_los": 2.785245,
-   "los_rel": 0.5944444290303256,
+   "bd_per_adm": 2.819087047690736,
+   "los_rel": 0.5717149366408443,
    "emergency": 61690.0,
    "admissions": 151640.0
   },
   {
    "org": "RAS",
-   "mean_los": 3.471006,
-   "los_rel": 0.7408038358675212,
+   "bd_per_adm": 3.468402574605032,
+   "los_rel": 0.7033970660145408,
    "emergency": 28560.0,
    "admissions": 87095.0
   },
   {
    "org": "RTD",
-   "mean_los": 4.549037,
-   "los_rel": 0.970883962489054,
+   "bd_per_adm": 4.712382915789002,
+   "los_rel": 0.9556780810775671,
    "emergency": 75440.0,
    "admissions": 246345.0
   },
   {
    "org": "RQW",
-   "mean_los": 4.298522,
-   "los_rel": 0.9174174824707676,
+   "bd_per_adm": 4.229689513766842,
+   "los_rel": 0.8577871599795085,
    "emergency": 27455.0,
    "admissions": 68220.0
   },
   {
    "org": "RCX",
-   "mean_los": 4.681335,
-   "los_rel": 0.9991198300956213,
+   "bd_per_adm": 4.67095046854083,
+   "los_rel": 0.9472755207618906,
    "emergency": 29380.0,
    "admissions": 75580.0
   },
   {
    "org": "RL1",
-   "mean_los": 5.212154,
-   "los_rel": 1.112410545050122,
+   "bd_per_adm": 5.317565872020075,
+   "los_rel": 1.078410061191905,
    "emergency": 305.0,
    "admissions": 14780.0
   },
   {
    "org": "RFR",
-   "mean_los": 4.078676,
-   "los_rel": 0.8704965724809458,
+   "bd_per_adm": 4.10944966123856,
+   "los_rel": 0.8334023437226915,
    "emergency": 32795.0,
    "admissions": 68950.0
   },
   {
    "org": "RPY",
-   "mean_los": 6.036079,
-   "los_rel": 1.2882577779466218,
+   "bd_per_adm": 5.993295103661226,
+   "los_rel": 1.215448928143724,
    "emergency": 3285.0,
    "admissions": 30460.0
   },
   {
    "org": "RRJ",
-   "mean_los": 4.114127,
-   "los_rel": 0.8780627468941676,
+   "bd_per_adm": 4.118221574344023,
+   "los_rel": 0.8351813004063516,
    "emergency": 235.0,
    "admissions": 15100.0
   },
   {
    "org": "RL4",
-   "mean_los": 3.100172,
-   "los_rel": 0.6616581214348477,
+   "bd_per_adm": 3.116891675438195,
+   "los_rel": 0.6321101465097475,
    "emergency": 80320.0,
    "admissions": 180280.0
   },
   {
    "org": "RXW",
-   "mean_los": 3.958871,
-   "los_rel": 0.8449270391652131,
+   "bd_per_adm": 3.985585471971751,
+   "los_rel": 0.8082825067255504,
    "emergency": 64215.0,
    "admissions": 150080.0
   },
   {
    "org": "RET",
-   "mean_los": 11.24981,
-   "los_rel": 2.401004896211876,
+   "bd_per_adm": 11.584797630799605,
+   "los_rel": 2.349413739783245,
    "emergency": 2085.0,
    "admissions": 18170.0
   },
   {
    "org": "RA9",
-   "mean_los": 4.137893,
-   "los_rel": 0.8831350354362294,
+   "bd_per_adm": 4.325907153553738,
+   "los_rel": 0.8773002366968655,
    "emergency": 39770.0,
    "admissions": 83795.0
   },
   {
    "org": "RWD",
-   "mean_los": 4.491854,
-   "los_rel": 0.9586796085506244,
+   "bd_per_adm": 4.491324958520977,
+   "los_rel": 0.9108472071473103,
    "emergency": 66135.0,
    "admissions": 152485.0
   },
   {
    "org": "RRV",
-   "mean_los": 4.982872,
-   "los_rel": 1.0634757448523187,
+   "bd_per_adm": 5.022753707473103,
+   "los_rel": 1.0186217271945601,
    "emergency": 22525.0,
    "admissions": 199650.0
   },
   {
    "org": "RHM",
-   "mean_los": 4.766675,
-   "los_rel": 1.0173336272924383,
+   "bd_per_adm": 4.902861669472225,
+   "los_rel": 0.9943074482277005,
    "emergency": 69595.0,
    "admissions": 187550.0
   },
   {
    "org": "RA7",
-   "mean_los": 3.478547,
-   "los_rel": 0.7424132833090632,
+   "bd_per_adm": 3.5254910481487918,
+   "los_rel": 0.7149746911402809,
    "emergency": 80140.0,
    "admissions": 197770.0
   },
   {
    "org": "RKB",
-   "mean_los": 4.4324,
-   "los_rel": 0.9459905635712532,
+   "bd_per_adm": 4.394875218239704,
+   "los_rel": 0.8912870601135026,
    "emergency": 62280.0,
    "admissions": 171430.0
   },
   {
    "org": "R0D",
-   "mean_los": 3.958233,
-   "los_rel": 0.844790873210074,
+   "bd_per_adm": 4.132117617988634,
+   "los_rel": 0.8379994381855113,
    "emergency": 78335.0,
    "admissions": 189310.0
   },
   {
    "org": "RTG",
-   "mean_los": 4.225235,
-   "los_rel": 0.901776112009517,
+   "bd_per_adm": 4.283123496958551,
+   "los_rel": 0.8686236491684254,
    "emergency": 91835.0,
    "admissions": 266800.0
   },
   {
    "org": "RWE",
-   "mean_los": 3.466569,
-   "los_rel": 0.7398568635431448,
+   "bd_per_adm": 3.646758187231227,
+   "los_rel": 0.7395678425982762,
    "emergency": 116905.0,
    "admissions": 302595.0
   },
   {
    "org": "RTX",
-   "mean_los": 3.690429,
-   "los_rel": 0.7876344665485281,
+   "bd_per_adm": 3.7497608859803675,
+   "los_rel": 0.7604569391011455,
    "emergency": 49035.0,
    "admissions": 113235.0
   },
   {
    "org": "RJE",
-   "mean_los": 3.416639,
-   "los_rel": 0.729200490282809,
+   "bd_per_adm": 3.3936547040415475,
+   "los_rel": 0.688238089594055,
    "emergency": 104345.0,
    "admissions": 259820.0
   },
   {
    "org": "RK9",
-   "mean_los": 4.83423,
-   "los_rel": 1.0317516384200567,
+   "bd_per_adm": 4.901393975191967,
+   "los_rel": 0.9940097977017498,
    "emergency": 65255.0,
    "admissions": 151505.0
   },
   {
    "org": "RBK",
-   "mean_los": 2.741918,
-   "los_rel": 0.5851973093778006,
+   "bd_per_adm": 2.7107650379598986,
+   "los_rel": 0.5497470761660129,
    "emergency": 54395.0,
    "admissions": 115000.0
   },
   {
    "org": "RWW",
-   "mean_los": 6.365583,
-   "los_rel": 1.3585825849719313,
+   "bd_per_adm": 6.376578253451218,
+   "los_rel": 1.293179306096114,
    "emergency": 23065.0,
    "admissions": 61720.0
   },
   {
    "org": "RWG",
-   "mean_los": 3.307211,
-   "los_rel": 0.7058456812875751,
+   "bd_per_adm": 3.4634129262656677,
+   "los_rel": 0.7023851581039507,
    "emergency": 57305.0,
    "admissions": 119230.0
   },
   {
    "org": "RGR",
-   "mean_los": 4.513498,
-   "los_rel": 0.9632990065647785,
+   "bd_per_adm": 4.709359489482392,
+   "los_rel": 0.9550649258432377,
    "emergency": 34060.0,
    "admissions": 72455.0
   },
   {
    "org": "RKE",
-   "mean_los": 4.819413,
-   "los_rel": 1.0285893014963956,
+   "bd_per_adm": 4.994388864723793,
+   "los_rel": 1.0128692959993144,
    "emergency": 14410.0,
    "admissions": 49005.0
   },
   {
    "org": "RBL",
-   "mean_los": 4.614558,
-   "los_rel": 0.9848678645998182,
+   "bd_per_adm": 4.856446747621626,
+   "los_rel": 0.9848944348456758,
    "emergency": 45700.0,
    "admissions": 116900.0
   },
   {
    "org": "RRF",
-   "mean_los": 3.799738,
-   "los_rel": 0.8109638778185873,
+   "bd_per_adm": 3.8061392914653784,
+   "los_rel": 0.7718905613960576,
    "emergency": 35850.0,
    "admissions": 90680.0
   },
   {
    "org": "RLQ",
-   "mean_los": 4.473137,
-   "los_rel": 0.9546849092052668,
+   "bd_per_adm": 4.531393613846613,
+   "los_rel": 0.9189731884856818,
    "emergency": 18110.0,
    "admissions": 60480.0
   },
   {
    "org": "RCB",
-   "mean_los": 3.700158,
-   "los_rel": 0.7897108906512681,
+   "bd_per_adm": 3.803767003836763,
+   "los_rel": 0.7714094580287818,
    "emergency": 73500.0,
    "admissions": 194565.0
   }

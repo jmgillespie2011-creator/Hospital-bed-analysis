@@ -295,34 +295,36 @@ function renderLos() {
   if (!trends) return;
   chartDefaults();
   const s = sys(), R = result[s], R0 = baseline[s];
-  const H = trends.years.filter((y) => y.mean_los != null), last = H.at(-1);
-  // HES has no length-of-stay output in the model: scale the latest HES mean by the simulated change in nights per emergency admission
-  const losScen = last.mean_los * R.emBedDaysPerAdm / R0.emBedDaysPerAdm;
+  const H = trends.years.filter((y) => y.em_bd_per_adm != null), last = H.at(-1);
+  // the model counts midnights per emergency admission directly, in the same general and acute scope as HES
+  const losScen = R.emBedDaysPerAdm;
   const LS = trends.longStays;
   const grey = css("--series-base"), blue = css("--series-scn");
   const mk = (old, canvas, cfg) => { if (old) old.destroy(); return new Chart(canvas, cfg); };
   const labels1 = [...H.map((y) => y.fy), "This scenario"];
   losChart = mk(losChart, $("losChart"), { type: "line", data: { labels: labels1, datasets: [
-    { label: "Published (HES)", data: [...H.map((y) => y.mean_los), null], borderColor: grey, borderWidth: 2, pointRadius: 3, pointBackgroundColor: grey },
+    { label: "Published (HES)", data: [...H.map((y) => y.em_bd_per_adm), null], borderColor: grey, borderWidth: 2, pointRadius: 3, pointBackgroundColor: grey },
     { label: "This scenario", data: [...H.map(() => null), losScen], borderColor: blue, backgroundColor: blue, pointRadius: 6, showLine: false }] },
     options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false },
-      tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)} days` } } },
-      scales: { x: { grid: { display: false }, ticks: { maxRotation: 50, autoSkip: true } }, y: { min: 0, title: { display: true, text: "Days" } } } } });
+      tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)} nights` } } },
+      scales: { x: { grid: { display: false }, ticks: { maxRotation: 50, autoSkip: true } }, y: { min: 0, title: { display: true, text: "Nights per emergency admission" } } } } });
   const labels2 = [...LS.map((r) => r.winter), "This scenario"];
   longChart = mk(longChart, $("longChart"), { type: "bar", data: { labels: labels2, datasets: [{ label: "Over 21 days",
     data: [...LS.map((r) => 100 * r.share21), 100 * R.long21Share], backgroundColor: [...LS.map(() => grey), blue], borderRadius: 4, borderSkipped: false }] },
     options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false },
       tooltip: { callbacks: { label: (c) => `${c.parsed.y.toFixed(1)}% of occupied beds` } } },
       scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: "% of occupied beds" } } } } });
-  $("losTable").innerHTML = `<table><thead><tr><th>Year</th><th class="num">Average length of stay (HES)</th></tr></thead><tbody>${
-    H.map((y) => `<tr><td>${y.fy}</td><td class="num">${y.mean_los.toFixed(2)} days</td></tr>`).join("")}
-    <tr><td><b>This scenario</b> (${last.fy} scaled)</td><td class="num"><b>${losScen.toFixed(2)} days</b></td></tr></tbody></table>
+  $("losTable").innerHTML = `<table><thead><tr><th>Year</th><th class="num">Nights per emergency admission (HES)</th><th class="num">Per overnight emergency admission</th></tr></thead><tbody>${
+    H.map((y) => `<tr><td>${y.fy}</td><td class="num">${y.em_bd_per_adm.toFixed(2)}</td><td class="num">${y.em_bd_per_overnight != null ? y.em_bd_per_overnight.toFixed(2) : ""}</td></tr>`).join("")}
+    <tr><td><b>This scenario</b> (simulated)</td><td class="num"><b>${losScen.toFixed(2)}</b></td><td></td></tr>
+    <tr><td>${BY} baseline (simulated)</td><td class="num">${R0.emBedDaysPerAdm.toFixed(2)}</td><td></td></tr></tbody></table>
     <table><thead><tr><th>Winter</th><th class="num">Beds held over 21 days</th></tr></thead><tbody>${
     LS.map((r) => `<tr><td>${r.winter}</td><td class="num">${fmt.pct(r.share21)}</td></tr>`).join("")}
     <tr><td><b>This scenario</b> (simulated, 08:00)</td><td class="num"><b>${fmt.pct(R.long21Share)}</b></td></tr>
     <tr><td>${BY} baseline (simulated)</td><td class="num">${fmt.pct(R0.long21Share)}</td></tr></tbody></table>
-    <p class="cap">Nights per emergency admission: this scenario ${R.emBedDaysPerAdm.toFixed(2)}, baseline ${R0.emBedDaysPerAdm.toFixed(2)}
-    (HES ${base.hes?.year || ""}: ${base.hes ? base.hes.meanEmergencyBedDays.toFixed(2) : ""}).</p>`;
+    <p class="cap">The ${BY} baseline gives ${R0.emBedDaysPerAdm.toFixed(2)} nights per emergency admission against ${base.hes ? base.hes.meanEmergencyBedDays.toFixed(2) : ""} in HES ${base.hes?.year || ""},
+    the figure it is calibrated to. It sends ${fmt.pct(R0.emZeroNightShare ?? 0)} of emergency admissions home the same day (HES: about 37%)
+    and keeps the rest ${(R0.emBedDaysPerOvernight ?? 0).toFixed(2)} nights (HES: about 7.1), so its overnight stays are somewhat too long; see <a href="validation.html">validation</a> V6b.</p>`;
 }
 
 function peakMonth(daily) {

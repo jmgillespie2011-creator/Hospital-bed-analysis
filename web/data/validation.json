@@ -24,11 +24,11 @@
    "id": "V2c",
    "name": "Back-cast occupancy with each year's measured length of stay, 2024/25, 2023/24, 2022/23, 2019/20, 2018/19, 2015/16, 2010/11",
    "observed": "2024/25: 91.1%; 2023/24: 91.1%; 2022/23: 91.1%; 2019/20: 90.2%; 2018/19: 90.2%; 2015/16: 89.0%; 2010/11: 87.1%",
-   "modelA": "mean absolute error 1.3 pts (2024/25: 90.6%; 2023/24: 91.6%; 2022/23: 89.5%; 2019/20: 89.4%; 2018/19: 89.8%; 2015/16: 86.9%; 2010/11: 83.8%)",
+   "modelA": "mean absolute error 3.9 pts (2024/25: 90.6%; 2023/24: 90.0%; 2022/23: 87.5%; 2019/20: 86.3%; 2018/19: 85.8%; 2015/16: 83.2%; 2010/11: 79.0%)",
    "modelB": "",
    "criterion": "mean absolute error < 2 pts",
-   "pass": true,
-   "note": "As V2, but stays scaled by each year's HES mean length of stay relative to 2024/25. Discharge delays are still held at 2025/26 values (not measured on today's definitions before 2022)."
+   "pass": false,
+   "note": "As V2, but stays scaled by each year's HES emergency bed days per emergency admission relative to 2024/25 (per admission, general and acute scope). Discharge delays are still held at 2025/26 values (not measured on today's definitions before 2022). Non-emergency bed days (planned and other admissions) are held at today's level, but per person HES puts them 24% higher in 2010/11 than in 2024/25."
   },
   {
    "id": "V2b",
@@ -77,6 +77,16 @@
    "criterion": "7+ and 14+ day shares within 2 pts",
    "pass": true,
    "note": "Only the 21+ day share is used in calibration (to fit the spread of stays), so the 7+ and 14+ day shares test the shape of the length-of-stay distribution."
+  },
+  {
+   "id": "V6b",
+   "name": "Emergency stays per admission: same-day share and nights per overnight admission (HES 2023/24, not fitted)",
+   "observed": "36.6% with no night in hospital; 7.14 nights per overnight admission; 4.52 per admission",
+   "modelA": "41.3%; 8.04 nights; 4.72 per admission",
+   "modelB": "",
+   "criterion": "same-day share within 5 pts and nights per overnight admission within 10%",
+   "pass": false,
+   "note": "HES zero bed day emergency cases and bed days per admission (general and acute scope). The model fits the share sent home the same day so that midnights per emergency admission match HES; how that splits between same-day and overnight patients is a test."
   },
   {
    "id": "C1",
@@ -176,7 +186,7 @@
    "wait12_B": 0.01735586909883424,
    "nctr_obs": 0.1333814687697478,
    "nctr_A": 0.08586766649294046,
-   "occ_A_hesLos": 0.9163261691072272
+   "occ_A_hesLos": 0.8997283892300425
   },
   {
    "fy": "2022/23",
@@ -190,7 +200,7 @@
    "wait12_B": 0.006412173559354476,
    "nctr_obs": 0.14051594731134942,
    "nctr_A": 0.08441653644593056,
-   "occ_A_hesLos": 0.8947862541332073
+   "occ_A_hesLos": 0.8748208943473469
   },
   {
    "fy": "2019/20",
@@ -204,7 +214,7 @@
    "wait12_B": 0.022734044783861037,
    "nctr_obs": null,
    "nctr_A": 0.08721552746515847,
-   "occ_A_hesLos": 0.8939320579436311
+   "occ_A_hesLos": 0.8632754684301687
   },
   {
    "fy": "2018/19",
@@ -218,7 +228,7 @@
    "wait12_B": 0.02127305597764,
    "nctr_obs": null,
    "nctr_A": 0.0870463470989455,
-   "occ_A_hesLos": 0.8975771532042199
+   "occ_A_hesLos": 0.8581798142024878
   },
   {
    "fy": "2015/16",
@@ -232,7 +242,7 @@
    "wait12_B": 0.0018896399538369836,
    "nctr_obs": null,
    "nctr_A": 0.08349702749658071,
-   "occ_A_hesLos": 0.8689851991812313
+   "occ_A_hesLos": 0.8323374271768226
   },
   {
    "fy": "2010/11",
@@ -246,7 +256,7 @@
    "wait12_B": 0.000029266294009189618,
    "nctr_obs": null,
    "nctr_A": 0.08112803094602414,
-   "occ_A_hesLos": 0.8381435994331602
+   "occ_A_hesLos": 0.7898500236183278
   }
  ],
  "trusts": [

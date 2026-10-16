@@ -50,24 +50,39 @@ so beds per person have kept falling.</p>
 <p id="perHeadText"></p>
 
 <h3 id="trends">How hospital use has changed</h3>
-<p>Beds in use per person fell because stays got shorter, not because fewer people were admitted. Emergency admissions per person rose,
-patients got older, and the share of beds held by people in hospital for three weeks or more has crept up since the pandemic.</p>
+<p id="trendsText">All of these are counted per admission (one per hospital stay), not per consultant episode.</p>
 <div class="grid2">
-  <figure class="chart-card"><h3>Average length of stay</h3><p class="cap">Mean nights per hospital episode, among episodes with at least one night (day cases and other same-day stays are left
-  out), all ages and specialties, England (HES published tables). A stay under several consultants counts as several episodes, so this is
-  lower than the average stay per admission: the Health Foundation's 7.3 days (2019) is per overnight admission of adults. The trend is the
-  same. Years to 2014/15 are published to one decimal place.</p><div class="chart-box"><canvas id="cLos"></canvas></div>
+  <figure class="chart-card"><h3>Length of stay per emergency admission</h3><p class="cap">Nights in hospital per emergency admission, England,
+  general and acute care (HES: bed days of all a stay's episodes, divided by admissions; maternity, newborns and mental health left out).
+  Blue: all emergency admissions, including those who go home the same day; this is the figure the simulator is calibrated to. Orange:
+  admissions that stayed at least one night (HES has counted same-day stays since 2013/14). HES does not split bed days by admission
+  method, so each diagnosis's bed days are shared out by its emergency share of admissions.</p>
+  <div class="legend" id="lLos"></div><div class="chart-box"><canvas id="cLos"></canvas></div>
   <details><summary>Show as table</summary><div id="tLos"></div></details></figure>
-  <figure class="chart-card"><h3>Emergency admissions per 1,000 people</h3><p class="cap">Finished admission episodes with an emergency
-  admission method (HES), ONS population. 2020/21 is the first pandemic year.</p><div class="chart-box"><canvas id="cEmerg"></canvas></div>
+  <figure class="chart-card"><h3>Emergency admissions per 1,000 people</h3><p class="cap">Finished admission episodes (one per admission) with an
+  emergency admission method (HES), ONS population. 2020/21 is the first pandemic year.</p><div class="chart-box"><canvas id="cEmerg"></canvas></div>
   <details><summary>Show as table</summary><div id="tEmerg"></div></details></figure>
-  <figure class="chart-card"><h3>Average age of hospital patients</h3><p class="cap">Mean age at admission, all finished consultant episodes (HES). Years to 2014/15 are published to whole years.</p>
+  <figure class="chart-card"><h3>Emergency admissions who go home the same day</h3><p class="cap">Share of emergency admissions with no night
+  in hospital ("zero bed day cases", HES, general and acute care), e.g. same-day emergency care. Not published before 2013/14.</p>
+  <div class="chart-box"><canvas id="cSame"></canvas></div><details><summary>Show as table</summary><div id="tSame"></div></details></figure>
+  <figure class="chart-card"><h3>Emergency admissions aged 75 and over</h3><p class="cap">Share of emergency admissions, general and acute care (HES).
+  HES gives age for all episodes of a diagnosis, not by admission method, so each diagnosis's emergency admissions are split by its age
+  profile, as in the simulator.</p>
   <div class="chart-box"><canvas id="cAge"></canvas></div><details><summary>Show as table</summary><div id="tAge"></div></details></figure>
+  <figure class="chart-card"><h3>Emergency bed days per 1,000 people</h3><p class="cap">Admissions times nights per admission: nights spent in
+  hospital after an emergency admission each year, general and acute care (HES), per 1,000 people (ONS). Up to 2019/20, HES bed days per
+  person moved with beds in use (KH03), both down about 12% from 2010/11. Since 2022/23 HES bed days have risen faster than beds in use, which
+  were flat, so part of the recent rise may be in how stays are recorded rather than in beds.</p>
+  <div class="chart-box"><canvas id="cEbd"></canvas></div><details><summary>Show as table</summary><div id="tEbd"></div></details></figure>
   <figure class="chart-card"><h3>Beds held by patients in hospital for a long time</h3><p class="cap">Share of occupied G&amp;A beds, England,
   mean of December to February (winter daily sitreps). Not collected in the winters of 2020/21 and 2021/22.</p>
   <div class="legend" id="lLong"></div><div class="chart-box"><canvas id="cLong"></canvas></div>
   <details><summary>Show as table</summary><div id="tLong"></div></details></figure>
 </div>
+<p class="cap" id="hfNote">Why these differ from other published figures: HES's own "mean length of stay" (about 4.5 nights in 2019/20) is per
+consultant episode, and a stay under several consultants counts as several episodes. The Health Foundation's 7.3 days (2019) is per overnight
+admission of adults, in calendar years, across all specialties. The nearest match here is nights per overnight admission, all ages and
+admission types (general and acute care): <b data-k="bdOvernight19"></b> in 2019/20 and <b data-k="bdOvernightLast"></b> in <span data-k="hesLast"></span>.</p>
 
 <h2>2. Full hospitals, and the break after the pandemic</h2>
 <p>A full hospital makes patients wait. When no bed is free, the patient stays in A&amp;E, sometimes on a trolley in a corridor, until one
@@ -199,7 +214,9 @@ and how wards are run all play a part.</p>
   <li><strong>Demand responds to supply.</strong> More beds may let hospitals admit patients they now treat elsewhere, using up some of the gain.</li>
   <li><strong>Effects on waits are probably upper bounds.</strong> The simulator's waits rise and fall with occupancy several times
     more steeply than hospitals' do, and its winter peak in long waits is too sharp (<a href="validation.html#further">further validation</a>).
-    So the cuts in long waits it shows for more beds or shorter stays are likely too large. Its effects on occupancy are much better founded.</li>
+    So the cuts in long waits it shows for more beds or shorter stays are likely too large. Its effects on occupancy are better founded,
+    with one caveat: measured per admission, stays changed less over the years than beds in use did, so admissions and stays alone do not
+    reproduce past occupancy (back-cast error about 4 points).</li>
   <li><strong>The model fails some tests.</strong> It does not reproduce the weekly pattern of occupancy, or why some trusts wait so much longer
     than others. These failures are published on the <a href="validation.html">validation page</a>.</li>
 </ul>

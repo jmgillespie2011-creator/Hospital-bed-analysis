@@ -80,10 +80,11 @@ out.checks.push({
   pass: mae("occ_A") < 0.02,
   note: "Length of stay and delays are held at 2025/26 values, so this tests whether bed numbers and admissions alone explain the trend.",
 });
-// V2c: the same back-cast, with each year's measured length of stay (HES mean stay relative to the latest HES year)
+// V2c: the same back-cast, with each year's measured length of stay (HES emergency bed days per emergency admission,
+// relative to the latest HES year: the quantity the model is calibrated to)
 const trends = fs.existsSync(path.join(ROOT, "web/data/blog_trends.json")) ? JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/blog_trends.json"), "utf8")) : null;
 if (trends) {
-  const losBy = Object.fromEntries(trends.years.filter((y) => y.mean_los != null).map((y) => [y.fy, y.mean_los]));
+  const losBy = Object.fromEntries(trends.years.filter((y) => y.em_bd_per_adm != null).map((y) => [y.fy, y.em_bd_per_adm]));
   const losRefYear = Object.keys(losBy).sort().at(-1), losRef = losBy[losRefYear];
   const rows = [];
   for (const bt of base.backtests) {
@@ -95,12 +96,16 @@ if (trends) {
     log(bt.fy, "occ with HES stays", pct(a.occMidnight), "obs", pct(bt.occupancy));
   }
   const maeL = rows.reduce((s, r) => s + Math.abs(r.model - r.obs), 0) / rows.length;
+  // planned and other non-emergency stays are held at today's level; HES shows how much they have changed
+  const ne = (fy) => { const y = trends.years.find((x) => x.fy === fy); return y && y.ga_bed_days != null ? (y.ga_bed_days - y.emergency_bed_days) / y.population : null; };
+  const neOld = ne("2010/11"), neRef = ne(losRefYear);
+  const nonEmNote = neOld && neRef ? `Non-emergency bed days (planned and other admissions) are held at today's level, but per person HES puts them ${pct(neOld / neRef - 1, 0)} higher in 2010/11 than in ${losRefYear}.` : "";
   out.checks.push({
     id: "V2c", name: `Back-cast occupancy with each year's measured length of stay, ${rows.map((r) => r.fy).join(", ")}`,
     observed: rows.map((r) => `${r.fy}: ${pct(r.obs)}`).join("; "),
     modelA: `mean absolute error ${(100 * maeL).toFixed(1)} pts (` + rows.map((r) => `${r.fy}: ${pct(r.model)}`).join("; ") + ")",
     modelB: "", criterion: "mean absolute error < 2 pts", pass: maeL < 0.02,
-    note: `As V2, but stays scaled by each year's HES mean length of stay relative to ${losRefYear}. Discharge delays are still held at 2025/26 values (not measured on today's definitions before 2022).`,
+    note: `As V2, but stays scaled by each year's HES emergency bed days per emergency admission relative to ${losRefYear} (per admission, general and acute scope). Discharge delays are still held at 2025/26 values (not measured on today's definitions before 2022). ${nonEmNote}`,
   });
 }
 const old = out.years.filter((y) => ["2015/16", "2018/19", "2019/20"].includes(y.fy));
@@ -162,6 +167,19 @@ if (lsy) {
     modelA: `7+ days ${pct(ref.long7Share)}; 14+ days ${pct(ref.long14Share)}; 21+ days ${pct(ref.long21Share)}`, modelB: "",
     criterion: "7+ and 14+ day shares within 2 pts", pass: err < 0.02,
     note: "Only the 21+ day share is used in calibration (to fit the spread of stays), so the 7+ and 14+ day shares test the shape of the length-of-stay distribution.",
+  });
+}
+
+// ---------------------------------------------------------------- V6b: stays per admission (only midnights per emergency admission is fitted)
+const hy = trends?.years?.find((y) => y.fy === base.hes?.year && y.em_same_day_share != null);
+if (hy) {
+  const dz = ref.emZeroNightShare - hy.em_same_day_share, dn = ref.emBedDaysPerOvernight / hy.em_bd_per_overnight - 1;
+  out.checks.push({
+    id: "V6b", name: `Emergency stays per admission: same-day share and nights per overnight admission (HES ${hy.fy}, not fitted)`,
+    observed: `${pct(hy.em_same_day_share)} with no night in hospital; ${hy.em_bd_per_overnight.toFixed(2)} nights per overnight admission; ${hy.em_bd_per_adm.toFixed(2)} per admission`,
+    modelA: `${pct(ref.emZeroNightShare)}; ${ref.emBedDaysPerOvernight.toFixed(2)} nights; ${ref.emBedDaysPerAdm.toFixed(2)} per admission`, modelB: "",
+    criterion: "same-day share within 5 pts and nights per overnight admission within 10%", pass: Math.abs(dz) <= 0.05 && Math.abs(dn) <= 0.1,
+    note: "HES zero bed day emergency cases and bed days per admission (general and acute scope). The model fits the share sent home the same day so that midnights per emergency admission match HES; how that splits between same-day and overnight patients is a test.",
   });
 }
 

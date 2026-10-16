@@ -3,7 +3,7 @@
 //      predict 2024/25 and 2025/26 from those years' beds, admissions, population and measured length of stay.
 //   E2 Month by month: each financial year 2022/23-2025/26 with its own beds, admissions, length of stay and flu wave
 //      (peak size and date from the UEC daily sitrep); monthly occupancy and 12-hour waits against the published series.
-//   E3 Trusts with their own length of stay: as V7, adding each trust's HES mean length of stay relative to England.
+//   E3 Trusts with their own length of stay: as V7, adding each trust's HES bed days per admission relative to England.
 //   E4 Shape of the waits: 4-hour waits, the share of 4-hour waiters who reach 12 hours, and how fast waits rise with
 //      occupancy, against measured values.
 //   E5 Effects of change: model's change in 12-hour waits when patients fit to leave fall, against the within-trust
@@ -32,7 +32,7 @@ const rank = (a) => { const o = a.map((v, i) => [v, i]).sort((p, q) => p[0] - q[
 const spearman = (a, b) => corr(rank(a), rank(b));
 const out = { generated: new Date().toISOString().slice(0, 10), tests: [] };
 
-const losBy = Object.fromEntries(trends.years.filter((y) => y.mean_los != null).map((y) => [y.fy, y.mean_los]));
+const losBy = Object.fromEntries(trends.years.filter((y) => y.em_bd_per_adm != null).map((y) => [y.fy, y.em_bd_per_adm]));
 const losRefYear = Object.keys(losBy).sort().at(-1);
 const losPct = (fy) => (losBy[fy] != null ? 100 * (losBy[fy] / losBy[losRefYear] - 1) : 0);
 function yearSettings(fy, extra = {}) {
@@ -135,7 +135,7 @@ function fitPool(s, occTarget, waitTarget, over = {}, reps = 24) {
   out.tests.push({ id: "E3", name: `Trusts with their own length of stay (${res.length} acute trusts)`, trusts: res,
     criterion: "occupancy correlation > 0.5 and 12-hour waits rank correlation > 0.3", pass: oc > 0.5 && wr > 0.3,
     summary: `occupancy correlation ${oc.toFixed(2)} (V7 without trust stays: see V7); 12-hour waits rank correlation ${wr.toFixed(2)}`,
-    note: "Each trust: its own G&A beds and emergency admissions (2025/26), and its HES mean length of stay (2024/25, all admissions) relative to England. HES counts stays across all a trust's activity, including specialties outside G&A." });
+    note: "Each trust: its own G&A beds and emergency admissions (2025/26), and its HES bed days per admission (2024/25, all admissions except day cases; per admission, not per episode) relative to England. HES counts all a trust's activity, including specialties outside G&A." });
 }
 
 // ---------------------------------------------------------------- E4 shape of the waits
