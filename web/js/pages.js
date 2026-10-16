@@ -144,6 +144,48 @@ async function renderValidation() {
   ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: (c) => `${c.raw.name}: model ${c.raw.x.toFixed(1)}%, observed ${c.raw.y.toFixed(1)}%` } } },
     scales: { x: { title: { display: true, text: "Model: >12h share (given trust occupancy)" } }, y: { title: { display: true, text: "Observed >12h share" } } } } });
+  const [fc, tf] = await Promise.all(["data/flexibility_check.json", "data/trust_flexibility.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  if (fc && $("flexCheck")) {
+    const rows = [];
+    for (const y of fc.years) {
+      rows.push([`<b>${esc(y.fy)}</b>`, `<b>observed</b>`, pct(y.occupancyObserved), `<b>${pct(y.wait12Observed, 2)}</b>`]);
+      for (const g of y.grid) rows.push(["", `Today's flexibility; delays ${g.delayChangePct === 0 ? "as today" : g.delayChangePct === -100 ? "none" : g.delayChangePct + "%"}; corridor spaces ${g.corridorPct ? g.corridorPct + "% of beds" : "none"}`, pct(g.occupancy), pct(g.wait12, 2)]);
+      for (const g of y.favourable || []) rows.push(["", `Today's flexibility; ${esc(g.label)}`, pct(g.occupancy), pct(g.wait12, 2)]);
+      for (const n of y.poolNeeded) rows.push(["", `Pool size that reproduces ${esc(y.fy)} waits (${esc(n.label)})`, "", `<b>${num(n.pool)} beds</b> (today ${num(fc.poolToday)})`]);
+    }
+    $("flexCheck").innerHTML = table(["Year", "Model run", "Occupancy", "Waiting over 12 hours"], rows, [2, 3]);
+  }
+  if (tf && $("trustTest")) {
+    const NAMES = { "post:log_beds_z": "Trust size (log beds)", "post:long_stay_z": "Long-stay share (patients in hospital 21+ days)", "post:single_rooms_z": "Single rooms per bed (ERIC)", "post:occ_pts": "Change in the occupancy slope (per point)" };
+    const rows = [];
+    for (const [name, m] of Object.entries(tf.models)) {
+      for (const [k, r] of Object.entries(m.terms)) {
+        if (!NAMES[k] || k === "post:occ_pts") continue;
+        const sig = r.p < 0.05;
+        rows.push([esc(name), NAMES[k], `${r.pct >= 0 ? "+" : ""}${r.pct.toFixed(0)}%`, `${r.lo.toFixed(0)}% to ${r.hi.toFixed(0)}%`, sig ? `<b>${r.p.toFixed(3)}</b>` : `<span class="na">${r.p.toFixed(3)}</span>`, `${m.n_trusts} trusts`]);
+      }
+    }
+    $("trustTest").innerHTML = table(["Model", "Characteristic (after the pandemic ×)", "Change in long waits per SD", "95% CI", "p", "Sample"], rows, [2, 3, 4]) +
+      `<p class="cap">${tf.eric ? `Single rooms from ERIC ${esc(tf.eric.year)}.` : "Single rooms (ERIC) not included: the estates data could not be downloaded from this project's pipeline."}
+      Long-stay share is measured in 2025/26, inside the "after" period, because trust-level length-of-stay data starts in 2020. Surgical hubs are not tested: there is no complete public list of hubs and their opening dates.</p>`;
+  }
+  if (fc && tf && $("flexSummary")) {
+    const y = fc.years.find((x) => x.fy === "2018/19") || fc.years[0];
+    const fav = (y.favourable || []).find((g) => /all/.test(g.label));
+    const pn = y.poolNeeded.map((n) => n.pool), all = tf.models["all together"]?.terms || {};
+    const ls = all["post:long_stay_z"], bd = all["post:log_beds_z"], pl = tf.models[Object.keys(tf.models).find((k) => k.startsWith("placebo"))]?.terms["post:long_stay_z"];
+    $("flexSummary").innerHTML = `<strong>What the tests show.</strong> With ${esc(y.fy)}'s own beds, admissions and occupancy and today's flexibility,
+      the model predicts ${fav ? `at least ${pct(fav.wait12, 1)} of emergency admissions waiting over 12 hours even with every favourable assumption` : "far more long waits than observed"},
+      against ${pct(y.wait12Observed, 2)} observed. Reproducing ${esc(y.fy)} needs pools of about ${num(Math.min(...pn))}–${num(Math.max(...pn))} beds against ${num(fc.poolToday)} today.
+      Average length of stay barely changed nationally, so slower turnover overall cannot explain the break.
+      Across trusts, size made no clear difference${bd ? ` (${bd.pct >= 0 ? "+" : ""}${bd.pct.toFixed(0)}% per SD, p=${bd.p.toFixed(2)})` : ""}, which is not what simple pooling theory predicts.
+      Trusts with more long-stay patients saw much bigger rises${ls ? ` (${ls.pct >= 0 ? "+" : ""}${ls.pct.toFixed(0)}% per SD, p=${ls.p.toFixed(3)})` : ""},
+      and the same pattern is absent before the pandemic${pl ? ` (placebo ${pl.pct >= 0 ? "+" : ""}${pl.pct.toFixed(0)}%, p=${pl.p.toFixed(2)})` : ""}.
+      One reading consistent with both: patients who stay for weeks hold particular beds, mostly on medical and elderly-care wards, so the beds
+      that emergency patients can actually use turn over less often. The hospital behaves as if it has smaller pools, even though average stays
+      are unchanged. This is an association across trusts, not proof of cause. Other explanations, such as changes in how decision-to-admit
+      times are recorded or in A&amp;E processes, cannot be tested with these data.`;
+  }
   if (v.effects) {
     const OUT = { emergency_all: "All emergency admissions", copd: "COPD", chd: "Coronary heart disease", stroke: "Stroke",
       pneumonia: "Pneumonia", respiratory: "Respiratory", falls65: "Falls, 65+ (placebo)", hip_fracture: "Hip fracture, 65+ (placebo)" };

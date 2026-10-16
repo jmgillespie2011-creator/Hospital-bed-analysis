@@ -50,11 +50,22 @@ it happens to about <b data-k="wait12Now"></b> of emergency admissions.</p>
 before the pandemic. Each dot below is one quarter. Before 2020, quarters at 90–93% occupancy had almost no 12-hour waits (under 0.3% of admissions). Since 2022,
 quarters at the same occupancy have had 5–11% of admissions waiting more than 12 hours.</p>
 <figure class="chart-card"><h3>Occupancy and long waits, each quarter since 2010</h3><p class="cap" id="capBreak">x: G&amp;A occupancy (KH03). y: share of emergency admissions waiting over 12 hours for a bed.</p><div class="legend" id="lBreak"></div><div class="chart-box tall"><canvas id="cBreak"></canvas></div><details><summary>Show as table</summary><div id="tBreak"></div></details></figure>
-<p>Why? The published data cannot say for certain. Patients are older and sicker, and more of them are waiting to be discharged. Beds may
-also be less interchangeable than before, through more single-specialty wards and infection-control rules. In the simulator, that last
-explanation is what fits the data. Today's waits are reproduced only if hospitals behave as if their beds are split into small pools that
-cannot lend to each other. The waits of 2018/19 are reproduced only if the pools are large and flexible. We show both versions throughout,
-as "today's system" and "a more flexible system". The <a href="validation.html">validation page</a> sets out the evidence.</p>
+<p>Why? No published study has tested it. Patients are older and sicker, and more of them are waiting to be discharged. Beds may
+also be less interchangeable than before, through more single-specialty wards, ring-fenced planned-surgery beds and infection-control rules.
+The simulator can only reproduce today's waits if hospitals behave as if their beds are split into small pools that cannot lend to each
+other, and the waits of 2018/19 only if the pools are large. We show both versions throughout, as "today's hospitals" and
+"pre-pandemic flexibility".</p>
+<p>We tested whether something other than flexibility could explain the change. Give the model 2018/19's own beds, admissions and
+occupancy, with today's flexibility. Removing discharge delays entirely makes almost no difference once occupancy is matched. Then set
+everything else that matters as favourably as is plausible: steadier lengths of stay, 7-day discharging, no flu season and double
+today's corridor spaces. It still predicts <b data-k="flexFav"></b> of
+emergency admissions waiting over 12 hours, against <b data-k="flexObs"></b> observed. Matching 2018/19 needs bed pools <b data-k="flexPoolX"></b> times larger than today's. Average stays barely changed, so slower turnover overall is not the answer either.</p>
+<p>Comparing trusts gives a clue. Bigger trusts did not hold up better, which simple pooling theory would predict. But trusts with more
+patients in hospital for three weeks or more saw much bigger rises in long waits at the same occupancy: <b data-k="flexLS"></b> per standard
+deviation. There was no such pattern before the pandemic. Patients who stay for weeks hold particular beds, mostly on medical and
+elderly-care wards. The beds emergency patients can actually use then turn over less often, so the hospital behaves as if its pools are
+smaller. That is an association, not proof. The <a href="validation.html#flexibility">validation page</a> has both tests and their
+limits.</p>
 
 <h2>3. The arithmetic of a full hospital</h2>
 <p>The simulator runs a full year of patients through England's G&amp;A beds. That is every emergency admission, planned operation, flu

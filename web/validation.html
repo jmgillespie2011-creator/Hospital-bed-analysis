@@ -61,6 +61,25 @@ for a bed reached 45 minutes alongside it, without a pass mark.</p>
   <div class="chart-card"><h3>Ward corridor care by day of the week</h3><p class="cap">Average patients at 08:00, Monday to Sunday.</p><div class="chart-box"><canvas id="chartCorrWeek"></canvas></div></div>
 </div>
 
+<h2 id="flexibility">Is it really bed flexibility? Two tests</h2>
+<p>The model reproduces today's long waits only if beds behave as if split into small pools, and pre-pandemic waits only if the pools are
+large. "Bed flexibility" is the model's name for whatever lengthens waits at a given occupancy. These two tests ask whether something
+else could explain the change, and which trusts changed most.</p>
+<h3>1. Can pre-pandemic years be fitted with today's flexibility?</h3>
+<p>Each year is run with its own beds, emergency admissions and population, with length of stay re-fitted so occupancy matches that year's
+KH03 figure. Discharge delays and corridor spaces before 2020 were not measured on today's definitions, so they are varied over a wide range.
+Factors that matter at a fixed occupancy are also set as favourably as is plausible, one at a time and all together
+(<code>scripts/flexibility_check.mjs</code>).</p>
+<div id="flexCheck"></div>
+<h3>2. Which trusts saw the biggest rise in long waits at the same occupancy?</h3>
+<p>A panel of acute trusts for three years before the pandemic (2017/18 to 2019/20) and three after (2022/23, 2023/24, 2025/26). It uses each trust's
+KH03 occupancy and its A&amp;E counts of emergency admissions and 12-hour waits from decision to admit. A Poisson regression with
+trust and year fixed effects asks whether, at the same occupancy, long waits rose more after the pandemic in trusts with a given
+characteristic. Effects are per standard deviation of the characteristic, with 95% confidence intervals clustered by trust
+(<code>scripts/trust_flexibility.py</code>).</p>
+<div id="trustTest"></div>
+<div class="callout" id="flexSummary"></div>
+
 <h2>Can area data measure the effect of public-health policies?</h2>
 <p>Estimates from <code>scripts/effects_analysis.py</code>: how emergency admission rates vary with risk factors across ~150 local
 authorities (between areas, adjusted for deprivation) and within areas over time (area and year fixed effects). Placebo outcomes (falls, hip

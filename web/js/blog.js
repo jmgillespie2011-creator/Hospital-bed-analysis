@@ -54,6 +54,18 @@ const lineOpts = (yTitle, extra = {}) => ({
 async function main() {
   const [obs, sc, base] = await Promise.all(["data/blog_observed.json", "data/blog_scenarios.json", "data/baseline.json"]
     .map((u) => fetch(u).then((r) => r.json())));
+  const [fc, tf] = await Promise.all(["data/flexibility_check.json", "data/trust_flexibility.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  if (fc) {
+    const y = fc.years.find((x) => x.fy === "2018/19") || fc.years[0];
+    const fav = (y.favourable || []).find((g) => /all/.test(g.label));
+    if (fav) fill("flexFav", pct(fav.wait12, 1));
+    fill("flexObs", pct(y.wait12Observed, 2));
+    const pn = y.poolNeeded.map((n) => n.pool / fc.poolToday);
+    const lo = Math.round(Math.min(...pn)), hi = Math.round(Math.max(...pn));
+    fill("flexPoolX", lo === hi ? `about ${lo}` : `${lo}–${hi}`);
+  }
+  const lsT = tf?.models?.["all together"]?.terms?.["post:long_stay_z"];
+  if (lsT) fill("flexLS", `+${lsT.pct.toFixed(0)}% (95% CI +${lsT.lo.toFixed(0)}% to +${lsT.hi.toFixed(0)}%)`);
   Chart.defaults.color = css("--text-2");
   Chart.defaults.borderColor = css("--grid");
   Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
