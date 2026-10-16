@@ -616,9 +616,7 @@ function renderBlame(HM, HD, HT, TP, C) {
     hospital that can no longer place patients flexibly across its wards reproduces the break on its own. The decomposition above puts
     ${pct(sh("flex").wait12 / tot, 0)} of the simulated rise in long waits there. Delays caused by hospitals' own processes are ${pct(G["Hospital processes"], 0)} of
     long discharge delays, and they are the delays that track long waits most closely${T ? `, within trusts and between them` : ""}.`;
-  $("flowText2").innerHTML = `What "flexibility" is made of cannot be seen in national data. It covers how easily a patient can be placed on another
-    specialty's ward, how quickly beds are turned round, staffing, infection-control rules and escalation. Some of that is management, some is
-    rules and resources set nationally. In the simulator, restoring pre-pandemic flexibility with today's patients and beds cuts 12-hour waits by about
+  $("flowText2").innerHTML = `What "flexibility" is made of cannot be seen in national data. The tests point to one ingredient: a ward-level simulation reproduces the break when patients can no longer be placed on other wards, while infection control, split sites and single rooms do not explain which trusts got worse. In the simulator, restoring pre-pandemic flexibility with today's patients and beds cuts 12-hour waits by about
     ${r1k(fl.dWait12PerYear)} a year; removing delays from hospital processes, about ${r1k(hp.dWait12PerYear)}; full 7-day discharging, about ${r1k(sd.dWait12PerYear)}.`;
 
   // verdict
@@ -637,8 +635,7 @@ function renderBlame(HM, HD, HT, TP, C) {
     admissions for conditions GPs can manage. Preventing more of those admissions would help a full hospital a lot, but their growth is not what
     broke the system. <b>Is it how hospitals run?</b> The
     largest single cause in the simulator is a loss of flexibility in how beds are used, and the delays that track waits most closely are the hospital's own. That
-    points to flow inside hospitals as the predominant cause of the post-pandemic break, though not necessarily to poor management alone: staffing,
-    infection-control rules and specialty ring-fencing sit behind flow too. And the underlying arithmetic still matters. Removing every discharge
+    points to flow inside hospitals as the predominant cause of the post-pandemic break, though the data cannot separate poor management from other causes of poor flow. And the underlying arithmetic still matters. Removing every discharge
     delay of any kind would cut long waits by about ${r1k(ad.dWait12PerYear)} a year and free ${r100(ad.dBeds)} beds; 5,000 more beds would cut them by about
     ${r1k(HM.scenarios.find((x) => x.id === "beds5k").dWait12PerYear)}. Hospitals running above 90% full have no slack, so every one of these causes bites harder than it would
     in a hospital with room to spare.`;

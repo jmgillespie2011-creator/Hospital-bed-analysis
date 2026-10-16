@@ -171,8 +171,7 @@ async function renderValidation() {
       }
     }
     $("trustTest").innerHTML = table(["Model", "Characteristic (after the pandemic ×)", "Change in long waits per SD", "95% CI", "p", "Sample"], rows, [2, 3, 4]) +
-      `<p class="cap">${tf.eric ? `Single rooms from ERIC ${esc(tf.eric.year)}.` : "Single rooms and split sites are tested separately (pool-size test H)."}
-      Long-stay share is measured in 2025/26, inside the "after" period, because trust-level length-of-stay data starts in 2020. Surgical hubs are not tested: there is no complete public list of hubs and their opening dates.</p>`;
+      `<p class="cap">${tf.eric ? `Single rooms from ERIC ${esc(tf.eric.year)}. ` : ""}Long-stay share is measured in 2025/26, inside the "after" period, because trust-level length-of-stay data starts in 2020.</p>`;
   }
   if (fc && tf && $("flexSummary")) {
     const y = fc.years.find((x) => x.fy === "2018/19") || fc.years[0];
@@ -375,8 +374,7 @@ const poolSummary = () => `<strong>What the pool tests show.</strong>
   about 2.5-fold, and ambulance handover delays about fourfold at the same occupancy (E). Fitted to 4-hour waits, pools shrink by about
   40% (B), far less than the 12-hour fit suggests. Part of what changed is the room to escalate: hospitals open fewer escalation beds at the same occupancy, and
   running out of them now matters less, because delays are common on ordinary days too (F). But the handover curve moved up at every
-  occupancy, including around 80%, rather than changing shape, which points to pressures outside the bed pool as well (emergency department
-  crowding, staffing, processes). Infection control (G), split sites and single rooms (H) do not explain which trusts got worse; a high
+  occupancy, including around 80%, rather than changing shape, which points to pressures outside the bed pool as well. Infection control (G), split sites and single rooms (H) do not explain which trusts got worse; a high
   long-stay share does (C, H). For this reason the simulator's "pre-pandemic flexibility" setting is fitted to 12-hour waits counted from
   arrival, not from the decision to admit: pools of about ${Math.round(POOL_B)} beds (see the methods page).`;
 
