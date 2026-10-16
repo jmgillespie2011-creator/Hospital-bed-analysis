@@ -204,11 +204,36 @@ def demand() -> list[dict]:
     return g.replace({np.nan: None}).to_dict(orient="records")
 
 
+def gp_workforce(pop_by_year: dict) -> list[dict]:
+    """Fully qualified GPs (full-time equivalent, excluding GPs in training), England, from the latest GP workforce
+    bulletin (Table 1a), per 100,000 people (ONS mid-year population of that calendar year, latest year carried forward)."""
+    fs = sorted(glob.glob(str(RAW / "gp_workforce_mirror" / "GPW_Bulletin_Tables_-_March_*.xlsx")))
+    if not fs:
+        return []
+    d = pd.read_excel(fs[-1], sheet_name="1a", header=None)
+    hdr = [re.sub(r"\s+", " ", str(v)).split("[")[0].strip() for v in d.iloc[4]]
+    row = next(i for i in range(5, 40) if str(d.iloc[i, 0]).startswith("All Fully Qualified GPs"))
+    out = []
+    for j, h in enumerate(hdr):
+        m = re.match(r"^(January|February|March|April|May|June|July|August|September|October|November|December) (20\d\d)$", h)
+        v = pd.to_numeric(d.iloc[row, j], errors="coerce")
+        if m and pd.notna(v):
+            y = int(m.group(2))
+            popn = pop_by_year.get(y) or pop_by_year[max(pop_by_year)]
+            out.append({"date": h, "year": y, "fte": float(v), "per100k": float(100000 * v / popn)})
+    return out
+
+
 def main() -> int:
     pop = {r["fy"]: r["population"] for r in json.loads((WEB / "blog_observed.json").read_text())["beds"]}
     td = trust_delays()
     print(f"trust delay reasons: {td.org.nunique()} trusts, {td.month.nunique()} months ({td.month.min():%Y-%m} to {td.month.max():%Y-%m})")
     out = {"delays": delays(), "dtocResp": dtoc_resp(), "acsc": acsc(), "demand": demand()}
+    ons = pd.read_csv(OUT / "ons_england_population_single_age.csv").groupby("year").population.sum().to_dict()
+    out["gpWorkforce"] = gp_workforce({int(k): float(v) for k, v in ons.items()})
+    w = out["gpWorkforce"]
+    if w:
+        print("fully qualified GP FTE per 100,000:", [(x["date"], round(x["per100k"], 1)) for x in w if x["date"].startswith(("September 2015", "March 2019", "March 2026"))])
     for r in out["acsc"]:
         r["acsc_per1000"] = 1000 * r["acsc_emergency"] / pop[r["fy"]] if r["fy"] in pop else None
     r = out["delays"]["reasons"]

@@ -165,5 +165,189 @@
    "jt": 1.766519009470431
   }
  },
- "areaGp": null
+ "areaGp": {
+  "rows": [
+   {
+    "outcome": "copd",
+    "exposure": "gp_positive",
+    "design": "between areas",
+    "label": "copd admissions per point of GP experience",
+    "pct": -1.9072086235173868,
+    "lo": -3.0573668901867523,
+    "hi": -0.7434045129509403,
+    "p": 0.0013742792935084592,
+    "n": 106,
+    "areas": 106,
+    "years": "2018-2023",
+    "sdExposure": 4.7991111993603885
+   },
+   {
+    "outcome": "copd",
+    "exposure": "gp_positive",
+    "design": "within areas (area and year fixed effects)",
+    "label": "copd admissions per point of GP experience",
+    "pct": 0.8317728103525601,
+    "lo": 0.06056019425402237,
+    "hi": 1.608929515691404,
+    "p": 0.0344683202788082,
+    "n": 478,
+    "areas": 106,
+    "years": "2018-2023",
+    "sdExposure": 4.7991111993603885
+   },
+   {
+    "outcome": "asthma",
+    "exposure": "gp_positive",
+    "design": "between areas",
+    "label": "asthma admissions per point of GP experience",
+    "pct": -1.5511215715543925,
+    "lo": -3.127359099855087,
+    "hi": 0.05076328836166599,
+    "p": 0.057647217632968574,
+    "n": 106,
+    "areas": 106,
+    "years": "2018-2023",
+    "sdExposure": 4.7991111993603885
+   },
+   {
+    "outcome": "asthma",
+    "exposure": "gp_positive",
+    "design": "within areas (area and year fixed effects)",
+    "label": "asthma admissions per point of GP experience",
+    "pct": 1.8129403528548638,
+    "lo": 0.3849219819933358,
+    "hi": 3.2612728946820546,
+    "p": 0.01266370545342898,
+    "n": 478,
+    "areas": 106,
+    "years": "2018-2023",
+    "sdExposure": 4.7991111993603885
+   }
+  ],
+  "gpPositiveByYear": {
+   "2018": 84.42671347059668,
+   "2019": 83.59656706848824,
+   "2020": 82.35723740083179,
+   "2021": 83.23518111801053,
+   "2023": 71.71397075471698
+  }
+ },
+ "areaSocial": {
+  "rows": [
+   {
+    "outcome": "dtoc_sc",
+    "exposure": "spend",
+    "design": "between areas (adjusted for imd)",
+    "label": "per GBP 100 more social care spending per adult a year",
+    "pct": 20.378065121295453,
+    "lo": -2.759378358049802,
+    "hi": 49.02083427339379,
+    "p": 0.08855726957733293,
+    "n": 139,
+    "areas": 139,
+    "years": "2017-2018",
+    "sdExposure": 0.6826697040415913
+   },
+   {
+    "outcome": "dtoc_all",
+    "exposure": "spend",
+    "design": "between areas (adjusted for imd)",
+    "label": "per GBP 100 more social care spending per adult a year",
+    "pct": 23.584404586977303,
+    "lo": 9.300284940167437,
+    "hi": 39.73527210362187,
+    "p": 0.0007272567489052075,
+    "n": 139,
+    "areas": 139,
+    "years": "2017-2018",
+    "sdExposure": 0.6826697040415913
+   },
+   {
+    "outcome": "dtoc_sc",
+    "exposure": "spend",
+    "design": "within areas (area and year fixed effects)",
+    "label": "per GBP 100 more social care spending per adult a year",
+    "pct": 2.4096935525651064,
+    "lo": -39.61212066078884,
+    "hi": 73.67301929280323,
+    "p": 0.9295923668226838,
+    "n": 294,
+    "areas": 147,
+    "years": "2017-2018",
+    "sdExposure": 0.6683336930797793
+   },
+   {
+    "outcome": "dtoc_all",
+    "exposure": "spend",
+    "design": "within areas (area and year fixed effects)",
+    "label": "per GBP 100 more social care spending per adult a year",
+    "pct": -9.368324211561042,
+    "lo": -28.39650066715329,
+    "hi": 14.71646962444828,
+    "p": 0.4132883107206594,
+    "n": 294,
+    "areas": 147,
+    "years": "2017-2018",
+    "sdExposure": 0.6683336930797793
+   },
+   {
+    "outcome": "dtoc_sc",
+    "exposure": "care_home_beds",
+    "design": "between areas (adjusted for imd)",
+    "label": "per extra care home bed per 100 people aged 75+",
+    "pct": -1.0061084533419917,
+    "lo": -5.302250730782731,
+    "hi": 3.4849364338275457,
+    "p": 0.6550843581390732,
+    "n": 139,
+    "areas": 139,
+    "years": "2016-2018",
+    "sdExposure": 2.4266443054926246
+   },
+   {
+    "outcome": "dtoc_all",
+    "exposure": "care_home_beds",
+    "design": "between areas (adjusted for imd)",
+    "label": "per extra care home bed per 100 people aged 75+",
+    "pct": 2.180207225174202,
+    "lo": -1.1548097066349405,
+    "hi": 5.627746960596158,
+    "p": 0.20268872808589644,
+    "n": 139,
+    "areas": 139,
+    "years": "2016-2018",
+    "sdExposure": 2.4266443054926246
+   },
+   {
+    "outcome": "dtoc_sc",
+    "exposure": "care_home_beds",
+    "design": "within areas (area and year fixed effects)",
+    "label": "per extra care home bed per 100 people aged 75+",
+    "pct": -6.858146013675093,
+    "lo": -19.590843217044863,
+    "hi": 7.890759101317313,
+    "p": 0.3434779278787726,
+    "n": 417,
+    "areas": 139,
+    "years": "2016-2018",
+    "sdExposure": 2.4266443054926246
+   },
+   {
+    "outcome": "dtoc_all",
+    "exposure": "care_home_beds",
+    "design": "within areas (area and year fixed effects)",
+    "label": "per extra care home bed per 100 people aged 75+",
+    "pct": -5.342575196638122,
+    "lo": -13.680018835503605,
+    "hi": 3.800162482998659,
+    "p": 0.2431475472435085,
+    "n": 417,
+    "areas": 139,
+    "years": "2016-2018",
+    "sdExposure": 2.4266443054926246
+   }
+  ],
+  "meanSpendPerAdult": 423.80435810810815,
+  "meanCareHomeBeds": 9.922458523809523
+ }
 }

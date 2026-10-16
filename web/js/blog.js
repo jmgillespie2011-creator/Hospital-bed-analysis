@@ -493,6 +493,15 @@ function renderBlame(HM, HD, HT, C) {
     ${pct(d0.nhs / d0.total, 0)} of the total in ${d0.fy}, social care ${pct(d0.social_care / d0.total, 0)} and both ${pct(d0.both / d0.total, 0)}.` : ""}`;
   const sc1 = HM.scenarios.find((x) => x.id === "socialCare"), sc2 = HM.scenarios.find((x) => x.id === "socialJoint");
   const T = HT && HT.trustDelays;
+  const AS = HT && HT.areaSocial, asr = (o, e, fe) => AS && AS.rows.find((r) => r.outcome === o && r.exposure === e && r.design.startsWith(fe ? "within" : "between"));
+  const fyr = (y) => { const [a, b] = y.split("-").map(Number); return `${a}/${String(a + 1).slice(2)} to ${b}/${String(b + 1).slice(2)}`; };
+  const fs = (r) => `${signed(r.pct, (v) => v.toFixed(0))}% (95% interval ${signed(r.lo, (v) => v.toFixed(0))}% to ${signed(r.hi, (v) => v.toFixed(0))}%)`;
+  const s1 = asr("dtoc_sc", "spend", false), s2 = asr("dtoc_sc", "care_home_beds", false), s3 = asr("dtoc_sc", "care_home_beds", true);
+  const asText = s1 && s2 ? `Nor do councils' social care resources predict social care delays. Across ${s1.areas} councils (${fyr(s1.years)}), each extra
+    £100 a year of adult social care spending per adult went with ${fs(s1)} delayed transfers attributable to social care, after allowing
+    for deprivation, and each extra care home bed per 100 people aged 75+ with ${fs(s2)}${s3 ? `; within councils over time, ${fs(s3)}` : ""}. Councils
+    with more need spend more, so spending cannot be read as a cause, but there is no sign in these data that places with more social care
+    have fewer delays.` : "";
   if (T) {
     fill("tdN", `${T.trusts} acute trusts, ${T.months[0]} to ${T.months[1]}`);
     const lab = { sc: "Social care", ch: "Community health services", hp: "Hospital processes", jt: "Care transfer hubs and other joint processes" };
@@ -515,7 +524,7 @@ function renderBlame(HM, HD, HT, C) {
       (p = ${T.betweenBeyondOcc.sc.p.toFixed(2)}). This is an association: a hospital under
       pressure may also be slower to process discharges. In the simulator, removing every delay caused by social care would free about
       ${r100(sc1.dBeds)} beds and cut 12-hour waits by about ${r1k(sc1.dWait12PerYear)} a year; adding the joint care-transfer-hub delays, about ${r100(sc2.dBeds)} beds
-      and ${r1k(sc2.dWait12PerYear)}. That is worth having, but it would not undo the rise since ${HM.from}.`;
+      and ${r1k(sc2.dWait12PerYear)}. That is worth having, but it would not undo the rise since ${HM.from}. ${asText}`;
   }
 
   // general practice
@@ -540,7 +549,9 @@ function renderBlame(HM, HD, HT, C) {
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}%` } } } }) });
   $("tAcsc").innerHTML = table(["Year", "Emergency admissions for these conditions", "Share of emergency admissions", "Share of emergency bed days"],
     AC.map((r) => [r.fy, int(r.acsc_emergency), pct(r.acsc_share_adm), pct(r.acsc_share_bd)]), [1, 2, 3]);
-  $("gpText1").innerHTML = `If patients who cannot see a GP were ending up in hospital, emergency admissions per person would be rising. Since
+  const GW = HD.gpWorkforce || [], gw0 = GW[0], gwN = GW[GW.length - 1];
+  $("gpText1").innerHTML = `${gw0 ? `General practice is under real strain: there were ${gw0.per100k.toFixed(1)} fully qualified GPs (full-time equivalent)
+    per 100,000 people in ${gw0.date} and ${gwN.per100k.toFixed(1)} in ${gwN.date}, ${pct(1 - gwN.per100k / gw0.per100k, 0)} fewer (NHS England Digital GP workforce). ` : ""}If patients who cannot see a GP were ending up in hospital, emergency admissions per person would be rising. Since
     ${d19.fy}, A&E attendances per person have risen ${pct(dN.attend_all_per1000 / d19.attend_all_per1000 - 1, 0)}, which fits pressure on general practice,
     but emergency admissions per person have <i>fallen</i> ${pct(1 - dN.adm_emergency_per1000 / d19.adm_emergency_per1000, 0)}: hospitals now admit
     ${pct(dN.type1_conversion)} of major A&amp;E attendances, against ${pct(d19.type1_conversion)} in ${d19.fy}. More people turn up at A&amp;E; it is not
@@ -549,9 +560,16 @@ function renderBlame(HM, HD, HT, C) {
     ${a19.acsc_per1000.toFixed(1)} per 1,000 people in ${a19.fy} and ${aL.acsc_per1000.toFixed(1)} in ${aL.fy}: they have not grown.`;
   const ga = HM.scenarios.find((x) => x.id === "acscAll"), gq = HM.scenarios.find((x) => x.id === "acscQuarter");
   const AG = HT && HT.areaGp;
+  const agr = (o, fe) => AG && AG.rows.find((r) => r.outcome === o && r.design.startsWith(fe ? "within" : "between"));
+  const fx = (r) => `${signed(r.pct, (v) => v.toFixed(1))}% per point; 95% interval ${signed(r.lo, (v) => v.toFixed(1))}% to ${signed(r.hi, (v) => v.toFixed(1))}%`;
+  const cb = agr("copd", false), cw = agr("copd", true), aw = agr("asthma", true);
+  const agText = cb && cw ? `Comparing ${cb.areas} local NHS areas (${cb.years}): where patients rate their GP practice better (GP patient survey), emergency
+    admissions for COPD are lower (${fx(cb)} of patients reporting a good experience). But that comparison cannot separate GP access from
+    deprivation and other differences between places. Following the same areas over time, years in which GP experience improved did not bring
+    fewer COPD admissions (${fx(cw)})${aw ? ` or asthma admissions (${fx(aw)})` : ""}.` : "";
   $("gpText2").innerHTML = `Even if general practice prevented every one of those admissions, which no health system manages, the simulator frees about
     ${r100(ga.dBeds)} beds and cuts 12-hour waits by about ${r1k(ga.dWait12PerYear)} a year. Preventing a quarter of them, a large improvement, frees about
-    ${r100(gq.dBeds)} beds and cuts about ${r1k(gq.dWait12PerYear)} long waits. ${AG ? AG.summary : ""} Because hospitals are so full, any cut in admissions
+    ${r100(gq.dBeds)} beds and cuts about ${r1k(gq.dWait12PerYear)} long waits. ${agText} Because hospitals are so full, any cut in admissions
     cuts long waits sharply, so better general practice would help, and would help patients most of all. But it cannot explain the rise: the break
     in long waits came while emergency admissions per person, and admissions for these conditions, were flat or falling.`;
 
