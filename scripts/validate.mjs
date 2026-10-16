@@ -80,6 +80,29 @@ out.checks.push({
   pass: mae("occ_A") < 0.02,
   note: "Length of stay and delays are held at 2025/26 values, so this tests whether bed numbers and admissions alone explain the trend.",
 });
+// V2c: the same back-cast, with each year's measured length of stay (HES mean stay relative to the latest HES year)
+const trends = fs.existsSync(path.join(ROOT, "web/data/blog_trends.json")) ? JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/blog_trends.json"), "utf8")) : null;
+if (trends) {
+  const losBy = Object.fromEntries(trends.years.filter((y) => y.mean_los != null).map((y) => [y.fy, y.mean_los]));
+  const losRefYear = Object.keys(losBy).sort().at(-1), losRef = losBy[losRefYear];
+  const rows = [];
+  for (const bt of base.backtests) {
+    if (losBy[bt.fy] == null) continue;
+    const set = { ...yearSettings(bt), otherGrowthPct: matchAdmissions(bt), losChangePct: 100 * (losBy[bt.fy] / losRef - 1) };
+    const a = scenario(set, "A", 24);
+    rows.push({ fy: bt.fy, obs: bt.occupancy, model: a.occMidnight, losChangePct: set.losChangePct });
+    const y = out.years.find((x) => x.fy === bt.fy); if (y) y.occ_A_hesLos = a.occMidnight;
+    log(bt.fy, "occ with HES stays", pct(a.occMidnight), "obs", pct(bt.occupancy));
+  }
+  const maeL = rows.reduce((s, r) => s + Math.abs(r.model - r.obs), 0) / rows.length;
+  out.checks.push({
+    id: "V2c", name: `Back-cast occupancy with each year's measured length of stay, ${rows.map((r) => r.fy).join(", ")}`,
+    observed: rows.map((r) => `${r.fy}: ${pct(r.obs)}`).join("; "),
+    modelA: `mean absolute error ${(100 * maeL).toFixed(1)} pts (` + rows.map((r) => `${r.fy}: ${pct(r.model)}`).join("; ") + ")",
+    modelB: "", criterion: "mean absolute error < 2 pts", pass: maeL < 0.02,
+    note: `As V2, but stays scaled by each year's HES mean length of stay relative to ${losRefYear}. Discharge delays are still held at 2025/26 values (not measured on today's definitions before 2022).`,
+  });
+}
 const old = out.years.filter((y) => ["2015/16", "2018/19", "2019/20"].includes(y.fy));
 out.checks.push({
   id: "V2b", name: "Back-cast >12h waits before the pandemic (2015/16-2019/20)",
@@ -128,6 +151,19 @@ out.checks.push({
   criterion: "within 20% of observed", pass: Math.abs(ref.nctrShare / base.calibration.targets.nctrShare - 1) <= 0.2,
   note: "Calibration used the Discharge Ready Date measure of delays instead; the two NHS measures define readiness differently.",
 });
+
+// ---------------------------------------------------------------- V6: mix of stay lengths (only the 21+ share is fitted)
+const lsy = trends?.longStaysYearRound?.find((r) => r.fy === (base.baseYearLabel || "2025/26"));
+if (lsy) {
+  const err = Math.max(Math.abs(ref.long7Share - lsy.share7), Math.abs(ref.long14Share - lsy.share14));
+  out.checks.push({
+    id: "V6", name: "Beds held by patients in hospital 7+ and 14+ days (not fitted)",
+    observed: `7+ days ${pct(lsy.share7)}; 14+ days ${pct(lsy.share14)}; 21+ days ${pct(lsy.share21)} (monthly bed sitrep, year)`,
+    modelA: `7+ days ${pct(ref.long7Share)}; 14+ days ${pct(ref.long14Share)}; 21+ days ${pct(ref.long21Share)}`, modelB: "",
+    criterion: "7+ and 14+ day shares within 2 pts", pass: err < 0.02,
+    note: "Only the 21+ day share is used in calibration (to fit the spread of stays), so the 7+ and 14+ day shares test the shape of the length-of-stay distribution.",
+  });
+}
 
 // ---------------------------------------------------------------- C1-C4: corridor care
 const cc = base.corridorCare;

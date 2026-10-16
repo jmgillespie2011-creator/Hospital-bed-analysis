@@ -118,6 +118,35 @@ def long_stays() -> pd.DataFrame:
     return r
 
 
+def long_stays_year_round() -> list[dict]:
+    """Year-round shares of occupied G&A beds held by patients in hospital 7, 14 and 21+ days (monthly bed sitrep CSVs),
+    full financial years only."""
+    rows = []
+    for f in sorted((RAW / "ga_sitreps").glob("20*.csv")):
+        m = re.match(r"(20\d\d)(\d\d)-", f.name)
+        if not m:
+            continue
+        d = pd.read_csv(f)
+        if "Level" not in d.columns or "Metric" not in d.columns:
+            continue
+        p = d[(d.Level == "Provider") & (d.Type != "Other")] if "Type" in d.columns else d[d.Level == "Provider"]
+        g = p.pivot_table(index="Org Code", columns="Metric", values="Value", aggfunc="first").apply(pd.to_numeric, errors="coerce")
+        k = lambda n: f"Number of G&A beds occupied by patients with a length of stay of - {n} or more days"  # noqa: E731
+        if k(7) not in g:
+            continue
+        month = pd.Timestamp(int(m.group(1)), int(m.group(2)), 1)
+        rows.append({"month": month, "occ": g["G&A beds occupied"].sum(), **{f"n{n}": g[k(n)].sum() for n in (7, 14, 21)}})
+    if not rows:
+        return []
+    t = pd.DataFrame(rows).drop_duplicates("month")
+    t["fy"] = t.month.map(fy_of)
+    out = []
+    for fy, g in t.groupby("fy"):
+        if len(g) == 12:
+            out.append({"fy": fy, **{f"share{n}": float(g[f"n{n}"].sum() / g.occ.sum()) for n in (7, 14, 21)}})
+    return out
+
+
 def dtoc_old() -> pd.DataFrame:
     f = RAW / "dtoc" / "Patient-Snapshot-Timeseries-to-March-2017-Revised.xls"
     if not f.exists():
@@ -162,6 +191,7 @@ def main() -> int:
         "years": t.replace({np.nan: None}).to_dict(orient="records"),
         "longStays": ls.replace({np.nan: None}).to_dict(orient="records"),
         "nctr": nfy.to_dict(orient="records"),
+        "longStaysYearRound": long_stays_year_round(),
         "dtocAcute": dt[dt.months == 12].to_dict(orient="records") if not dt.empty else [],
         "sources": {"hes_years": hes.fy.tolist() if not hes.empty else []},
     }

@@ -106,6 +106,8 @@ async function renderValidation() {
     { label: "Observed (KH03)", data: yrs.map((y) => 100 * y.occ_obs), borderColor: css("--text"), borderWidth: 2, pointRadius: 4 },
     { label: "Today's system", data: yrs.map((y) => 100 * y.occ_A), borderColor: css("--series-scn"), borderWidth: 2, pointRadius: 4 },
     { label: "More flexible system", data: yrs.map((y) => 100 * y.occ_B), borderColor: css("--series-b"), borderWidth: 2, borderDash: [5, 3], pointRadius: 4 },
+    ...(yrs.some((y) => y.occ_A_hesLos != null) ? [{ label: "Today's system, each year's measured stays (HES)", data: yrs.map((y) => (y.occ_A_hesLos != null ? 100 * y.occ_A_hesLos : null)),
+      borderColor: css("--series-scn"), borderWidth: 2, borderDash: [2, 3], pointRadius: 4, pointStyle: "rectRot" }] : []),
   ] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
     plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}%` } } },
     scales: { y: { title: { display: true, text: "Average G&A occupancy (%)" } } } } });

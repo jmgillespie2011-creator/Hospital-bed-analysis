@@ -278,7 +278,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
   const fluInBed = new Set();
   const admitOf = new Map();
   let emBedDays = 0, emCount = 0, emDelayed = 0, emOvernight = 0, elDelayed = 0, elOvernight = 0;
-  const long21_8 = [];
+  const long21_8 = [], long7_8 = [], long14_8 = [];
   // discharges of patients who were medically fit before the day began, by weekday (Mon=0),
   // and the matching midnight stock, to compare with NHS England's discharge sitrep
   const nctrDisWk = new Float64Array(7), nctrStockWk = new Float64Array(7);
@@ -383,8 +383,9 @@ export function simulate(p, seed = 1, wantDaily = true) {
           nctrStockWk[(Math.floor(t / 24) + dow0) % 7] += n;
         } else {
           occ8.push(Math.min(occupied, cap(t)));
-          let n21 = 0; for (const a of admitOf.values()) if (t - a >= 21 * 24) n21++;
-          long21_8.push(n21);
+          let n21 = 0, n7 = 0, n14 = 0;
+          for (const a of admitOf.values()) { const d = t - a; if (d >= 7 * 24) { n7++; if (d >= 14 * 24) { n14++; if (d >= 21 * 24) n21++; } } }
+          long21_8.push(n21); long7_8.push(n7); long14_8.push(n14);
           queue8.push(queue.length - qHead); tes8.push(Math.max(0, occupied - cap(t)));
           // NHS England's corridor-care definition: at least 45 minutes in an inappropriate area
           let n45 = 0; for (let q = qHead; q < queue.length; q++) if (t - arr[queue[q]] >= 0.75) n45++;
@@ -438,6 +439,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
     fluDaily: fluMid,
     nctrDisWk: Array.from(nctrDisWk), nctrStockWk: Array.from(nctrStockWk),
     long21Share8: sum(long21_8) / Math.max(sum(occ8), 1),          // share of occupied beds with stay >= 21 days (08:00)
+    long7Share8: sum(long7_8) / Math.max(sum(occ8), 1), long14Share8: sum(long14_8) / Math.max(sum(occ8), 1),
     emBedDaysPerAdm: emBedDays / Math.max(emCount, 1),               // midnights per emergency admission
     // share of overnight discharges (emergency and planned) leaving after their Discharge Ready Date
     delayedShareOvernight: (emDelayed + elDelayed) / Math.max(emOvernight + elOvernight, 1),
@@ -502,6 +504,7 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
     // peak of the 7-day rolling mean (robust to day-to-day noise; same definition used for the data)
     fluBedsPeak: Math.max(...fluDaily.map((_, i) => i < 6 ? 0 : fluDaily.slice(i - 6, i + 1).reduce((a, b) => a + b, 0) / 7)),
     long21Share: mean((x) => x.long21Share8),
+    long7Share: mean((x) => x.long7Share8), long14Share: mean((x) => x.long14Share8),
     emBedDaysPerAdm: mean((x) => x.emBedDaysPerAdm),
     delayedShareOvernight: mean((x) => x.delayedShareOvernight),
     waitingForBed8am: mean((x) => x.queue8) * nPools,

@@ -7,7 +7,7 @@
    "observed": "occupancy 91.1%, >12h 8.16%",
    "modelA": "occupancy 90.6%, >12h 7.73%",
    "modelB": "occupancy 91.2%, >12h 1.99%",
-   "criterion": "occupancy within \u00b11.5 pts; >12h within a factor of 1.5",
+   "criterion": "occupancy within ±1.5 pts; >12h within a factor of 1.5",
    "pass": true
   },
   {
@@ -19,6 +19,16 @@
    "criterion": "mean absolute error < 2 pts",
    "pass": false,
    "note": "Length of stay and delays are held at 2025/26 values, so this tests whether bed numbers and admissions alone explain the trend."
+  },
+  {
+   "id": "V2c",
+   "name": "Back-cast occupancy with each year's measured length of stay, 2024/25, 2023/24, 2022/23, 2019/20, 2018/19, 2015/16, 2010/11",
+   "observed": "2024/25: 91.1%; 2023/24: 91.1%; 2022/23: 91.1%; 2019/20: 90.2%; 2018/19: 90.2%; 2015/16: 89.0%; 2010/11: 87.1%",
+   "modelA": "mean absolute error 1.3 pts (2024/25: 90.6%; 2023/24: 91.6%; 2022/23: 89.5%; 2019/20: 89.4%; 2018/19: 89.8%; 2015/16: 86.9%; 2010/11: 83.8%)",
+   "modelB": "",
+   "criterion": "mean absolute error < 2 pts",
+   "pass": true,
+   "note": "As V2, but stays scaled by each year's HES mean length of stay relative to 2024/25. Discharge delays are still held at 2025/26 values (not measured on today's definitions before 2022)."
   },
   {
    "id": "V2b",
@@ -57,6 +67,16 @@
    "criterion": "within 20% of observed",
    "pass": false,
    "note": "Calibration used the Discharge Ready Date measure of delays instead; the two NHS measures define readiness differently."
+  },
+  {
+   "id": "V6",
+   "name": "Beds held by patients in hospital 7+ and 14+ days (not fitted)",
+   "observed": "7+ days 50.2%; 14+ days 29.6%; 21+ days 19.4% (monthly bed sitrep, year)",
+   "modelA": "7+ days 49.3%; 14+ days 29.9%; 21+ days 19.9%",
+   "modelB": "",
+   "criterion": "7+ and 14+ day shares within 2 pts",
+   "pass": true,
+   "note": "Only the 21+ day share is used in calibration (to fit the spread of stays), so the 7+ and 14+ day shares test the shape of the length-of-stay distribution."
   },
   {
    "id": "C1",
@@ -141,7 +161,8 @@
    "wait12_A": 0.07729765451994759,
    "wait12_B": 0.01986001059501133,
    "nctr_obs": 0.1318134394371835,
-   "nctr_A": 0.08615263558600979
+   "nctr_A": 0.08615263558600979,
+   "occ_A_hesLos": 0.9064773264052909
   },
   {
    "fy": "2023/24",
@@ -154,7 +175,8 @@
    "wait12_A": 0.06971580817051509,
    "wait12_B": 0.01735586909883424,
    "nctr_obs": 0.1333814687697478,
-   "nctr_A": 0.08586766649294046
+   "nctr_A": 0.08586766649294046,
+   "occ_A_hesLos": 0.9163261691072272
   },
   {
    "fy": "2022/23",
@@ -167,7 +189,8 @@
    "wait12_A": 0.03831020659882824,
    "wait12_B": 0.006412173559354476,
    "nctr_obs": 0.14051594731134942,
-   "nctr_A": 0.08441653644593056
+   "nctr_A": 0.08441653644593056,
+   "occ_A_hesLos": 0.8947862541332073
   },
   {
    "fy": "2019/20",
@@ -180,7 +203,8 @@
    "wait12_A": 0.0927323137058837,
    "wait12_B": 0.022734044783861037,
    "nctr_obs": null,
-   "nctr_A": 0.08721552746515847
+   "nctr_A": 0.08721552746515847,
+   "occ_A_hesLos": 0.8939320579436311
   },
   {
    "fy": "2018/19",
@@ -193,7 +217,8 @@
    "wait12_A": 0.08464182530347497,
    "wait12_B": 0.02127305597764,
    "nctr_obs": null,
-   "nctr_A": 0.0870463470989455
+   "nctr_A": 0.0870463470989455,
+   "occ_A_hesLos": 0.8975771532042199
   },
   {
    "fy": "2015/16",
@@ -206,7 +231,8 @@
    "wait12_A": 0.01484196060467247,
    "wait12_B": 0.0018896399538369836,
    "nctr_obs": null,
-   "nctr_A": 0.08349702749658071
+   "nctr_A": 0.08349702749658071,
+   "occ_A_hesLos": 0.8689851991812313
   },
   {
    "fy": "2010/11",
@@ -215,11 +241,12 @@
    "occ_obs": 0.8707805906376571,
    "occ_A": 0.743833648244371,
    "occ_B": 0.7351848113434271,
-   "wait12_obs": 1.11520004024633e-05,
+   "wait12_obs": 0.0000111520004024633,
    "wait12_A": 0.002337012242928653,
-   "wait12_B": 2.9266294009189618e-05,
+   "wait12_B": 0.000029266294009189618,
    "nctr_obs": null,
-   "nctr_A": 0.08112803094602414
+   "nctr_A": 0.08112803094602414,
+   "occ_A_hesLos": 0.8381435994331602
   }
  ],
  "trusts": [
@@ -2260,7 +2287,7 @@
    "pct": 0.039722363641492286,
    "lo": 0.023584260344922114,
    "hi": 0.055863070707795615,
-   "p": 1.4006142218542044e-06,
+   "p": 0.0000014006142218542044,
    "n": 143
   },
   {
@@ -2326,7 +2353,7 @@
    "pct": 1.0705706221910916,
    "lo": 0.5734633246866849,
    "hi": 1.5701349859738478,
-   "p": 2.3046380285556208e-05,
+   "p": 0.000023046380285556208,
    "n": 147
   },
   {
