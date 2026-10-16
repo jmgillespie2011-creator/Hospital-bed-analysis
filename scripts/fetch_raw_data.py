@@ -144,6 +144,15 @@ SOURCES = [
            depth=0, files=r"(?i)\.(xlsx?|csv|ods)",
            notes="Hospital A&E activity tables (HES A&E / ECDS) via a public mirror of the NHS England Digital pages, "
                  "which block automated browsers; the files themselves come from files.digital.nhs.uk"),
+    Source("hes_apc_mirror",
+           [f"https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/{p}"
+            for p in ("hospital-admitted-patient-care-activity/2024-25", "hospital-admitted-patient-care-activity/2019-20",
+                      "hospital-admitted-patient-care-activity/2015-16",
+                      "hospital-episode-statistics-admitted-patient-care-england-2012-13",
+                      "hospital-episode-statistics-admitted-patient-care-england-2009-10",
+                      "hospital-episode-statistics-admitted-patient-care-england-2006-07")],
+           depth=0, files=r"(?i)(summ|time|serie|tab).*\.(xlsx?|csv)|\.(xlsx?)$",
+           notes="HES admitted patient care summary tables (admissions, length of stay, bed days, time series) via the public mirror"),
     Source("eric_mirror",
            [f"https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/estates-returns-information-collection/{p}"
             for p in ("summary-page-and-dataset-for-eric-2024-25", "summary-page-and-dataset-for-eric-2023-24",
