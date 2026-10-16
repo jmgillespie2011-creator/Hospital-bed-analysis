@@ -416,10 +416,10 @@ def fetch_hes_files(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
         w.writerows(inv)
 
 
-ERIC_YEARS = r"(2017-?18|2018-?19|2019-?20|2022-?23|2023-?24|2024-?25|201718|201819|201920|202223|202324|202425)"
+ERIC_YEARS = r"(20)?(17|18|19|22|23|24)[-_ /]?(18|19|20|23|24|25)"
 
 
-def fetch_eric(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
+def fetch_eric(fx: Fetcher, manifest: dict, stamp: str, log) -> list:
     """ERIC (Estates Returns Information Collection): site- and trust-level estates data, including single
     bedrooms and isolation rooms. Found through the data.gov.uk catalogue (CKAN)."""
     out = RAW / "eric"
@@ -447,7 +447,9 @@ def fetch_eric(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
     inv = []
     for u, label in urls.items():
         text = u + " " + label
-        wanted = re.search(ERIC_YEARS, text) and re.search(r"(?i)(site|trust)", text)
+        m = re.search(ERIC_YEARS, text)
+        wanted = bool(m) and int(m.group(3)) == (int(m.group(2)) + 1) % 100
+        log(f"  link: {label[:90]} | {u[:160]}")
         dest = out / safe_name(u)
         status = "skipped (year/name filter)"
         if wanted:
@@ -463,10 +465,7 @@ def fetch_eric(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
                     status = res
             log(f"  {status}: {u}")
         inv.append(dict(source="eric", page="data.gov.uk", url=u, link_text=label, wanted=bool(wanted), status=status))
-    with open(out / "_link_inventory.csv", "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["source", "page", "url", "link_text", "wanted", "status"])
-        w.writeheader()
-        w.writerows(inv)
+    return inv
 
 
 def write_manifest(manifest: dict) -> None:
@@ -536,7 +535,7 @@ def main() -> int:
     if not args.dry_run and args.only and "eric" in args.only:
         log("[eric] Estates Returns Information Collection via data.gov.uk")
         try:
-            fetch_eric(s, manifest, stamp, log)
+            inventory += fetch_eric(s, manifest, stamp, log)
         except Exception as e:  # noqa: BLE001
             log(f"  ! eric failed: {e}")
         write_manifest(manifest)
