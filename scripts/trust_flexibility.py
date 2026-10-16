@@ -229,7 +229,20 @@ def main() -> None:
     # descriptive: national pre/post at similar occupancy
     desc = p.groupby("post").apply(lambda g: pd.Series({"trust_years": len(g), "occupancy": g.ga_occupied.sum() / g.ga_available.sum(),
                                                          "wait12_share": g.waits12.sum() / g.emergency_admissions.sum()})).to_dict()
-    out = dict(pre=PRE, post=POST, n_trusts=int(p.org.nunique()), n_trust_years=int(len(p)), descriptive=desc, models=results,
+    # trusts grouped into fifths by long-stay share: occupancy and 12-hour waits before and after (for the blog chart)
+    fifths = []
+    if "long_stay" in p:
+        ls = p.dropna(subset=["long_stay"]).groupby("org").long_stay.first()
+        grp = pd.qcut(ls, 5, labels=False) + 1
+        for k in range(1, 6):
+            d = p[p.org.isin(grp[grp == k].index)]
+            row = dict(fifth=int(k), trusts=int(d.org.nunique()), long_stay=float(ls[grp == k].mean()))
+            for per, flag in (("before", 0), ("after", 1)):
+                e = d[d.post == flag]
+                row[f"occupancy_{per}"] = float(e.ga_occupied.sum() / e.ga_available.sum())
+                row[f"wait12_{per}"] = float(e.waits12.sum() / e.emergency_admissions.sum())
+            fifths.append(row)
+    out = dict(pre=PRE, post=POST, long_stay_fifths=fifths, n_trusts=int(p.org.nunique()), n_trust_years=int(len(p)), descriptive=desc, models=results,
                characteristics=dict(log_beds_z="log of pre-pandemic G&A beds, standardised",
                                     long_stay_z="share of G&A beds occupied by patients in hospital 21+ days (2025/26), standardised",
                                     single_rooms_z="single bedrooms (ERIC) per pre-pandemic G&A bed, standardised"),

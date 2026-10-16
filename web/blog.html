@@ -60,12 +60,30 @@ occupancy, with today's flexibility. Removing discharge delays entirely makes al
 everything else that matters as favourably as is plausible: steadier lengths of stay, 7-day discharging, no flu season and double
 today's corridor spaces. It still predicts <b data-k="flexFav"></b> of
 emergency admissions waiting over 12 hours, against <b data-k="flexObs"></b> observed. Matching 2018/19 needs bed pools <b data-k="flexPoolX"></b> times larger than today's. Average stays barely changed, so slower turnover overall is not the answer either.</p>
-<p>Comparing trusts gives a clue. Bigger trusts did not hold up better, which simple pooling theory would predict. But trusts with more
-patients in hospital for three weeks or more saw much bigger rises in long waits at the same occupancy: <b data-k="flexLS"></b> per standard
-deviation. There was no such pattern before the pandemic. Patients who stay for weeks hold particular beds, mostly on medical and
-elderly-care wards. The beds emergency patients can actually use then turn over less often, so the hospital behaves as if its pools are
-smaller. That is an association, not proof. The <a href="validation.html#flexibility">validation page</a> has both tests and their
-limits.</p>
+<h3 id="long-stay">The long-stay clue</h3>
+<p>Comparing hospitals gives a clue. We followed <b data-k="lsTrusts"></b> acute trusts through three years before the pandemic and three
+after. Bigger trusts did not hold up better, which simple pooling theory would predict. What mattered was how many of a trust's beds
+were held by patients who had been in hospital for three weeks or more. Group the trusts into fifths by that share and the pattern is
+plain. Before the pandemic, every group had almost no 12-hour waits. Afterwards, trusts in the fifth with the fewest long-stay patients
+had <b data-k="lsLow"></b> of emergency admissions waiting over 12 hours. In the fifth with the most, it was <b data-k="lsHigh"></b>,
+even though occupancy was about the same (<span data-k="lsOcc"></span>).</p>
+<figure class="chart-card"><h3>12-hour waits before and after the pandemic, by trusts' share of long-stay patients</h3>
+  <p class="cap">Acute trusts grouped into fifths by the share of G&amp;A beds held by patients in hospital 21 days or more (2025/26).
+  Before: 2017/18 to 2019/20. After: 2022/23, 2023/24 and 2025/26. Share of emergency admissions waiting over 12 hours from decision to admit.</p>
+  <div class="legend" id="lLongStay"></div>
+  <div class="chart-box"><canvas id="cLongStay"></canvas></div>
+  <details><summary>Show as table</summary><div id="tLongStay"></div></details></figure>
+<p>A statistical model that compares each trust with itself over time, and allows for year-to-year changes in its occupancy, puts the
+effect at <b data-k="flexLS"></b> more long waits for each standard deviation of long-stay share. Before the pandemic the same comparison
+shows nothing (<span data-k="lsPlacebo"></span>).</p>
+<p>Why would long stays matter more than average occupancy suggests? Patients who stay for weeks hold particular beds, mostly on medical
+and elderly-care wards, where most emergency patients need to go. Those beds turn over slowly, so the beds that emergency patients
+can actually use free up less often. The hospital behaves as if its pools are smaller, even though its average stay is unchanged.
+If that is right, the simulator understates the benefit of getting long-stay patients home. Its delayed-discharge setting only acts through
+average occupancy, not through which beds are blocked.</p>
+<p>Three cautions. This is an association across trusts, not proof of cause. The long-stay share comes from 2025/26, because trust-level
+length-of-stay data only starts in 2020. And the result weakens when the ten trusts with the most long waits are left out
+(<span data-k="lsNoBig"></span>). The <a href="validation.html#flexibility">validation page</a> has the full tests.</p>
 
 <h2>3. The arithmetic of a full hospital</h2>
 <p>The simulator runs a full year of patients through England's G&amp;A beds. That is every emergency admission, planned operation, flu

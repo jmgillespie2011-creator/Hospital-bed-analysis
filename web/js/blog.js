@@ -66,6 +66,11 @@ async function main() {
   }
   const lsT = tf?.models?.["all together"]?.terms?.["post:long_stay_z"];
   if (lsT) fill("flexLS", `+${lsT.pct.toFixed(0)}% (95% CI +${lsT.lo.toFixed(0)}% to +${lsT.hi.toFixed(0)}%)`);
+  const fmtEff = (t) => `${t.pct >= 0 ? "+" : "−"}${Math.abs(t.pct).toFixed(0)}%, p = ${t.p.toFixed(2)}`;
+  const mName = (pre) => tf && Object.keys(tf.models).find((k) => k.startsWith(pre));
+  const plT = tf?.models?.[mName("placebo")]?.terms?.["post:long_stay_z"], nbT = tf?.models?.[mName("robustness: without")]?.terms?.["post:long_stay_z"];
+  if (plT) fill("lsPlacebo", fmtEff(plT));
+  if (nbT) fill("lsNoBig", fmtEff(nbT));
   Chart.defaults.color = css("--text-2");
   Chart.defaults.borderColor = css("--grid");
   Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
@@ -126,6 +131,30 @@ async function main() {
   const off = Q.filter((q) => 100 * q.occupancy < 80);
   if (off.length) $("capBreak").textContent += ` Not shown: ${off.map((q) => `${q.fy} ${q.q}`).join(" and ")}, when occupancy fell below 80% during the pandemic.`;
   $("tBreak").innerHTML = table(["Quarter", "Occupancy", "Waiting >12h", "Waiting >4h"], Q.map((q) => [`${q.fy} ${q.q}`, pct(q.occupancy), pct(q.wait12, 2), pct(q.wait4)]), [1, 2, 3]);
+
+  // ---------------------------------------------------------------- long-stay clue (trust panel)
+  const LF = tf?.long_stay_fifths || [];
+  if (LF.length) {
+    const lo = LF[0], hiF = LF.at(-1);
+    fill("lsTrusts", int(LF.reduce((t, f) => t + f.trusts, 0)));
+    fill("lsLow", pct(lo.wait12_after, 1)); fill("lsHigh", pct(hiF.wait12_after, 1));
+    const occs = LF.map((f) => f.occupancy_after);
+    fill("lsOcc", `${pct(Math.min(...occs), 1)} to ${pct(Math.max(...occs), 1)} across the five groups`);
+    const names = LF.map((f, i) => `${i === 0 ? "Fewest long-stay" : i === LF.length - 1 ? "Most long-stay" : `Fifth ${f.fifth}`} (${pct(f.long_stay, 0)} of beds)`);
+    const labels = LF.map((f) => pct(f.long_stay, 0));
+    legend("lLongStay", [["Before the pandemic", GREY], ["After the pandemic", BLUE]]);
+    new Chart($("cLongStay"), { type: "bar", data: { labels, datasets: [
+      { label: "Before the pandemic", data: LF.map((f) => 100 * f.wait12_before), backgroundColor: GREY, borderRadius: 4, borderSkipped: false, barPercentage: 0.85, categoryPercentage: 0.7 },
+      { label: "After the pandemic", data: LF.map((f) => 100 * f.wait12_after), backgroundColor: BLUE, borderRadius: 4, borderSkipped: false, barPercentage: 0.85, categoryPercentage: 0.7 }] },
+      options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: "index", intersect: false },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { title: (c) => names[c[0].dataIndex],
+          label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)}% waited over 12 hours (occupancy ${pct(LF[c.dataIndex][c.datasetIndex ? "occupancy_after" : "occupancy_before"], 1)})` } } },
+        scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0 },
+          title: { display: true, text: "Share of beds held by long-stay patients (one bar pair per fifth of trusts)" } },
+          y: { min: 0, title: { display: true, text: "Waiting over 12 hours (%)" } } } } });
+    $("tLongStay").innerHTML = table(["Group", "Trusts", "Long-stay share", "Occupancy before", "Occupancy after", "12h waits before", "12h waits after"],
+      LF.map((f, i) => [names[i], f.trusts, pct(f.long_stay), pct(f.occupancy_before), pct(f.occupancy_after), pct(f.wait12_before, 2), pct(f.wait12_after, 1)]), [1, 2, 3, 4, 5, 6]);
+  }
 
   // ---------------------------------------------------------------- 3. bed sweep
   const S = sc.sweep;
