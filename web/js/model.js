@@ -103,6 +103,8 @@ export const DEFAULTS = {
   escalationPct: 0,           // extra % of beds opened 1 Dec - 31 Mar
   corridorPct: 0,             // temporary escalation spaces (trolleys/chairs in corridors and wards) as % of beds,
                               // used only when every proper bed is full
+  deadlineH: 0,               // research option (off by default): once the longest-waiting emergency patient has waited
+  deadlinePct: 0,             // this many hours, extra spaces (as % of beds) open for patients past that wait
   poolSize: 92,               // effective pool size (bed flexibility)
   emergPerYear: 6.6e6,        // emergency admissions (all routes), England
   electivePerYear: 1.6e6,     // elective overnight admissions
@@ -286,6 +288,12 @@ export function simulate(p, seed = 1, wantDaily = true) {
   const tesN = S0 * (p.corridorPct || 0) / 100;
   const tesSpaces = Math.floor(tesN) + (RC.next() < tesN - Math.floor(tesN) ? 1 : 0);
   const capE = (t) => cap(t) + tesSpaces; // proper beds + temporary escalation spaces
+  const dlN = p.deadlineH > 0 ? S0 * (p.deadlinePct || 0) / 100 : 0;
+  const dlSpaces = dlN > 0 ? Math.floor(dlN) + (RC.next() < dlN - Math.floor(dlN) ? 1 : 0) : 0;
+  // next time the queue head reaches the deadline, while a deadline space is free
+  // (never earlier than the last event handled, tNow)
+  let tNow = 0;
+  const nextDeadline = () => (dlSpaces > 0 && qHead < queue.length && occupied < capE(tNow) + dlSpaces ? Math.max(tNow, arr[queue[qHead]] + p.deadlineH) : Infinity);
   const queueMid = [], queue8 = [], tesMid = [], tes8 = [], queue8_45 = [];
   // emergency patients whose wait for a bed passed 45 minutes, by day of arrival (comparable with NHS England's
   // count of patients receiving corridor care in ED for 45+ minutes during each day)
@@ -344,15 +352,26 @@ export function simulate(p, seed = 1, wantDaily = true) {
         else if (el[j] >= warmH) elecCancelled++;
       } else break;
     }
+    // deadline escalation: patients past the deadline may use the extra spaces
+    while (dlSpaces > 0 && qHead < queue.length && t - arr[queue[qHead]] >= p.deadlineH - 1e-9 && occupied < capE(t) + dlSpaces) {
+      const i = queue[qHead++];
+      if (arr[i] >= warmH) waits.push(t - arr[i]);
+      if (t - arr[i] >= 0.75) wait45ByDay[Math.floor(arr[i] / 24)]++;
+      admitEmergency(t, i);
+    }
   };
 
   for (;;) {
     const ta = ia < arr.length ? arr[ia] : Infinity;
     const te = ie < el.length ? el[ie] : Infinity;
     const td = heap.peek();
-    const t = Math.min(ta, te, td, snapT);
+    const tdl = nextDeadline();
+    const t = Math.min(ta, te, td, snapT, tdl);
     if (t >= endH) break;
-    if (t === snapT) {
+    tNow = t;
+    if (t === tdl && t < Math.min(ta, te, td, snapT)) {
+      fillFreeBeds(t);
+    } else if (t === snapT) {
       const isMidnight = snapT % 24 === 0;
       if (isMidnight) fillFreeBeds(t); // capacity may change at midnight
       if (t >= warmH) {
