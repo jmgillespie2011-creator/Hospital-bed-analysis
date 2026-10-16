@@ -50,7 +50,7 @@ const r = Object.fromEntries((base.riskFactors || []).map((x) => [x.key, x]));
 const levers = [
   { id: "beds5k", group: "Capacity", label: "5,000 more beds", ch: { beds: s0.beds + 5000 } },
   { id: "winter", group: "Capacity", label: "Extra winter beds (+3%)", ch: { escalationPct: 3 } },
-  { id: "corridor", group: "Capacity", label: "Corridor spaces (2% of beds)", ch: { corridorPct: 2 } },
+  { id: "noCorridor", group: "Capacity", label: "End corridor care on wards", ch: { corridorPct: 0 } },
   { id: "smoking", group: "Public health", label: `Smoking down to 5% (from ${r.smoking?.current}%)`, ch: { risk: { smoking: 5 } } },
   { id: "obesity", group: "Public health", label: `Obesity down 5 points (from ${r.obesity?.current}%)`, ch: { risk: { obesity: (r.obesity?.current ?? 26) - 5 } } },
   { id: "flu", group: "Public health", label: `Flu vaccine uptake 65+ to 85% (from ${base.flu.uptake65}%)`, ch: { fluUptake65: 85 } },

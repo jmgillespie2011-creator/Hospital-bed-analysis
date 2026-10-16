@@ -74,6 +74,7 @@ test("corridor spaces: used only when beds are full, and reduce waits", () => {
   assert.ok(b.wait12 < a.wait12, "corridor spaces cut long waits");
   assert.ok(b.inEscalationSpaces8am > 0 && a.inEscalationSpaces8am === 0);
   assert.ok(Math.max(...b.daily) <= 1 + 1e-9, "proper-bed occupancy still capped at 100%");
+  assert.equal(b.waited45Daily.length, b.daily.length, "daily count of patients waiting 45+ minutes");
 });
 
 test("monotone: more demand raises occupancy", () => {
@@ -127,4 +128,10 @@ test("baseline reproduces its calibration targets (regression test)", { skip: !f
   if (base._note || !base.calibration.targets) return; // placeholder data file
   const r = run(buildParams(base, defaultSettings(base)), 20);
   assert.ok(Math.abs(r.occMidnight - base.calibration.targets.occupancy) < 0.01, `occupancy ${r.occMidnight}`);
+  const cc = base.corridorCare;
+  if (cc && base.calibration.targets.wardCorridor8am) {
+    const m = cc.daily.reduce((s, d) => s + r.escalationDaily8[d.day], 0) / cc.daily.length;
+    assert.ok(Math.abs(m / base.calibration.targets.wardCorridor8am - 1) < 0.25, `ward corridor care ${m}`);
+  }
 });
+

@@ -178,6 +178,9 @@ def main() -> None:
     print(n.groupby("fy")[["nctr", "nctr_remaining", "nctr_discharged"]].mean().round(0))
     p = ons_england_by_age()
     print(p.groupby("year").population.sum().loc[[1975, 2005, 2010, 2015, 2024, 2025]])
+    cc = corridor_care_daily()
+    if len(cc):
+        print(cc.groupby(cc.date.dt.to_period("M"))[["ed", "bed_adult", "bed_paeds", "bed_total"]].mean().round(0))
     t = trust_panel("2025/26")
     print(f"trust panel 2025/26: {len(t)} trusts")
     import json
@@ -606,13 +609,35 @@ def assemble() -> dict:
                               weekday=[float(x) for x in g.groupby("weekday").occupancy.mean().values],
                               start=str(g.date.min().date()), end=str(g.date.max().date()))
 
+    # corridor care (NHS England, experimental, from May 2026): ward figure is a calibration target,
+    # the ED figure is kept for validation. Days are indexed from 1 April so the model can match calendar days.
+    cc = corridor_care_daily()
+    corridor = None
+    if len(cc):
+        fy_start = pd.Timestamp(cc.date.min().year if cc.date.min().month >= 4 else cc.date.min().year - 1, 4, 1)
+        corridor = dict(
+            source="NHS England, Corridor Care (UEC daily situation reports), experimental statistics",
+            url="https://www.england.nhs.uk/statistics/statistical-work-areas/corridor-care-urgent-and-emergency-care-daily-situation-reports/",
+            start=str(cc.date.min().date()), end=str(cc.date.max().date()),
+            provisionalFrom=str(cc[cc.status == "provisional"].date.min().date()) if (cc.status == "provisional").any() else None,
+            wardMean=float(cc.bed_total.mean()), edMean=float(cc.ed.mean()),
+            daily=[dict(day=int((d - fy_start).days), date=str(d.date()), ed=float(e), ward=float(wd))
+                   for d, e, wd in zip(cc.date, cc.ed, cc.bed_total)],
+            wardWeekday=[float(x) for x in cc.groupby("weekday").bed_total.mean().values],
+            edWeekday=[float(x) for x in cc.groupby("weekday").ed.mean().values],
+            monthly=[dict(month=str(m), ed=float(g.ed.mean()), ward=float(g.bed_total.mean()), days=int(len(g)))
+                     for m, g in cc.groupby(cc.date.dt.to_period("M"))],
+        )
+
     inputs = dict(
         baseYear=BASE_YEAR, baseYearLabel=BASE_FY,
         national=dict(beds=base["beds"], emergPerYear=base["emergency_admissions"], electivePerYear=hd["elective_overnight"],
                       occupancy=base["occupancy"]),
         targets=dict(occupancy=base["occupancy"], nctrShare=base["nctr_share"], wait12Share=base["wait12_share"],
                      long21Share=base["long21_share"], weekendRatio=weekend_ratio, delayedShare=drd["delayed_share"],
-                     emBedDaysPerAdm=hd["mean_emergency_bed_days"], fluPeakBeds=wave["peak_beds_7day"]),
+                     emBedDaysPerAdm=hd["mean_emergency_bed_days"], fluPeakBeds=wave["peak_beds_7day"],
+                     **({"wardCorridor8am": corridor["wardMean"]} if corridor else {})),
+        corridorCare=corridor,
         delays=dict(shape=drd["gamma_shape"], mean=drd["gamma_mean"], bands=drd["band_shares"], bandLabels=drd["band_labels"],
                     avgExc0=drd["avg_delay_exc0"]),
         elective=dict(meanBedDays=hd["elective_bed_days_per_overnight_dominant"]),
@@ -628,6 +653,41 @@ def assemble() -> dict:
     import json
     (OUT / "model_inputs_core.json").write_text(json.dumps(inputs, indent=1, default=float))
     return inputs
+
+
+# ------------------------------------------------------------------ corridor care (experimental, from May 2026)
+def corridor_care_daily() -> pd.DataFrame:
+    """England daily corridor care from NHS England's monthly publication.
+
+    ed: patients receiving corridor care for more than 45 minutes in an emergency department during the
+        24 hours midnight to midnight (a count over the day; includes patients who are not admitted).
+    bed_adult / bed_paeds / bed_total: patients receiving care on a G&A ward outside a bed space for more
+        than 45 minutes, snapshot at 08:00.
+    Where several editions cover a month (provisional then final), the latest file wins.
+    """
+    rows = []
+    for f in sorted((RAW / "corridor_care_stats").glob("Corridor-Care-Publication-*-csv.csv")):
+        d = pd.read_csv(f, thousands=",")
+        d = d[(d["Org Code"] == "Total") & (d.Metric == "Daily")]
+        per = d.Period.astype(str)
+        serial = per.str.fullmatch(r"\d{5}")  # later editions store Excel serial dates
+        date = pd.to_datetime(per.where(~serial), format="%d-%b-%y", errors="coerce")
+        date = date.fillna(pd.Timestamp("1899-12-30") + pd.to_timedelta(pd.to_numeric(per.where(serial), errors="coerce"), unit="D"))
+        d = d.assign(date=date, file=f.name, Value=pd.to_numeric(d.Value.astype(str).str.replace(",", ""), errors="coerce"))
+        rows.append(d[["date", "Subject", "Value", "file"]])
+    if not rows:
+        return pd.DataFrame()
+    d = pd.concat(rows)
+    d["final"] = d.file.str.contains("final")
+    d = d.sort_values(["date", "Subject", "final"]).drop_duplicates(["date", "Subject"], keep="last")
+    w = d.pivot(index="date", columns="Subject", values="Value").rename(columns={
+        "CorridorCare_ED": "ed", "CorridorCare_bed_adult": "bed_adult",
+        "CorridorCare_bed_paeds": "bed_paeds", "CorridorCare_bed_total": "bed_total"})
+    w["status"] = d[d.Subject == "CorridorCare_ED"].set_index("date").final.map({True: "final", False: "provisional"})
+    w = w.reset_index()
+    w["weekday"] = w.date.dt.weekday
+    w.to_csv(OUT / "corridor_care_daily_england.csv", index=False)
+    return w
 
 
 if __name__ == "__main__":

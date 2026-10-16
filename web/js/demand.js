@@ -18,7 +18,7 @@ export function defaultSettings(base) {
     beds: base.national.beds,
     staffingPct: 100,
     escalationPct: 0,
-    corridorPct: 0,
+    corridorPct: +(c.corridorPct ?? 0).toFixed(1), // calibrated to NHS England's ward corridor-care count
     electivePct: 100,
     // public health (current values = no change)
     risk: Object.fromEntries((base.riskFactors || []).map((r) => [r.key, r.current])),

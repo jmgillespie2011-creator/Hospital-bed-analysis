@@ -142,11 +142,16 @@ async function main() {
     to about ${int(interp(h2010.beds, (s) => s.A.wait12PerYear))} a year. Getting to the 85% often quoted as safe would take about
     ${int(Math.round(bedsAt(0.85) / 100) * 100)} beds, roughly ${int(Math.round((bedsAt(0.85) - sc.baseBeds) / 100) * 100)} more than today.
     For comparison, 2005/06's beds per head would mean ${int(h2005.perHeadBeds)} beds today.`;
-  $("corridorBox").innerHTML = `<strong>Corridor care.</strong> On an average morning in the simulation, ${int(A0.corridor8am)} patients are waiting for a
-    bed in today's system. In reality many of them are cared for on trolleys or chairs in corridors. The simulator's "temporary escalation
-    spaces" setting turns some of that waiting into corridor spaces. It shortens recorded waits without adding a proper bed:
-    ${(() => { const c = sc.levers.find((l) => l.id === "corridor"); return c ? `spaces equal to 2% of beds cut 12-hour waits by ${int(A0.wait12PerYear - c.A.wait12PerYear)} a year in the model, while every patient involved is still in a corridor` : ""; })()}.
-    NHS England has started publishing corridor-care data, defined as patients waiting 45 minutes or more in an inappropriate area. We have not yet compared the model with it.`;
+  const cc = base.corridorCare, nc = sc.levers.find((l) => l.id === "noCorridor");
+  const MONTHL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const ccEnd = cc ? `${MONTHL[+cc.end.slice(5, 7) - 1]} ${cc.end.slice(0, 4)}` : "";
+  $("corridorBox").innerHTML = cc ? `<strong>Corridor care.</strong> Since May 2026 NHS England has counted patients cared for in corridors for
+    45 minutes or more. From May to ${ccEnd} an average of ${int(cc.wardMean)} patients were on a ward but outside a bed space at 08:00. Over each day,
+    ${int(cc.edMean)} patients received corridor care in emergency departments. The simulator gives wards corridor spaces equal to
+    ${base.calibration.A.corridorPct}% of beds, used only when every proper bed is full, and fits that number to the ward count. Corridor care
+    hides some of the shortage: a patient on a trolley on a ward is no longer counted as waiting in A&amp;E.
+    ${nc ? `Ending ward corridor care with no other change would raise 12-hour waits from ${int(A0.wait12PerYear)} to ${int(nc.A.wait12PerYear)} a year in the model.` : ""}
+    The <a href="validation.html#corridor">validation page</a> compares the model with both counts.` : "";
 
   // ---------------------------------------------------------------- 4. levers
   const L = sc.levers.filter((l) => l.group !== "Context");

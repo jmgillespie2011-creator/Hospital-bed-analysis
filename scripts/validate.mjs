@@ -12,6 +12,8 @@
 //   V6  delay-length distribution vs Discharge Ready Date bands (only the shape was fitted)
 //   V7  trust-level cross-section 2025/26: occupancy and >12h waits for ~120 trusts
 //   V9  COVID-19 year 2020/21 as a natural experiment
+//   C1-C4 corridor care (NHS England, from May 2026): ward level is a calibration target; its weekly and
+//         monthly pattern, and the emergency-department count, were not used in calibration
 // Lever-effect checks (placebo outcomes) are summarised from scripts/effects_analysis.py.
 import fs from "node:fs";
 import path from "node:path";
@@ -88,7 +90,7 @@ out.checks.push({
 });
 
 // ---------------------------------------------------------------- V3/V4: winter daily pattern
-const ref = scenario({}, "A", 48);
+const ref = scenario({}, "A", 96); // long waits and corridor counts are noisy: use many replications
 const MS = [0, 30, 61, 91, 122, 153, 183, 214, 245, 275, 306, 334, 365];
 const day0dow = 0; // simulated day 0 = 1 April (Monday)
 const winterIdx = [];
@@ -124,6 +126,64 @@ out.checks.push({
   criterion: "within 20% of observed", pass: Math.abs(ref.nctrShare / base.calibration.targets.nctrShare - 1) <= 0.2,
   note: "Calibration used the Discharge Ready Date measure of delays instead; the two NHS measures define readiness differently.",
 });
+
+// ---------------------------------------------------------------- C1-C4: corridor care
+const cc = base.corridorCare;
+if (cc) {
+  const refB = scenario({}, "B", 8);
+  const days = cc.daily.map((d) => d.day);
+  const avg = (series) => mean(days.map((d) => series[d]));
+  // weekday (Mon=0) on each calendar: the data's own dates; in the model, day i falls on weekday i % 7
+  const obsDow = (d) => (new Date(d.date + "T00:00:00Z").getUTCDay() + 6) % 7, modelDow = (d) => (d.day + day0dow) % 7;
+  const weekdayOf = (vals, dow) => {
+    const s7 = [0, 0, 0, 0, 0, 0, 0], n7 = [0, 0, 0, 0, 0, 0, 0];
+    cc.daily.forEach((d, j) => { const w = dow(d); s7[w] += vals[j]; n7[w]++; });
+    return s7.map((v, i) => v / n7[i]);
+  };
+  const mWard = days.map((d) => ref.escalationDaily8[d]), mEd = days.map((d) => ref.waited45Daily[d]);
+  const oWard = cc.daily.map((d) => d.ward), oEd = cc.daily.map((d) => d.ed);
+  const monthsOf = (vals) => cc.monthly.map((m) => mean(cc.daily.map((d, j) => (d.date.startsWith(m.month) ? vals[j] : null)).filter((x) => x != null)));
+  const wkObsW = weekdayOf(oWard, obsDow), wkModW = weekdayOf(mWard, modelDow), wkObsE = weekdayOf(oEd, obsDow), wkModE = weekdayOf(mEd, modelDow);
+  const moObsW = monthsOf(oWard), moModW = monthsOf(mWard);
+  const mapeW = mean(moObsW.map((o, i) => Math.abs(moModW[i] / o - 1)));
+  out.corridor = {
+    start: cc.start, end: cc.end, provisionalFrom: cc.provisionalFrom, months: cc.monthly.map((m) => m.month),
+    ward: { obs: avg2(oWard), modelA: avg(ref.escalationDaily8), modelB: avg(refB.escalationDaily8), weekdayObs: wkObsW, weekdayModel: wkModW, monthlyObs: moObsW, monthlyModel: moModW },
+    ed: { obs: avg2(oEd), admittedWaiting45A: avg(ref.waited45Daily), admittedWaiting45B: avg(refB.waited45Daily), weekdayObs: wkObsE, weekdayModel: wkModE },
+    corridorPct: base.calibration.A.corridorPct, spaces: Math.round(base.national.beds * base.calibration.A.corridorPct / 100),
+  };
+  function avg2(a) { return mean(a); }
+  out.checks.push({
+    id: "C1", name: `Patients in corridor care on G&A wards at 08:00, ${cc.start} to ${cc.end}`,
+    observed: `${Math.round(out.corridor.ward.obs)} a day`, modelA: `${Math.round(out.corridor.ward.modelA)} a day`, modelB: `${Math.round(out.corridor.ward.modelB)} a day`,
+    criterion: "calibration target (today's system)", pass: null,
+    note: `Corridor spaces equal to ${base.calibration.A.corridorPct}% of beds (${out.corridor.spaces.toLocaleString("en-GB")}) were fitted so that today's system matches. The more flexible system rarely fills every bed, so it rarely uses them.`,
+  });
+  out.checks.push({
+    id: "C2", name: "Ward corridor care by day of the week (Mon-Sun)",
+    observed: wkObsW.map((x) => Math.round(x)).join(", "), modelA: wkModW.map((x) => Math.round(x)).join(", "),
+    modelB: `correlation ${corr(wkObsW, wkModW).toFixed(2)}`,
+    criterion: "same shape (correlation > 0.7)", pass: corr(wkObsW, wkModW) > 0.7,
+    note: "Not used in calibration. Observed corridor care is lowest at weekends.",
+  });
+  out.checks.push({
+    id: "C3", name: "Ward corridor care by month",
+    observed: cc.monthly.map((m, i) => `${m.month.slice(5)}: ${Math.round(moObsW[i])}`).join("; "),
+    modelA: cc.monthly.map((m, i) => `${m.month.slice(5)}: ${Math.round(moModW[i])}`).join("; "), modelB: `mean error ${(100 * mapeW).toFixed(0)}%`,
+    criterion: "each month within 20% on average", pass: mapeW <= 0.2,
+    note: "Only the average over these months was fitted. The model uses 2025/26 demand; the data are for 2026/27.",
+  });
+  out.checks.push({
+    id: "C4", name: "Corridor care in emergency departments (45+ minutes, per day)",
+    observed: `${Math.round(out.corridor.ed.obs)} patients a day`,
+    modelA: `${Math.round(out.corridor.ed.admittedWaiting45A)} admitted patients a day wait 45+ minutes for a bed`,
+    modelB: `${Math.round(out.corridor.ed.admittedWaiting45B)} a day`,
+    criterion: "reported: not the same measure", pass: null,
+    note: "The NHS count includes patients who are not admitted and excludes patients waiting in a proper cubicle; the model counts only patients waiting for a bed, wherever they wait. "
+      + `Weekly pattern correlation ${corr(wkObsE, wkModE).toFixed(2)}.`,
+  });
+  log("corridor", JSON.stringify({ ward: out.corridor.ward.obs, wardA: out.corridor.ward.modelA, ed: out.corridor.ed.obs, ed45A: out.corridor.ed.admittedWaiting45A, wkW: corr(wkObsW, wkModW), wkE: corr(wkObsE, wkModE), mapeW }));
+}
 
 // ---------------------------------------------------------------- V7: trusts
 const trustCsv = fs.readFileSync(path.join(ROOT, base.trustPanel.file), "utf8").trim().split("\n");

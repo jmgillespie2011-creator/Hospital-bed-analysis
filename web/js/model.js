@@ -286,7 +286,10 @@ export function simulate(p, seed = 1, wantDaily = true) {
   const tesN = S0 * (p.corridorPct || 0) / 100;
   const tesSpaces = Math.floor(tesN) + (RC.next() < tesN - Math.floor(tesN) ? 1 : 0);
   const capE = (t) => cap(t) + tesSpaces; // proper beds + temporary escalation spaces
-  const queueMid = [], queue8 = [], tesMid = [], tes8 = [];
+  const queueMid = [], queue8 = [], tesMid = [], tes8 = [], queue8_45 = [];
+  // emergency patients whose wait for a bed passed 45 minutes, by day of arrival (comparable with NHS England's
+  // count of patients receiving corridor care in ED for 45+ minutes during each day)
+  const wait45ByDay = new Float64Array(nDays);
 
   const FLU_GROUP = { losMult: p.fluLosMult, delayMult: 1 };
   const admitEmergency = (t, i) => {
@@ -333,6 +336,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
       if (qHead < queue.length) {
         const i = queue[qHead++];
         if (arr[i] >= warmH) waits.push(t - arr[i]);
+        if (t - arr[i] >= 0.75) wait45ByDay[Math.floor(arr[i] / 24)]++;
         admitEmergency(t, i);
       } else if (eHead < elQueue.length) {
         const j = elQueue[eHead++];
@@ -363,6 +367,9 @@ export function simulate(p, seed = 1, wantDaily = true) {
           let n21 = 0; for (const a of admitOf.values()) if (t - a >= 21 * 24) n21++;
           long21_8.push(n21);
           queue8.push(queue.length - qHead); tes8.push(Math.max(0, occupied - cap(t)));
+          // NHS England's corridor-care definition: at least 45 minutes in an inappropriate area
+          let n45 = 0; for (let q = qHead; q < queue.length; q++) if (t - arr[queue[q]] >= 0.75) n45++;
+          queue8_45.push(n45);
         }
       }
       snapT += isMidnight ? 8 : 16;
@@ -385,7 +392,10 @@ export function simulate(p, seed = 1, wantDaily = true) {
     }
   }
   for (let j = eHead; j < elQueue.length; j++) if (el[elQueue[j]] >= warmH) elecCancelled++;
-  for (let q = qHead; q < queue.length; q++) if (arr[queue[q]] >= warmH) waits.push(endH - arr[queue[q]]);
+  for (let q = qHead; q < queue.length; q++) {
+    if (arr[queue[q]] >= warmH) waits.push(endH - arr[queue[q]]);
+    if (endH - arr[queue[q]] >= 0.75) wait45ByDay[Math.floor(arr[queue[q]] / 24)]++;
+  }
 
   const sum = (a) => a.reduce((x, y) => x + y, 0);
   const occSum = sum(occMid), capSum = sum(capMid);
@@ -416,6 +426,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
     queue8Max: Math.max(...queue8),
     tes8: sum(tes8) / tes8.length,                // patients in temporary escalation spaces at 08:00
     corridorDaily8: queue8.map((q, i) => q + tes8[i]),
+    queue45Daily8: queue8_45, tesDaily8: tes8, wait45Daily: Array.from(wait45ByDay.slice(p.warmupDays)),
     nPools,
   };
 }
@@ -444,6 +455,11 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
   const nPools = out[0].nPools;
   const corridor8 = new Array(days).fill(0);
   for (const x of out) for (let i = 0; i < Math.min(days, x.corridorDaily8.length); i++) corridor8[i] += x.corridorDaily8[i] * nPools / out.length;
+  const ed45Daily8 = new Array(days).fill(0), wardDaily8 = new Array(days).fill(0), wait45Daily = new Array(days).fill(0);
+  for (const x of out) for (let i = 0; i < Math.min(days, x.tesDaily8.length); i++) {
+    ed45Daily8[i] += x.queue45Daily8[i] * nPools / out.length; wardDaily8[i] += x.tesDaily8[i] * nPools / out.length;
+    wait45Daily[i] += x.wait45Daily[i] * nPools / out.length;
+  }
   const fluDaily = new Array(days).fill(0);
   for (const x of out) for (let i = 0; i < days; i++) fluDaily[i] += x.fluDaily[i] * nPools / out.length;
   const availableBeds = p.beds * Math.min(1, p.staffingPct / 100);
@@ -474,6 +490,12 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
     corridorCare8am: mean((x) => x.queue8 + x.tes8) * nPools,
     corridorCarePeak: Math.max(...corridor8),
     corridorDaily8: corridor8,
+    // 08:00 snapshot, as NHS England's corridor-care collection: emergency patients waiting 45+ minutes for a
+    // bed, and patients in temporary escalation spaces on wards (day 0 = 1 April)
+    waiting45Daily8: ed45Daily8, escalationDaily8: wardDaily8,
+    // emergency patients per day whose wait for a bed reached 45 minutes. In all daily series, day i is
+    // i days after 1 April and falls on weekday i % 7 (Monday = 0)
+    waited45Daily: wait45Daily,
     // weekend / weekday ratio of discharge rates among medically fit patients
     weekendDischargeRatio: (() => {
       const dis = [0, 0, 0, 0, 0, 0, 0], st = [0, 0, 0, 0, 0, 0, 0];

@@ -83,16 +83,22 @@ season(d) = 1 + a × cos(2π (day-of-year − 15) / 365)    (peak mid-January; a
 </ul>
 
 <h3 id="corridor">Corridor care</h3>
-<p>Corridor care appears in two ways in the model, and the Model page reports both at 08:00 each day (averaged over the year, and the worst morning):</p>
+<p>NHS England defines corridor care as care for 45 minutes or more in a clinically inappropriate place. Since May 2026 it has published
+two counts (experimental statistics). The model represents both:</p>
 <ul>
-  <li><strong>Waiting in A&amp;E for a bed</strong>: emergency patients with a decision to admit but no free bed. They queue first-come-first-served;
-    their waiting time gives the "&gt;4h" and "&gt;12h" figures (NHS England's decision-to-admit measure).</li>
-  <li><strong>In temporary escalation spaces</strong>: if the temporary escalation spaces setting is above zero, patients waiting for a bed are placed in
-    those spaces first and moved into a proper bed when one becomes free. They are no longer counted as waiting in A&amp;E.</li>
+  <li><strong>Corridor care on wards</strong> (NHS count: patients on a G&amp;A ward outside a bed space, at 08:00). In the model these are
+    corridor spaces on wards: trolleys or chairs used only when every proper bed in a pool is full. An emergency patient placed in one
+    has been admitted, so their A&amp;E wait ends, but they do not count as occupying a G&amp;A bed, matching KH03. They move into a proper
+    bed when one becomes free. Planned patients are never placed in them. The number of spaces is fitted so that today's system
+    reproduces the average ward count for May to September 2026 (see <a href="#calibration">calibration</a>).</li>
+  <li><strong>Waiting in A&amp;E for a bed</strong>: emergency patients with a decision to admit but no free bed or corridor space. They queue
+    first-come-first-served, and their waiting time gives the "&gt;4h" and "&gt;12h" figures (NHS England's decision-to-admit measure).
+    NHS England's count of corridor care in emergency departments is a different measure. It counts patients over each day, includes
+    patients who are never admitted, and excludes those waiting in a proper cubicle. It is therefore used only as a comparison on the
+    <a href="validation.html#corridor">validation page</a>, not as a target.</li>
 </ul>
-<p>Neither group is counted in bed occupancy, which, like KH03, counts only patients in proper beds. The 2024/25 calibration targets the
-decision-to-admit waits, with no temporary spaces. This treats today's corridor care as part of the A&amp;E wait, because there is no national
-time series that separates the two.</p>
+<p>Neither group counts towards bed occupancy, which, like KH03, counts only patients in proper beds. The ward count comes from 2026/27
+while the other targets are for 2025/26. The model is compared on the same calendar days.</p>
 
 <h3>Planned (elective) overnight patients</h3>
 <ul>
@@ -114,9 +120,9 @@ cannot directly change (population, winter severity). Each one changes a specifi
   <li><strong>Nursing posts filled</strong>: available beds = <code>B × min(1, filled%)</code>. Extra beds therefore only help if they can be staffed.
     The model does not include the evidence that low staffing also lengthens stays and worsens outcomes, so staffing effects are, if anything, understated.</li>
   <li><strong>Extra winter beds</strong>: additional % of available beds from 1 December to 31 March.</li>
-  <li><strong>Temporary escalation spaces (corridor care)</strong>: extra trolleys or chairs used only when every proper bed is full.
-    Emergency patients placed there count as admitted (their A&amp;E wait ends) but not as occupying a G&amp;A bed, matching how KH03 counts beds.
-    Planned patients are never placed in them.</li>
+  <li><strong>Corridor care spaces on wards</strong>: trolleys or chairs outside a bed space, used only when every proper bed is full.
+    The starting value is fitted to NHS England's ward corridor-care count. Setting it to zero removes corridor care on wards, so
+    those patients wait in A&amp;E instead.</li>
   <li><strong>Planned surgery &amp; treatment</strong>: scales the number of planned overnight admissions.</li>
 </ul>
 
@@ -187,6 +193,7 @@ observed, so each is tuned until the model reproduces one measured 2025/26 figur
 <tr><td>Weekday spread of planned admissions</td><td>Weekly pattern of winter occupancy (daily sitrep)</td></tr>
 <tr><td>Size of the flu wave</td><td>Peak flu patients in G&amp;A beds (winter daily sitrep)</td></tr>
 <tr><td>Effective bed pool size</td><td>Share of emergency admissions waiting &gt;12 hours from decision to admit (A&amp;E)</td></tr>
+<tr><td>Corridor care spaces on wards</td><td>Patients in corridor care on G&amp;A wards at 08:00, May to September 2026 (NHS England, experimental)</td></tr>
 </tbody></table>
 <p>Parameters are fitted one at a time by bisection, cycling until all targets are met together (<code>scripts/calibrate.mjs</code>, using the
 same model code as this website). Other measurements are kept back to test the model: see <a href="validation.html">Validation</a>.</p>

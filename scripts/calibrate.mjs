@@ -11,6 +11,8 @@
 //   weekend discharging          -> weekend/weekday discharge-rate ratio (discharge sitrep)
 //   flu admissions               -> peak flu patients in G&A beds (winter sitrep)
 //   effective bed-pool size      -> share of emergency admissions waiting >12h from decision to admit
+//   corridor (escalation) spaces -> patients receiving corridor care on G&A wards at 08:00 (NHS England
+//                                   corridor-care collection, May 2026 onwards, same calendar days)
 // The delay-length distribution (gamma) is fixed from the DRD delay bands.
 import fs from "node:fs";
 import path from "node:path";
@@ -32,6 +34,7 @@ const base = {
       poolSize: 90, losMedianDays: 3, losSigma: 1.1, sameDayFrac: 0.3, delayProb: 0.1,
       delayMeanDays: inp.delays.mean, delayShape: inp.delays.shape, weekendDischargePct: 75, electiveFrontLoad: 0, electiveLosSigma: 0.8,
       electiveLosMedianDays: inp.elective.meanBedDays / Math.exp(0.8 ** 2 / 2), seasonAmp: 0.04, fluAdmissions: 40000,
+      corridorPct: T.wardCorridor8am != null ? 4 : 0,
     },
     B: null,
     targets: T,
@@ -40,16 +43,20 @@ const base = {
 
 function measure(which, reps = which === "B" ? 4 : REPS) {
   const s = defaultSettings(base);
-  return run(buildParams(base, { ...s, flexibility: which }), reps);
+  // exact (unrounded) corridor spaces while fitting; the website uses the value rounded to 0.1%
+  return run(buildParams(base, { ...s, corridorPct: base.calibration[which].corridorPct ?? 0, flexibility: which }), reps);
 }
+// patients in corridor spaces on wards at 08:00, averaged over the calendar days NHS England has published
+const ccDays = (inp.corridorCare?.daily || []).map((d) => d.day);
+const wardCorridor = (r) => ccDays.reduce((s, d) => s + r.escalationDaily8[d], 0) / Math.max(ccDays.length, 1);
 
 // Bisection on one parameter so that metric(result) hits target; increasing=true if metric rises with param.
-function fit1(which, key, metric, target, lo, hi, increasing, iters = 11) {
+function fit1(which, key, metric, target, lo, hi, increasing, iters = 11, reps = undefined) {
   const c = base.calibration[which];
   for (let k = 0; k < iters; k++) {
     const mid = (lo + hi) / 2;
     c[key] = mid;
-    const m = metric(measure(which));
+    const m = metric(measure(which, reps));
     if ((m < target) === increasing) lo = mid; else hi = mid;
   }
   c[key] = (lo + hi) / 2;
@@ -82,6 +89,34 @@ function fitWeekly(which) {
   log(`   weekly pattern fit (weekend fixed at ${best.wd.toFixed(0)}%): front-load ${best.fl}, elective sigma ${best.sg}, shape RMSE ${best.e.toFixed(2)} pts`);
 }
 
+// Pool size and corridor spaces interact: smaller pools raise both long waits and corridor use, while more
+// corridor spaces cut waits. Fitting them in turn oscillates, so solve them together: for each pool size,
+// find the corridor spaces that reproduce the ward corridor count; then choose the pool size along that
+// curve that reproduces the share waiting over 12 hours (monotone: smaller pools, more long waits).
+// Long waits and corridor counts depend on rare runs of busy days, so they are noisy: the final solve uses
+// more replications.
+function fitPoolAndCorridor(which, [lo, hi], roundCorridor = false, reps = REPS, withLos = false) {
+  const c = base.calibration[which];
+  const corridorFor = () => {
+    // pool size also moves occupancy (smaller pools leave more patients waiting rather than in beds), and long
+    // waits are very sensitive to occupancy, so the final solve re-fits length of stay at every step
+    if (withLos) fit1(which, "losMedianDays", (x) => x.occMidnight, T.occupancy, c.losMedianDays * 0.85, c.losMedianDays * 1.15, true, 8, reps);
+    if (T.wardCorridor8am == null) return;
+    fit1(which, "corridorPct", wardCorridor, T.wardCorridor8am, 0, 15, true, 7, reps);
+    if (roundCorridor) c.corridorPct = +c.corridorPct.toFixed(1); // the website's slider works in 0.1% steps
+  };
+  // bisection on log(pool size); waits fall as pools grow
+  let a = Math.log(lo), b = Math.log(hi);
+  for (let k = 0; k < 8; k++) {
+    c.poolSize = Math.exp((a + b) / 2);
+    corridorFor();
+    // too many long waits -> pools must be larger
+    if (measure(which, reps).wait12 > T.wait12Share) a = Math.log(c.poolSize); else b = Math.log(c.poolSize);
+  }
+  c.poolSize = Math.exp((a + b) / 2);
+  corridorFor();
+}
+
 function fitAll(which, rounds = 3, withPool = false, behaviour = true) {
   for (let r = 0; r < rounds; r++) {
     if (behaviour) {
@@ -93,27 +128,27 @@ function fitAll(which, rounds = 3, withPool = false, behaviour = true) {
     fit1(which, "losMedianDays", (x) => x.occMidnight, T.occupancy, 0.5, 8, true, 11);
     fit1(which, "delayProb", (x) => x.delayedShareOvernight, T.delayedShare, 0.0, 0.4, true, 9);
     if (base.flu) fit1(which, "fluAdmissions", (x) => x.fluBedsPeak, T.fluPeakBeds, 5000, 150000, true, 9);
-    if (withPool) {
-      const lw = (x) => -Math.log(Math.max(x, 1e-6));
-      fit1(which, "poolSize", (x) => lw(x.wait12), lw(T.wait12Share), 30, 600, true, 8);
-    }
+    if (withPool) fitPoolAndCorridor(which, r === 0 ? [15, 600] : [15, 250]);
     if (r === rounds - 1) {
       // final polish: the last parameters fitted shift occupancy, so re-fit it (and pool size) last
       fit1(which, "losMedianDays", (x) => x.occMidnight, T.occupancy, 2, 6, true, 10);
       if (withPool) {
-        const lw = (x) => -Math.log(Math.max(x, 1e-6));
-        fit1(which, "poolSize", (x) => lw(x.wait12), lw(T.wait12Share), 40, 200, true, 8);
-        fit1(which, "losMedianDays", (x) => x.occMidnight, T.occupancy, 2, 6, true, 10);
+        // occupancy, pool size and corridor spaces interact: solve all three together
+        fitPoolAndCorridor(which, [15, 250], false);
+        fitPoolAndCorridor(which, [25, 150], true, 96, true);
       }
     }
-    const m = measure(which, which === "B" ? 8 : 64);
+    const m = measure(which, which === "B" ? 8 : 96);
     log(`[${which}] round ${r + 1}`, JSON.stringify(Object.fromEntries(Object.entries(base.calibration[which]).map(([k, v]) => [k, +(+v).toFixed(4)]))));
-    log(`   occ ${m.occMidnight.toFixed(4)}/${T.occupancy.toFixed(4)}  bd/adm ${m.emBedDaysPerAdm.toFixed(2)}/${T.emBedDaysPerAdm.toFixed(2)}  21+ ${m.long21Share.toFixed(3)}/${T.long21Share.toFixed(3)}  delayed ${m.delayedShareOvernight.toFixed(3)}/${T.delayedShare.toFixed(3)}  wkend ${m.weekendDischargeRatio.toFixed(3)}/${T.weekendRatio.toFixed(3)}  week-shape ${weekShape(m).toFixed(2)}  flu ${Math.round(m.fluBedsPeak)}/${T.fluPeakBeds}  >12h ${m.wait12.toFixed(4)}/${T.wait12Share.toFixed(4)}  nctr ${m.nctrShare.toFixed(3)} (validation ${T.nctrShare.toFixed(3)})`);
+    log(`   occ ${m.occMidnight.toFixed(4)}/${T.occupancy.toFixed(4)}  bd/adm ${m.emBedDaysPerAdm.toFixed(2)}/${T.emBedDaysPerAdm.toFixed(2)}  21+ ${m.long21Share.toFixed(3)}/${T.long21Share.toFixed(3)}  delayed ${m.delayedShareOvernight.toFixed(3)}/${T.delayedShare.toFixed(3)}  wkend ${m.weekendDischargeRatio.toFixed(3)}/${T.weekendRatio.toFixed(3)}  week-shape ${weekShape(m).toFixed(2)}  flu ${Math.round(m.fluBedsPeak)}/${T.fluPeakBeds}  >12h ${m.wait12.toFixed(4)}/${T.wait12Share.toFixed(4)}  ward corridor ${Math.round(wardCorridor(m))}/${Math.round(T.wardCorridor8am ?? 0)}  nctr ${m.nctrShare.toFixed(3)} (validation ${T.nctrShare.toFixed(3)})`);
   }
 }
 
 // Model A: everything, including pool size, fitted to 2025/26.
-fitAll("A", 6, true);
+// WARM=1 starts from the current web/data/baseline.json values and runs fewer rounds.
+const warm = process.env.WARM === "1" && fs.existsSync(path.join(ROOT, "web/data/baseline.json"));
+if (warm) Object.assign(base.calibration.A, JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/baseline.json"), "utf8")).calibration.A);
+fitAll("A", warm ? 1 : 6, true);
 // Model B: large pools (2015/16-like flexibility); same targets except >12h waits.
 base.calibration.B = { ...base.calibration.A, poolSize: 1000 };
 fitAll("B", 2, false, false); // keeps model A's discharge behaviour (weekend, planned-admission timing)

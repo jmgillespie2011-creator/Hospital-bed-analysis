@@ -44,6 +44,20 @@ All results are produced by <code>scripts/validate.mjs</code>.</p>
   <div class="chart-card"><h3>121 acute trusts: long waits</h3><p class="cap">Model run for each trust with its own beds, admissions and occupancy, against its observed share waiting over 12 hours.</p><div class="chart-box"><canvas id="chartTrusts"></canvas></div></div>
 </div>
 
+<h2 id="corridor">Corridor care</h2>
+<p>Since May 2026 NHS England has published two counts of corridor care, defined as care for 45 minutes or more in a clinically
+inappropriate place (<a href="https://www.england.nhs.uk/statistics/statistical-work-areas/corridor-care-urgent-and-emergency-care-daily-situation-reports/">source</a>;
+experimental statistics). The first is <strong>ward corridor care</strong>: patients on a general &amp; acute ward but outside a bed space, counted at 08:00.
+This corresponds to the model's temporary escalation spaces, which are used only when every proper bed in a pool is full. The number of
+those spaces is fitted so the model matches the average count. The pattern by day of week and by month was not fitted, which makes it a test.
+The second is <strong>corridor care in emergency departments</strong>: patients counted over each day. This includes people who are never
+admitted and leaves out those waiting in a proper cubicle. The model has no direct equivalent, so we report the number of admitted patients whose wait
+for a bed reached 45 minutes alongside it, without a pass mark.</p>
+<div class="grid2" id="corridorCharts">
+  <div class="chart-card"><h3>Ward corridor care by month</h3><p class="cap">Average patients in corridor care on G&amp;A wards at 08:00.</p><div class="chart-box"><canvas id="chartCorrMonth"></canvas></div></div>
+  <div class="chart-card"><h3>Ward corridor care by day of the week</h3><p class="cap">Average patients at 08:00, Monday to Sunday.</p><div class="chart-box"><canvas id="chartCorrWeek"></canvas></div></div>
+</div>
+
 <h2>Can area data measure the effect of public-health policies?</h2>
 <p>Estimates from <code>scripts/effects_analysis.py</code>: how emergency admission rates vary with risk factors across ~150 local
 authorities (between areas, adjusted for deprivation) and within areas over time (area and year fixed effects). Placebo outcomes (falls, hip

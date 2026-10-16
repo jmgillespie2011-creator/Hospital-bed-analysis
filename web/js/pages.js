@@ -40,6 +40,7 @@ async function main() {
         r("Planned admissions front-loaded towards Monday", "electiveFrontLoad", 2, (x) => x, "Weekday pattern of winter occupancy (daily sitrep)"),
         r("Flu admissions per year (simulated wave)", "fluAdmissions", 0, (x) => x, `Flu patients in G&A beds at peak ${num(t.fluPeakBeds)} (winter sitrep, 7-day mean)`),
         r("Effective bed pool size (beds)", "poolSize", 0, (x) => x, `Emergency admissions waiting >12h ${pct(t.wait12Share, 2)} (A&E); flexible system fixed at 1,000`),
+        ...(t.wardCorridor8am != null ? [r("Corridor care spaces on wards (% of beds)", "corridorPct", 1, (x) => x, `Patients in ward corridor care at 08:00: ${num(t.wardCorridor8am)} (NHS England, May-Sep 2026); flexible system uses the same spaces`)] : []),
         r("Mean delay for delayed patients (days, fixed)", "delayMeanDays", 2, (x) => x, `Gamma shape ${num(c.A.delayShape, 2)}, fitted to Discharge Ready Date delay bands`),
       ], [1, 2]);
   }
@@ -121,6 +122,22 @@ async function renderValidation() {
     { label: "Today's system", data: v.winter.model.weekday.map((x) => 100 * x), borderColor: css("--series-scn"), borderWidth: 2, pointRadius: 4 },
   ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } },
     scales: { y: { title: { display: true, text: "Occupancy (%)" } } } } });
+  if (v.corridor && $("chartCorrMonth")) {
+    const c = v.corridor, MONTHN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const mlab = c.months.map((m) => `${MONTHN[+m.slice(5) - 1]} ${m.slice(0, 4)}${c.provisionalFrom && m >= c.provisionalFrom.slice(0, 7) ? " (provisional)" : ""}`);
+    const bars = (obs, mod) => ({ labels: mlab, datasets: [
+      { label: "Observed (NHS England)", data: obs, backgroundColor: css("--series-base"), borderRadius: 4, borderSkipped: false },
+      { label: "Today's system", data: mod, backgroundColor: css("--series-scn"), borderRadius: 4, borderSkipped: false }] });
+    const bopts = (y) => ({ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" },
+      tooltip: { callbacks: { label: (x) => `${x.dataset.label}: ${Math.round(x.parsed.y).toLocaleString("en-GB")}` } } },
+      scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: y } } } });
+    new Chart($("chartCorrMonth"), { type: "bar", data: bars(c.ward.monthlyObs, c.ward.monthlyModel), options: bopts("Patients at 08:00") });
+    new Chart($("chartCorrWeek"), { type: "line", data: { labels: days, datasets: [
+      { label: "Observed (NHS England)", data: c.ward.weekdayObs, borderColor: css("--text"), borderWidth: 2, pointRadius: 4 },
+      { label: "Today's system", data: c.ward.weekdayModel, borderColor: css("--series-scn"), borderWidth: 2, pointRadius: 4 },
+    ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } },
+      scales: { y: { min: 0, title: { display: true, text: "Patients at 08:00" } } } } });
+  } else if ($("corridorCharts")) $("corridorCharts").hidden = true;
   new Chart($("chartTrusts"), { type: "scatter", data: { datasets: [
     { label: "Acute trusts", data: v.trusts.map((t) => ({ x: 100 * t.wait12_model_matched, y: 100 * t.wait12_obs, name: t.name })),
       backgroundColor: css("--series-scn"), pointRadius: 4 },
