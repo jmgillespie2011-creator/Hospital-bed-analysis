@@ -19,6 +19,7 @@ function fmtVal(v, unit) {
 
 async function main() {
   const base = await (await fetch("data/baseline.json")).json();
+  BASE0 = base;
   if ($("generated")) $("generated").textContent = base.generated || "";
   if ($("inputs")) {
     $("inputs").innerHTML = table(
@@ -246,7 +247,8 @@ async function renderValidation() {
       More likely, a high long-stay share marks trusts whose patients or local services (older, frailer populations; weaker community and social care)
       suffer most once flexibility is lost, or it shares a common cause with long waits.`;
   }
-  await renderPoolTests(base);
+  await renderPoolTests(BASE0);
+  await renderExtra();
   if (v.effects) {
     const OUT = { emergency_all: "All emergency admissions", copd: "COPD", chd: "Coronary heart disease", stroke: "Stroke",
       pneumonia: "Pneumonia", respiratory: "Respiratory", falls65: "Falls, 65+ (placebo)", hip_fracture: "Hip fracture, 65+ (placebo)" };
@@ -359,3 +361,56 @@ const poolSummary = () => `<strong>What the pool tests show.</strong>
   long-stay share does (C, H). Implication for the simulator: its "pre-pandemic flexibility" setting was fitted to 12-hour waits from the
   decision to admit (pools of 1,000 beds), which overstated how flexible hospitals were. It is now fitted to 12-hour waits counted from
   arrival (pools of about ${Math.round(POOL_B)} beds; see the methods page).`;
+
+async function renderExtra() {
+  if (!$("extraSummary")) return;
+  const x = await fetch("data/validation_extra.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  if (!x) { $("extraSummary").innerHTML = "<p class=\"cap\">Not yet run.</p>"; return; }
+  const css = (k) => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+  const tag = (p) => (p == null ? "<span class=\"na\">reported</span>" : p ? "<b>PASS</b>" : "<b>FAIL</b>");
+  $("extraSummary").innerHTML = table(["", "Test", "Result", "Pass criterion"], x.tests.map((t) => [tag(t.pass), `${esc(t.id)}. ${esc(t.name)}`, esc(t.summary), esc(t.criterion)]), []) +
+    `<p class="cap">${x.tests.map((t) => `<b>${esc(t.id)}</b>: ${esc(t.note)}`).join(" ")}</p>`;
+  const e2 = x.tests.find((t) => t.id === "E2");
+  if (e2) {
+    const lab = e2.rows.map((r) => r.month);
+    const ds = (k, label, color, dash) => ({ label, data: e2.rows.map((r) => 100 * r[k]), borderColor: color, borderWidth: 2, pointRadius: 2, ...(dash ? { borderDash: [5, 3] } : {}) });
+    const opt = (yt) => ({ responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}%` } } },
+      scales: { x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { display: false } }, y: { title: { display: true, text: yt } } } });
+    new Chart($("chartE2occ"), { type: "line", data: { labels: lab, datasets: [ds("occ_obs", "Published (sitrep)", css("--text")), ds("occ_model", "Simulated", css("--series-scn"), true)] }, options: opt("Occupancy at 08:00 (%)") });
+    new Chart($("chartE2wait"), { type: "line", data: { labels: lab, datasets: [ds("wait12_obs", "Published (A&E)", css("--text")), ds("wait12_model", "Simulated", css("--series-scn"), true)] }, options: opt("Over 12 hours (%)") });
+    $("extraE2").innerHTML = table(["Year", "Occupancy shape (r)", "Occupancy error", "12-hour waits shape (r)", "12-hour waits: published / simulated", "Winter peak ÷ summer trough: published / simulated"],
+      e2.perYear.map((y) => [esc(y.fy), y.occCorr.toFixed(2), `${(100 * y.occMae).toFixed(1)} pts`, y.waitCorr.toFixed(2), `${pct(y.waitObs)} / ${pct(y.waitModel)}`, `${y.ampObs.toFixed(1)}× / ${y.ampModel.toFixed(1)}×`]), [1, 2, 3, 4, 5]);
+  }
+  let h = "";
+  const e1 = x.tests.find((t) => t.id === "E1");
+  if (e1) h += `<h3>E1. Forecast from the past</h3>` + table(["Year", "Occupancy: published", "Forecast", "12-hour waits: published", "Forecast"],
+    e1.rows.map((r) => [esc(r.fy), pct(r.occ_obs), pct(r.occ_model), pct(r.wait12_obs, 2), pct(r.wait12_model, 2)]), [1, 2, 3, 4]) +
+    `<p class="cap">Fitted to ${esc(e1.fittedTo)}: pool size ${num(e1.pool)} beds (today's calibration ${num(base0().calibration.A.poolSize)}).</p>`;
+  const e4 = x.tests.find((t) => t.id === "E4");
+  if (e4) h += `<h3>E4. Shape of the waits</h3>` + table(["Measure", "Observed", "Model", "Note"],
+    e4.rows.map((r) => [esc(r.measure), r.observed == null ? "" : r.fmt === "pctpt" ? `${(100 * r.observed).toFixed(1)}% per point` : pct(r.observed),
+      r.fmt === "pctpt" ? `${(100 * r.model).toFixed(1)}% per point` : pct(r.model), esc(r.note || "")]), [1, 2]);
+  const e6 = x.tests.find((t) => t.id === "E6");
+  if (e6) h += `<h3>E6. Uncertainty and sensitivity</h3>` + table(["Variant", "Pool size", "12-hour waits a year", "+5,000 beds", "Stays 10% shorter"],
+    e6.rows.map((r) => [esc(r.label), num(r.pool), num(r.base12), num(r.beds5k), num(r.los10)]), [1, 2, 3, 4]) +
+    `<p class="cap">Changes in emergency patients a year waiting over 12 hours, today's system. Each variant is refitted to 2025/26 before the policies are run.</p>`;
+  $("extraDetail").innerHTML = h;
+  const g = (id) => x.tests.find((t) => t.id === id) || {};
+  const E1 = g("E1"), E2 = g("E2"), E4 = g("E4"), E5 = g("E5"), E6 = g("E6");
+  const amp = E2.perYear ? [E2.perYear.reduce((s, y) => s + y.ampObs, 0) / E2.perYear.length, E2.perYear.reduce((s, y) => s + y.ampModel, 0) / E2.perYear.length] : null;
+  const slope = E4.rows ? E4.rows.find((r) => r.measure.startsWith("Rise in 12-hour")) : null;
+  $("extraTakeaway").innerHTML = `<strong>What the further tests show.</strong> Occupancy is well founded: it is forecast within about half a
+    point from 2023/24 (E1), back-cast within 1.3 points once each year's stays are used (V2c), and the mix of short and long stays matches (V6).
+    Waits are not. The model's waits respond to occupancy far more steeply than hospitals' do:
+    ${slope ? `${(100 * slope.model).toFixed(0)}% more 12-hour waits per point of occupancy, against about ${(100 * slope.observed).toFixed(0)}% within trusts (E4)` : ""};
+    ${amp ? `a winter peak ${amp[1].toFixed(0)} times the summer trough, against about ${amp[0].toFixed(0)} times (E2)` : ""}; and too few 4-hour waits with too many of them
+    reaching 12 hours (E4). Real hospitals have buffers a plain queue lacks: escalation, moving patients, flexing staff. So <b>the simulator
+    probably overstates how much waits fall when beds are added or stays shortened</b>; treat its wait effects as upper bounds, and its occupancy
+    effects as the firmer result. Forecasting forward from 2023/24 also under-predicts later waits (E1), so flexibility kept worsening after 2023/24.
+    Discharge timing assumptions barely change the answers, but the size of the seasonal swing does (E6), and the model still cannot explain
+    why some trusts wait longer than others, even with each trust's own length of stay (E3).`;
+}
+let BASE0 = null;
+const base0 = () => BASE0;
+

@@ -98,6 +98,21 @@ number, but it makes several predictions that were never used to fit it. These t
 <div id="poolTests"></div>
 <div class="callout" id="poolSummary"></div>
 
+<h2 id="further">Further validation</h2>
+<p>Six more tests (<code>scripts/validate_extra.mjs</code>, inputs from <code>scripts/validation_data.py</code>). They ask whether the model
+forecasts years it was not fitted to, follows the month-to-month pattern, explains differences between trusts once each trust's own
+stays are used, gets the shape of waits right, responds to change the way hospitals do, and how much its answers move under uncertainty.</p>
+<div id="extraSummary"></div>
+<div id="extraE2"></div>
+<div class="grid2">
+  <figure class="chart-card"><h3>Occupancy each month: published and simulated</h3><p class="cap">G&amp;A beds occupied at 08:00, April 2022 to March 2026.</p>
+    <div class="chart-box"><canvas id="chartE2occ"></canvas></div></figure>
+  <figure class="chart-card"><h3>12-hour waits each month: published and simulated</h3><p class="cap">Share of emergency admissions waiting over 12 hours from decision to admit.</p>
+    <div class="chart-box"><canvas id="chartE2wait"></canvas></div></figure>
+</div>
+<div id="extraDetail"></div>
+<div class="callout warn" id="extraTakeaway"></div>
+
 <h2>Can area data measure the effect of public-health policies?</h2>
 <p>Estimates from <code>scripts/effects_analysis.py</code>: how emergency admission rates vary with risk factors across ~150 local
 authorities (between areas, adjusted for deprivation) and within areas over time (area and year fixed effects). Placebo outcomes (falls, hip

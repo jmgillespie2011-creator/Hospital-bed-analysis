@@ -298,6 +298,9 @@ export function simulate(p, seed = 1, wantDaily = true) {
   // emergency patients whose wait for a bed passed 45 minutes, by day of arrival (comparable with NHS England's
   // count of patients receiving corridor care in ED for 45+ minutes during each day)
   const wait45ByDay = new Float64Array(nDays);
+  // emergency admissions and waits over 12 hours for a bed, by day of arrival
+  const admByDay = new Float64Array(nDays), wait12ByDay = new Float64Array(nDays);
+  const logWait = (a, w) => { if (a >= warmH) { waits.push(w); const d = Math.floor(a / 24); admByDay[d]++; if (w > 12) wait12ByDay[d]++; } };
 
   const FLU_GROUP = { losMult: p.fluLosMult, delayMult: 1 };
   const admitEmergency = (t, i) => {
@@ -343,7 +346,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
     while (occupied < capE(t)) {
       if (qHead < queue.length) {
         const i = queue[qHead++];
-        if (arr[i] >= warmH) waits.push(t - arr[i]);
+        logWait(arr[i], t - arr[i]);
         if (t - arr[i] >= 0.75) wait45ByDay[Math.floor(arr[i] / 24)]++;
         admitEmergency(t, i);
       } else if (eHead < elQueue.length) {
@@ -355,7 +358,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
     // deadline escalation: patients past the deadline may use the extra spaces
     while (dlSpaces > 0 && qHead < queue.length && t - arr[queue[qHead]] >= p.deadlineH - 1e-9 && occupied < capE(t) + dlSpaces) {
       const i = queue[qHead++];
-      if (arr[i] >= warmH) waits.push(t - arr[i]);
+      logWait(arr[i], t - arr[i]);
       if (t - arr[i] >= 0.75) wait45ByDay[Math.floor(arr[i] / 24)]++;
       admitEmergency(t, i);
     }
@@ -400,7 +403,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
       fillFreeBeds(t);
     } else if (t === ta) {
       if (occupied < capE(t) && qHead >= queue.length) {
-        if (ta >= warmH) waits.push(0);
+        logWait(ta, 0);
         admitEmergency(t, ia);
       } else queue.push(ia);
       ia++;
@@ -413,7 +416,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
   }
   for (let j = eHead; j < elQueue.length; j++) if (el[elQueue[j]] >= warmH) elecCancelled++;
   for (let q = qHead; q < queue.length; q++) {
-    if (arr[queue[q]] >= warmH) waits.push(endH - arr[queue[q]]);
+    logWait(arr[queue[q]], endH - arr[queue[q]]);
     if (endH - arr[queue[q]] >= 0.75) wait45ByDay[Math.floor(arr[queue[q]] / 24)]++;
   }
 
@@ -448,6 +451,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
     tes8: sum(tes8) / tes8.length,                // patients in temporary escalation spaces at 08:00
     corridorDaily8: queue8.map((q, i) => q + tes8[i]),
     queue45Daily8: queue8_45, tesDaily8: tes8, wait45Daily: Array.from(wait45ByDay.slice(p.warmupDays)),
+    admDaily: Array.from(admByDay.slice(p.warmupDays)), wait12Daily: Array.from(wait12ByDay.slice(p.warmupDays)),
     nPools,
   };
 }
@@ -542,6 +546,12 @@ export function run(p, reps = 20, seed0 = 1000, onProgress = null) {
       return ((r[5] + r[6]) / 2) / ((r[0] + r[1] + r[2] + r[3] + r[4]) / 5);
     })(),
     fluBedsDaily: fluDaily,
+    // share of emergency admissions waiting over 12 hours for a bed, by month of arrival (April first)
+    wait12Monthly: [0, 30, 61, 91, 122, 153, 183, 214, 245, 275, 306, 334, 365].slice(0, 12).map((st, i, a) => {
+      const e = i < 11 ? a[i + 1] : 365; let w = 0, n = 0;
+      for (const x of out) for (let d = st; d < Math.min(e, x.admDaily.length); d++) { w += x.wait12Daily[d]; n += x.admDaily[d]; }
+      return n ? w / n : 0;
+    }),
     daily8,
     reps,
   };

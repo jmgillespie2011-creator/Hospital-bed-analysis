@@ -3,7 +3,8 @@
   beds and occupied beds per 1,000 people    KH03 (consistent G&A definition) and ONS population, from web/data/blog_observed.json
   emergency admissions per 1,000 people      A&E monthly situation reports (all emergency admissions), full financial years
   length of stay                             HES admitted patient care, primary-diagnosis summary table, TOTAL row: mean and
-                                             median length of stay (days, per finished consultant episode), all admissions
+                                             median length of stay (nights per finished consultant episode, among episodes with at least one night:
+                                             HES leaves out day cases and other same-day stays; 2019/20 check: 44.8m bed days / 4.46 = 10.0m episodes)
   admissions by type                         HES finished admission episodes: emergency and waiting-list/planned
   long stays                                 winter daily sitreps (2017/18-2019/20) and UEC daily sitreps (2022/23 onwards):
                                              England, share of occupied G&A beds held by patients in hospital over 7 and over

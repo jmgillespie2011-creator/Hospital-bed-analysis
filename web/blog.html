@@ -53,8 +53,10 @@ so beds per person have kept falling.</p>
 <p>Beds in use per person fell because stays got shorter, not because fewer people were admitted. Emergency admissions per person rose,
 patients got older, and the share of beds held by people in hospital for three weeks or more has crept up since the pandemic.</p>
 <div class="grid2">
-  <figure class="chart-card"><h3>Average length of stay</h3><p class="cap">Mean days per finished consultant episode, all admissions including
-  day cases, England (HES). Years to 2014/15 are published to one decimal place.</p><div class="chart-box"><canvas id="cLos"></canvas></div>
+  <figure class="chart-card"><h3>Average length of stay</h3><p class="cap">Mean nights per hospital episode, among episodes with at least one night (day cases and other same-day stays are left
+  out), all ages and specialties, England (HES published tables). A stay under several consultants counts as several episodes, so this is
+  lower than the average stay per admission: the Health Foundation's 7.3 days (2019) is per overnight admission of adults. The trend is the
+  same. Years to 2014/15 are published to one decimal place.</p><div class="chart-box"><canvas id="cLos"></canvas></div>
   <details><summary>Show as table</summary><div id="tLos"></div></details></figure>
   <figure class="chart-card"><h3>Emergency admissions per 1,000 people</h3><p class="cap">Finished admission episodes with an emergency
   admission method (HES), ONS population. 2020/21 is the first pandemic year.</p><div class="chart-box"><canvas id="cEmerg"></canvas></div>
@@ -195,6 +197,9 @@ and how wards are run all play a part.</p>
     measured. Read the two systems as a range.</li>
   <li><strong>Changes are more reliable than levels.</strong> Every scenario uses the same simulated patients as the baseline, so differences reflect the policy, not chance.</li>
   <li><strong>Demand responds to supply.</strong> More beds may let hospitals admit patients they now treat elsewhere, using up some of the gain.</li>
+  <li><strong>Effects on waits are probably upper bounds.</strong> The simulator's waits rise and fall with occupancy several times
+    more steeply than hospitals' do, and its winter peak in long waits is too sharp (<a href="validation.html#further">further validation</a>).
+    So the cuts in long waits it shows for more beds or shorter stays are likely too large. Its effects on occupancy are much better founded.</li>
   <li><strong>The model fails some tests.</strong> It does not reproduce the weekly pattern of occupancy, or why some trusts wait so much longer
     than others. These failures are published on the <a href="validation.html">validation page</a>.</li>
 </ul>
