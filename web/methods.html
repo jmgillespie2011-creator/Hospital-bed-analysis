@@ -13,6 +13,7 @@
   <h1>NHS bed occupancy simulator</h1>
   <nav>
     <a href="index.html">Model</a>
+    <a href="blog.html">Blog</a>
     <a href="methods.html" aria-current="page">Methods</a>
     <a href="data.html">Data &amp; sources</a>
     <a href="validation.html">Validation</a>
@@ -206,8 +207,9 @@ in people aged 65+ (50%) and their length of stay come from HES.</li>
 
 <h2 id="randomness">Randomness and accuracy</h2>
 <p>Each result is the average of many simulated years (30 for "today's system", 6 for the "more flexible system", whose larger pools are
-less noisy). The same random seeds are used for the baseline and your scenario, so differences between them reflect your changes rather than
-chance. Small differences (under about half a percentage point of occupancy) should not be over-interpreted. Long waits are much noisier
+less noisy). The baseline and your scenario use the same simulated patients. Arrivals are drawn at a fixed reference rate and thinned to the
+scenario's demand, and each patient has their own random numbers. A scenario with less demand removes some patients and leaves the rest
+unchanged, so differences reflect your changes rather than chance. Small differences (under about half a percentage point of occupancy) should not be over-interpreted. Long waits are much noisier
 than occupancy, because they depend on rare runs of busy days: the share of emergency patients waiting over 12 hours carries roughly
 &plusmn;1 percentage point of simulation noise (about &plusmn;15% of today's figure), so treat changes smaller than that as no change.</p>
 
@@ -222,9 +224,8 @@ than occupancy, because they depend on rare runs of busy days: the share of emer
   <li><strong>Simplified patient flow.</strong> No transfers between wards, no critical care, no outlying, no paediatric/adult split, no
     infection-control bed closures.</li>
   <li><strong>Timing of discharges within the day.</strong> There is no national data on what time patients leave hospital. The model
-    assumes ward rounds from 09:00 to 12:00 and 3 hours of preparation. Because of this, shortening the preparation time moves all discharges
-    into the morning. Those beds then go to the overnight queue and to planned patients, so long waits rise rather than fall. Real
-    hospitals confirm patients ready at different times of day, so do not read the "time from ward round to leaving" setting as a forecast.</li>
+    assumes ward rounds from 09:00 to 12:00 and 3 hours of preparation. Effects of the "time from ward round to leaving" setting therefore
+    rest on that assumption rather than on data.</li>
   <li><strong>Assumed shapes.</strong> Hourly and weekday arrival profiles, the lognormal LOS shape and the delay distribution are assumptions;
     calibration ensures the totals match, not every detail.</li>
 </ul>

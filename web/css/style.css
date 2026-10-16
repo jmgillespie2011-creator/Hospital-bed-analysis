@@ -94,3 +94,21 @@ footer { color: var(--text-3); font-size: 13px; margin-top: 30px; }
 .pass { color: var(--good); font-weight: 600; white-space: nowrap; }
 .fail { color: var(--critical); font-weight: 600; white-space: nowrap; }
 .na { color: var(--text-3); white-space: nowrap; }
+
+/* blog */
+.blog article { max-width: 980px; margin: 0 auto; }
+.blog article > p, .blog article > ul, .blog .lede { max-width: 760px; }
+.blog h1 { font-size: 34px; line-height: 1.2; margin: 6px 0 12px; letter-spacing: -0.01em; }
+.blog h2 { margin-top: 40px; font-size: 23px; }
+.blog p, .blog li { font-size: 16.5px; line-height: 1.65; }
+.blog .kicker { color: var(--text-3); font-size: 13px; text-transform: uppercase; letter-spacing: .05em; margin: 0; }
+.blog .lede { font-size: 19px; color: var(--text-2); }
+.blog figure { margin: 18px 0; }
+.blog .chart-card details { margin-top: 8px; font-size: 13px; }
+.blog .chart-card details summary { font-weight: 500; color: var(--text-2); }
+.blog details.chart-card summary { font-size: 14px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 22px 0; }
+.chart-box.tall { height: 380px; }
+@media (max-width: 760px) { .blog h1 { font-size: 27px; } .chart-box.tall { height: 340px; } .blog .lede { font-size: 17px; } }
+.legend span.dash::before { background: repeating-linear-gradient(90deg, var(--c) 0 4px, transparent 4px 7px); }
+.chart-box.bars { height: 560px; }

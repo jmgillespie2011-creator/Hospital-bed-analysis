@@ -69,7 +69,7 @@ function controlSpec() {
     { key: "weekendDischargePct", label: "7-day discharging", min: 0, max: 100, step: 5, fmt: (v) => v + "% at weekends",
       help: "Share of patients ready to leave at the weekend who are discharged then, rather than waiting for Monday." },
     { key: "prepHours", label: "Time from ward round to leaving", min: 0.5, max: 6, step: 0.5, fmt: (v) => v + " h after ward round",
-      help: "Average time from the morning ward round to the patient leaving (medicines to take home, transport, discharge lounges, criteria-led discharge). Not measured nationally: 3 hours is an assumption. In the model, shorter is not always better: if every discharge happens in the morning, beds go to the overnight queue and planned patients, and emergency patients arriving in the afternoon wait until the next day. Treat this setting as exploratory." },
+      help: "Average time from the morning ward round to the patient leaving (medicines to take home, transport, discharge lounges, criteria-led discharge). Not measured nationally: 3 hours is an assumption. Discharge timing within the day is not measured nationally, so treat this setting as exploratory." },
     { key: "virtualWardPct", label: "Virtual wards / hospital at home", min: 0, max: 30, step: 1, fmt: (v) => v + "% of stay",
       help: "Share of older patients' (75+) hospital stay delivered at home instead." },
     { key: "admissionAvoidancePct", label: "Community urgent response for older people", min: 0, max: 30, step: 1, fmt: (v) => v + "% avoided",
