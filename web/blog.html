@@ -37,9 +37,35 @@ We bridge the two series using the one year both methods cover. On that consiste
   <figure class="chart-card"><h3>G&amp;A beds open overnight, England</h3><p class="cap">Dashed: years before 2010/11, converted to today's definition (× 0.895).</p><div class="chart-box"><canvas id="cBeds"></canvas></div><details><summary>Show as table</summary><div id="tBeds"></div></details></figure>
   <figure class="chart-card"><h3>Beds per 1,000 people aged 75+</h3><p class="cap">People aged 75+ account for <span data-k="share75bd"></span> of emergency bed days (HES 2023/24).</p><div class="chart-box"><canvas id="cBeds75"></canvas></div><details><summary>Show as table</summary><div id="tBeds75"></div></details></figure>
 </div>
-<p>Most of the fall in beds came before 2010. Since then the number of beds has changed little, but the population aged 75+ has kept
-growing, so beds per older person have kept falling. Shorter stays, day surgery and same day emergency care absorbed much of the gap. They did not absorb all of it: occupancy rose from
-<b data-k="occ2010"></b> in 2010/11 to <b data-k="occNow"></b> in <span data-k="baseYear"></span>.</p>
+<p>Most of the fall in beds came before 2010. Since then the number of beds has changed little, but the population has kept growing,
+so beds per person have kept falling.</p>
+
+<h3 id="per-head">Fewer beds per person, and fewer beds used per person</h3>
+<p>Occupancy is beds in use divided by beds. So its rise since 2010/11 can be split exactly into two parts, using only published counts.</p>
+<div class="stats" id="perHeadStats"></div>
+<figure class="chart-card"><h3>G&amp;A beds per 1,000 people: open and in use</h3><p class="cap">KH03 beds open overnight and occupied overnight
+(average for the year), ONS mid-year population, England. The gap between the lines is the empty beds.</p>
+  <div class="legend" id="lPerHead"></div><div class="chart-box"><canvas id="cPerHead"></canvas></div>
+  <details><summary>Show as table</summary><div id="tPerHead"></div></details></figure>
+<p id="perHeadText"></p>
+
+<h3 id="trends">How hospital use has changed</h3>
+<p>Beds in use per person fell because stays got shorter, not because fewer people were admitted. Emergency admissions per person rose,
+patients got older, and the share of beds held by people in hospital for three weeks or more has crept up since the pandemic.</p>
+<div class="grid2">
+  <figure class="chart-card"><h3>Average length of stay</h3><p class="cap">Mean days per finished consultant episode, all admissions including
+  day cases, England (HES). Years to 2014/15 are published to one decimal place.</p><div class="chart-box"><canvas id="cLos"></canvas></div>
+  <details><summary>Show as table</summary><div id="tLos"></div></details></figure>
+  <figure class="chart-card"><h3>Emergency admissions per 1,000 people</h3><p class="cap">Finished admission episodes with an emergency
+  admission method (HES), ONS population. 2020/21 is the first pandemic year.</p><div class="chart-box"><canvas id="cEmerg"></canvas></div>
+  <details><summary>Show as table</summary><div id="tEmerg"></div></details></figure>
+  <figure class="chart-card"><h3>Average age of hospital patients</h3><p class="cap">Mean age at admission, all finished consultant episodes (HES). Years to 2014/15 are published to whole years.</p>
+  <div class="chart-box"><canvas id="cAge"></canvas></div><details><summary>Show as table</summary><div id="tAge"></div></details></figure>
+  <figure class="chart-card"><h3>Beds held by patients in hospital for a long time</h3><p class="cap">Share of occupied G&amp;A beds, England,
+  mean of December to February (winter daily sitreps). Not collected in the winters of 2020/21 and 2021/22.</p>
+  <div class="legend" id="lLong"></div><div class="chart-box"><canvas id="cLong"></canvas></div>
+  <details><summary>Show as table</summary><div id="tLong"></div></details></figure>
+</div>
 
 <h2>2. Full hospitals, and the break after the pandemic</h2>
 <p>A full hospital makes patients wait. When no bed is free, the patient stays in A&amp;E, sometimes on a trolley in a corridor, until one
@@ -119,6 +145,15 @@ gives the curves below.</p>
 <p id="sweepText"></p>
 <div class="callout" id="corridorBox"></div>
 
+<h3 id="kept-pace">What if beds had kept pace with population?</h3>
+<p>The simulator can answer the question directly: give today's patients the number of beds that would match an earlier year's beds per
+person. Everything else stays as it is today.</p>
+<figure class="chart-card"><h3>Simulated waits over 12 hours if beds per person matched an earlier year</h3><p class="cap"><span data-k="baseYear"></span>
+demand. Thousands of emergency patients a year. Each pair of bars is one bed count; the label shows the year whose beds per person it matches.</p>
+  <div class="legend" id="lPh"></div><div class="chart-box"><canvas id="cPh"></canvas></div>
+  <details><summary>Show as table</summary><div id="tPh"></div></details></figure>
+<p id="phText"></p>
+
 <h2>4. Where else could the space come from?</h2>
 <p>Beds are not the only lever. Fewer people needing admission, shorter stays and faster discharges all free up space. We ran each policy at
 a size that has been proposed or achieved somewhere. The effect of each on admissions and length of stay comes from measured data, not
@@ -164,7 +199,9 @@ and how wards are run all play a part.</p>
     than others. These failures are published on the <a href="validation.html">validation page</a>.</li>
 </ul>
 <p>Try your own scenario in the <a href="index.html">simulator</a>. Every input and its source is listed on <a href="data.html">Data &amp; sources</a>,
-and all code is on <a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis">GitHub</a>.</p>
+and all code is on <a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis">GitHub</a>. The trend charts come from
+<code>scripts/blog_trends.py</code> (HES admitted patient care tables 2008/09–2024/25, KH03, ONS, winter daily sitreps) and the
+"kept pace" runs from <code>scripts/beds_per_head.mjs</code>.</p>
 </article>
 </main>
 <script src="vendor/chart-4.4.1.umd.min.js"></script>

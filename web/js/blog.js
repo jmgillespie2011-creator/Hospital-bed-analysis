@@ -135,6 +135,79 @@ async function main() {
   $("tBeds").innerHTML = table(["Year", "G&A beds", "Occupancy", "Population", "Aged 75+", "Beds per 1,000", "Per 1,000 aged 75+"], bedRows, [1, 2, 3, 4, 5, 6]);
   $("tBeds75").innerHTML = $("tBeds").innerHTML;
 
+  // ---------------------------------------------------------------- 1b. beds per person, and how hospital use changed
+  const [TR, PH] = await Promise.all(["data/blog_trends.json", "data/beds_per_head.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  if (TR) {
+    const Y = TR.years.filter((y) => y.occupied_per1000 != null && y.fy >= "2010/11");
+    const y0 = Y[0], yN = Y.at(-1);
+    const bedsCh = yN.perThousand / y0.perThousand - 1, useCh = yN.occupied_per1000 / y0.occupied_per1000 - 1;
+    const occNoCut = y0.occupancy * (1 + useCh); // beds per person held at the first year's level
+    $("perHeadStats").innerHTML =
+      stat("Beds per 1,000 people", yN.perThousand.toFixed(2), `${signed(100 * bedsCh, (v) => v.toFixed(0) + "%")} since ${y0.fy} (${y0.perThousand.toFixed(2)})`) +
+      stat("Beds in use per 1,000 people", yN.occupied_per1000.toFixed(2), `${signed(100 * useCh, (v) => v.toFixed(0) + "%")} since ${y0.fy} (${y0.occupied_per1000.toFixed(2)})`) +
+      stat("Occupancy", pct(yN.occupancy), `${pct(y0.occupancy)} in ${y0.fy}`) +
+      stat("Occupancy if beds had kept pace", pct(occNoCut, 0), "today's use per person, " + y0.fy + " beds per person");
+    legend("lPerHead", [["Beds open", BLUE], ["Beds in use", ORANGE]]);
+    new Chart($("cPerHead"), { type: "line", data: { labels: Y.map((y) => y.fy), datasets: [
+      { label: "Beds open per 1,000 people", data: Y.map((y) => y.perThousand), borderColor: BLUE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: BLUE },
+      { label: "Beds in use per 1,000 people", data: Y.map((y) => y.occupied_per1000), borderColor: ORANGE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: ORANGE }] },
+      options: lineOpts("Per 1,000 people", { scales: { x: { grid: { display: false } }, y: { min: 1.2, title: { display: true, text: "Per 1,000 people" } } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)}` } } } }) });
+    $("tPerHead").innerHTML = table(["Year", "Beds open per 1,000", "Beds in use per 1,000", "Occupancy"],
+      Y.map((y) => [y.fy, y.perThousand.toFixed(3), y.occupied_per1000.toFixed(3), pct(y.occupancy)]), [1, 2, 3]);
+    const y19 = Y.find((y) => y.fy === "2019/20");
+    $("perHeadText").innerHTML = `Between ${y0.fy} and ${yN.fy}, beds per person fell ${pct(-bedsCh, 0)}. On its own, that would have
+      pushed occupancy above 100%. It did not, because hospitals also used ${pct(-useCh, 0)} fewer beds per person, mainly through shorter stays.
+      Had beds kept pace with the population, today's use per person would fill only about <b>${pct(occNoCut, 0)}</b> of them. Instead it fills
+      <b>${pct(yN.occupancy)}</b>. So the cut in beds per person is why hospitals now run so full; the fall in use per person is why they are not
+      fuller still. Most of the cut happened before ${y19 ? "2019/20" : "the pandemic"}: since then beds per person have fallen only from
+      ${y19 ? y19.perThousand.toFixed(2) : ""} to ${yN.perThousand.toFixed(2)}. That is why the cuts cannot explain the sudden rise in long waits
+      after 2020, but they explain why hospitals were so exposed to it.`;
+    const H = TR.years.filter((y) => y.mean_los != null);
+    const lineOne = (id, tid, rows, f, yTitle, fmt, extra = {}) => {
+      new Chart($(id), { type: "line", data: { labels: rows.map((r) => r.fy), datasets: [{ data: rows.map(f), borderColor: BLUE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: BLUE }] },
+        options: lineOpts(yTitle, { scales: { x: { grid: { display: false } }, y: { title: { display: true, text: yTitle }, ...extra } },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => fmt(c.parsed.y) } } } }) });
+      $(tid).innerHTML = table(["Year", yTitle], rows.map((r) => [r.fy, fmt(f(r))]), [1]);
+    };
+    lineOne("cLos", "tLos", H, (r) => r.mean_los, "Days", (v) => v.toFixed(2) + " days", { min: 0 });
+    lineOne("cEmerg", "tEmerg", TR.years.filter((y) => y.hes_emergency_per1000 != null), (r) => r.hes_emergency_per1000, "Per 1,000 people", (v) => v.toFixed(1) + " per 1,000", { min: 0 });
+    lineOne("cAge", "tAge", H.filter((r) => r.mean_age != null), (r) => r.mean_age, "Years", (v) => v.toFixed(1) + " years");
+    const LS = TR.longStays;
+    legend("lLong", [["In hospital over 7 days", BLUE], ["Over 21 days", ORANGE]]);
+    new Chart($("cLong"), { type: "bar", data: { labels: LS.map((r) => r.winter), datasets: [
+      { label: "Over 7 days", data: LS.map((r) => 100 * r.share7), backgroundColor: BLUE, borderRadius: 4, borderSkipped: false },
+      { label: "Over 21 days", data: LS.map((r) => 100 * r.share21), backgroundColor: ORANGE, borderRadius: 4, borderSkipped: false }] },
+      options: lineOpts("% of occupied beds", { interaction: { mode: "index", intersect: false }, scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: "% of occupied beds" } } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}%` } } } }) });
+    $("tLong").innerHTML = table(["Winter", "Over 7 days", "Over 21 days", "Occupied beds"], LS.map((r) => [r.winter, pct(r.share7), pct(r.share21), int(r.occupied)]), [1, 2, 3]);
+  }
+  if (PH) {
+    const R = PH.rows.filter((r) => r.kind === "per head").sort((a, b) => a.beds - b.beds);
+    legend("lPh", [["Today's system", BLUE], ["Pre-pandemic flexibility", ORANGE]]);
+    new Chart($("cPh"), { type: "bar", data: { labels: R.map((r) => [`${k(r.beds)} beds`, r.label === PH.baseYear ? "today" : `as ${r.label}`]), datasets: [
+      { label: "Today's system", data: R.map((r) => r.A.wait12PerYear / 1000), backgroundColor: BLUE, borderRadius: 4, borderSkipped: false },
+      { label: "Pre-pandemic flexibility", data: R.map((r) => r.B.wait12PerYear / 1000), backgroundColor: ORANGE, borderRadius: 4, borderSkipped: false }] },
+      options: lineOpts("Thousands a year", { interaction: { mode: "index", intersect: false }, scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: "Waits over 12 hours, thousands a year" } } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${int(1000 * c.parsed.y)} a year` } } } }) });
+    $("tPh").innerHTML = table(["Beds per person as in", "Beds", "Extra beds", "Occupancy", "Over 12h (today's system)", "Over 12h (pre-pandemic flexibility)"],
+      R.map((r) => [r.label === PH.baseYear ? `${r.label} (today)` : r.label, int(r.beds), r.extraBeds ? signed(r.extraBeds, int) : "", pct(r.A.occupancy),
+        `${pct(r.A.wait12)} (${int(r.A.wait12PerYear)})`, `${pct(r.B.wait12)} (${int(r.B.wait12PerYear)})`]), [1, 2, 3, 4, 5]);
+    const now = R.find((r) => r.label === PH.baseYear), r10 = R.find((r) => r.label === "2010/11"), r15 = R.find((r) => r.label === "2015/16");
+    const age = PH.rows.find((r) => r.kind !== "per head");
+    const r1k = (x) => int(1000 * Math.round(x / 1000));
+    if (now && r10 && r15) $("phText").innerHTML = `If beds had kept pace with the population since 2010/11, England would have about
+      <b>${r1k(r10.beds)}</b> G&amp;A beds, about ${r1k(r10.extraBeds)} more than today. With today's patients the simulator puts them at about
+      ${pct(r10.A.occupancy, 0)} occupancy (a little above the 78% from the arithmetic above, because patients now waiting in corridors and A&amp;E
+      would be in beds), and 12-hour waits fall from about ${r1k(now.A.wait12PerYear)} a year to about
+      <b>${r1k(r10.A.wait12PerYear)}</b>, around ${pct(1 - r10.A.wait12PerYear / now.A.wait12PerYear, 0)} fewer. Matching 2015/16 instead (about ${r1k(r15.extraBeds)} more beds) cuts them by
+      ${pct(1 - r15.A.wait12PerYear / now.A.wait12PerYear, 0)}.
+      ${age ? `Allowing for the older population changes little: matching 2010/11 per unit of age-adjusted demand needs about ${r1k(age.beds)} beds.` : ""}
+      For comparison, restoring pre-pandemic flexibility with today's beds cuts them to about ${r1k(now.B.wait12PerYear)}. Both matter, and on
+      a similar scale. These runs hold admissions fixed, so they leave out patients who would be admitted only if a bed were free, and they assume the
+      extra beds are fully staffed.`;
+  }
+
   // ---------------------------------------------------------------- 2. waits and the break
   const M = obs.monthly;
   new Chart($("cWaits"), { type: "line", data: { labels: M.map((m) => m.month), datasets: [

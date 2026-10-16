@@ -34,14 +34,15 @@ def fy_of(month: pd.Timestamp) -> str:
 
 def hes_los() -> pd.DataFrame:
     rows = []
-    for d in (RAW / "hes_apc_diag_mirror", RAW / "hes_apc_mirror", RAW / "hes_files"):
+    for d in (RAW / "hes_apc_diag_old_mirror", RAW / "hes_apc_diag_mirror", RAW / "hes_apc_mirror", RAW / "hes_files"):
         if not d.exists():
             continue
         for f in sorted(d.glob("*.xls*")):
             m = re.search(r"(20\d\d)[-_](\d\d)", f.name)
-            if not m or not re.search(r"(?i)diag", f.name):
+            m2 = re.search(r"-(\d\d)-(\d\d)-tab", f.name)
+            if not (m or m2) or not re.search(r"(?i)diag", f.name) or re.search(r"(?i)[34]cha", f.name):
                 continue
-            fy = f"{m.group(1)}/{m.group(2)}"
+            fy = f"{m.group(1)}/{m.group(2)}" if m else f"20{m2.group(1)}/{m2.group(2)}"
             try:
                 x = pd.ExcelFile(f)
             except Exception:  # noqa: BLE001
@@ -137,7 +138,7 @@ def dtoc_old() -> pd.DataFrame:
 def main() -> int:
     beds = json.loads((WEB / "blog_observed.json").read_text())["beds"]
     b = pd.DataFrame(beds)
-    b = b[b.occupancy.notna()].copy()
+    b = b[b.fy >= "2008/09"].copy()
     b["occupied_per1000"] = b.occupancy * b.perThousand
     ae = pd.read_csv(OUT / "ae_monthly_england.csv")
     g = ae.groupby("fy").agg(n=("month", "count"), adm=("emergency_admissions", "sum"))
@@ -149,6 +150,9 @@ def main() -> int:
     if not hes.empty:
         t = t.merge(hes[["fy", "fae", "emergency", "waiting_list", "planned", "mean_los", "median_los", "mean_age"]], on="fy", how="outer")
     t = t.sort_values("fy")
+    if "emergency" in t:
+        t["hes_emergency_per1000"] = 1000 * t.emergency / t.population
+        t["hes_planned_per1000"] = 1000 * (t.waiting_list + t.planned) / t.population
     ls = long_stays()
     nctr = pd.read_csv(OUT / "nctr_daily_england.csv", parse_dates=["date"])
     nfy = nctr.groupby("fy").agg(nctr=("nctr_remaining", "mean"), days=("nctr", "size")).reset_index()  # still in hospital at the end of the day
