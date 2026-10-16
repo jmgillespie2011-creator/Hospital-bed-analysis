@@ -24,16 +24,15 @@
 <p>A model is only useful if it reproduces what actually happened. These checks compare the model with observed data,
 including years it was not calibrated to. Failures are shown as plainly as successes.</p>
 
-<div class="callout warn"><strong>The most important finding.</strong> One version of the model cannot reproduce long waits both before
-and after the pandemic. Calibrated to 2025/26, the model predicts several percent of emergency admissions waiting over 12 hours in 2018/19
-and 2019/20, when almost none were recorded. Part of that gap is in the recording: counted from arrival, 12-hour waits rose about fivefold,
-not 140-fold (<a href="#pool-tests">pool-size tests</a>). The "more flexible" version is fitted to that arrival-based change and gives far
-fewer long waits today than today's system does. Hospitals now produce far longer waits at the same occupancy than before the pandemic, consistent with the Royal College of Emergency
-Medicine's view that hospitals reorganised beds for infection control and now hit capacity problems at lower occupancy
-(<a href="https://rcem.ac.uk/wp-content/uploads/2021/11/RCEM_Why_Emergency_Department_Crowding_Matters.pdf">RCEM, 2021</a>). That view has not
-been tested in published research (our own infection-control test, <a href="#pool-tests">G below</a>, does not support it), and the model's "flexibility" absorbs anything that lengthens waits at a given occupancy, not only bed
-sharing: see the <a href="#flexibility">tests below</a>. Occupancy results barely differ between the two versions; waits differ a
-lot, so the simulator shows both and the truth for a future scenario is likely to lie between them.</div>
+<div class="callout warn"><strong>The most important finding.</strong> Hospitals now produce far longer waits at the same occupancy
+than before the pandemic, and one version of the model cannot reproduce both periods. Counted from arrival in A&amp;E, 12-hour waits rose
+about fivefold between 2018/19 and 2024/25; 4-hour waits and ambulance handover delays rose 2.5 to 4 times at the same occupancy. (The
+recorded 12-hour waits from the decision to admit rose about 140-fold, but before the pandemic those decisions were often recorded late;
+see the <a href="#pool-tests">pool-size tests</a>.) The model represents the change as a loss of "bed flexibility": smaller pools of beds
+that cannot lend to each other. That setting absorbs anything that lengthens waits at a given occupancy, not only bed sharing; the
+<a href="#flexibility">tests below</a> look for what lies behind it, and find that delays, infection control, split sites and single rooms
+do not explain it, while a high share of long-stay patients goes with it. Occupancy results barely differ between the two versions; waits
+differ a lot, so the simulator shows both, and the truth for a future scenario is likely to lie between them.</div>
 
 <h2>Checks against data the model was not calibrated on</h2>
 <p>Pass criteria were set before running the checks (<a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis/blob/ccr-c8062017-bkob0b/docs/validation-plan.md">validation plan</a>).
@@ -42,7 +41,7 @@ All results are produced by <code>scripts/validate.mjs</code>.</p>
 
 <h2>Charts</h2>
 <div class="grid2">
-  <div class="chart-card"><h3>Occupancy by year: observed and model</h3><p class="cap">Each year run with its own beds and emergency admissions; length of stay and delays held at 2025/26 values.</p><div class="chart-box"><canvas id="chartYears"></canvas></div></div>
+  <div class="chart-card"><h3>Occupancy by year: observed and model</h3><p class="cap">Each year run with its own beds and emergency admissions: once with stays and delays held at 2025/26 values (V2), and once with each year's measured overnight stays and same-day share (V2c).</p><div class="chart-box"><canvas id="chartYears"></canvas></div></div>
   <div class="chart-card"><h3>Long waits by year: observed and model</h3><p class="cap">Share of emergency admissions waiting over 12 hours from decision to admit.</p><div class="chart-box"><canvas id="chartWaits"></canvas></div></div>
   <div class="chart-card"><h3>Weekly pattern, winter 2025/26</h3><p class="cap">Average 08:00 occupancy by day of the week.</p><div class="chart-box"><canvas id="chartWeek"></canvas></div></div>
   <div class="chart-card"><h3>121 acute trusts: long waits</h3><p class="cap">Model run for each trust with its own beds, admissions and occupancy, against its observed share waiting over 12 hours.</p><div class="chart-box"><canvas id="chartTrusts"></canvas></div></div>
@@ -122,10 +121,13 @@ attributable-admission estimates and published studies by default (see <a href="
 
 <h2>What this means for using the simulator</h2>
 <ul>
-  <li><strong>Occupancy</strong> estimates are robust: they follow mostly from the arithmetic of demand and beds, and both versions of the model agree.</li>
-  <li><strong>Waits for a bed</strong> are sensitive to how flexibly beds can be used. Treat the two systems as a range, not a precise forecast.</li>
+  <li><strong>Occupancy</strong> is the firmer result. With each year's own beds, admissions, overnight stays and same-day share the model
+    back-casts past occupancy within about 2 points (V2c), and both versions of the model agree. Its mix of stay lengths is less right (V6, V6b).</li>
+  <li><strong>Waits for a bed</strong> depend on how flexibly beds can be used, which is inferred rather than measured. Treat the two systems as a
+    range, and treat changes in waits as upper bounds: the model's waits respond to occupancy several times more steeply than hospitals' do (E2, E4).</li>
   <li><strong>Direction and size of changes</strong> (scenario minus baseline) are more reliable than absolute levels, because most model
     errors affect the baseline and the scenario alike.</li>
+  <li><strong>Differences between trusts</strong> are not reproduced (V7, E3): the model treats every trust alike.</li>
 </ul>
 </main>
 <script src="vendor/chart-4.4.1.umd.min.js"></script>

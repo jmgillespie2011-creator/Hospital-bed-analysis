@@ -24,6 +24,7 @@ import { buildParams, defaultSettings } from "../web/js/demand.js";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const base = JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/baseline.json"), "utf8"));
 const log = (...a) => console.log(...a);
+const longDate = (d) => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 const pct = (x, d = 1) => (x == null ? "n/a" : (100 * x).toFixed(d) + "%");
 
 // model B runs: the same total number of simulated beds as model A
@@ -216,7 +217,7 @@ if (cc) {
   };
   function avg2(a) { return mean(a); }
   out.checks.push({
-    id: "C1", name: `Patients in corridor care on G&A wards at 08:00, ${cc.start} to ${cc.end}`,
+    id: "C1", name: `Patients in corridor care on G&A wards at 08:00, ${longDate(cc.start)} to ${longDate(cc.end)}`,
     observed: `${Math.round(out.corridor.ward.obs)} a day`, modelA: `${Math.round(out.corridor.ward.modelA)} a day`, modelB: `${Math.round(out.corridor.ward.modelB)} a day`,
     criterion: "calibration target (today's system)", pass: null,
     note: `Corridor spaces equal to ${base.calibration.A.corridorPct}% of beds (${out.corridor.spaces.toLocaleString("en-GB")}) were fitted so that today's system matches. The more flexible system rarely fills every bed, so it rarely uses them.`,

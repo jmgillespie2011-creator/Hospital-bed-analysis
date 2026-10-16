@@ -151,10 +151,12 @@ async function renderValidation() {
   if (fc && $("flexCheck")) {
     const rows = [];
     for (const y of fc.years) {
-      rows.push([`<b>${esc(y.fy)}</b>`, `<b>observed</b>`, pct(y.occupancyObserved), `<b>${pct(y.wait12Observed, 2)}</b>`]);
+      rows.push([`<b>${esc(y.fy)}</b>`, `<b>recorded</b> (from the decision to admit)`, pct(y.occupancyObserved), `<b>${pct(y.wait12Observed, 2)}</b>`]);
+      const ft = BASE0?.calibration?.flexibleFit;
+      if (ft && ft.fittedYear === y.fy) rows.push(["", `<b>arrival-based equivalent</b> (the target the pre-pandemic setting is fitted to)`, "", `<b>${pct(ft.target, 2)}</b>`]);
       for (const g of y.grid) rows.push(["", `Today's flexibility; delays ${g.delayChangePct === 0 ? "as today" : g.delayChangePct === -100 ? "none" : g.delayChangePct + "%"}; corridor spaces ${g.corridorPct ? g.corridorPct + "% of beds" : "none"}`, pct(g.occupancy), pct(g.wait12, 2)]);
       for (const g of y.favourable || []) rows.push(["", `Today's flexibility; ${esc(g.label)}`, pct(g.occupancy), pct(g.wait12, 2)]);
-      for (const n of y.poolNeeded) rows.push(["", `Pool size that reproduces ${esc(y.fy)} waits (${esc(n.label)})`, "", `<b>${num(n.pool)} beds</b> (today ${num(fc.poolToday)})`]);
+      for (const n of y.poolNeeded) rows.push(["", `Pool size that reproduces the recorded ${esc(y.fy)} waits (${esc(n.label)})`, "", `<b>${num(n.pool)} beds</b> (today ${num(fc.poolToday)})`]);
     }
     $("flexCheck").innerHTML = table(["Year", "Model run", "Occupancy", "Waiting over 12 hours"], rows, [2, 3]);
   }
@@ -169,7 +171,7 @@ async function renderValidation() {
       }
     }
     $("trustTest").innerHTML = table(["Model", "Characteristic (after the pandemic ×)", "Change in long waits per SD", "95% CI", "p", "Sample"], rows, [2, 3, 4]) +
-      `<p class="cap">${tf.eric ? `Single rooms from ERIC ${esc(tf.eric.year)}.` : "Single rooms (ERIC) not included: the estates data could not be downloaded from this project's pipeline."}
+      `<p class="cap">${tf.eric ? `Single rooms from ERIC ${esc(tf.eric.year)}.` : "Single rooms and split sites are tested separately (pool-size test H)."}
       Long-stay share is measured in 2025/26, inside the "after" period, because trust-level length-of-stay data starts in 2020. Surgical hubs are not tested: there is no complete public list of hubs and their opening dates.</p>`;
   }
   if (fc && tf && $("flexSummary")) {
@@ -177,15 +179,19 @@ async function renderValidation() {
     const fav = (y.favourable || []).find((g) => /all/.test(g.label));
     const pn = y.poolNeeded.map((n) => n.pool), all = tf.models["all together"]?.terms || {};
     const ls = all["post:long_stay_z"], bd = all["post:log_beds_z"], pl = tf.models[Object.keys(tf.models).find((k) => k.startsWith("placebo"))]?.terms["post:long_stay_z"];
+    const ft = BASE0?.calibration?.flexibleFit, g0 = (y.grid || []).find((g) => g.delayChangePct === 0 && g.corridorPct === fc.corridorToday);
     $("flexSummary").innerHTML = `<strong>What the tests show.</strong> With ${esc(y.fy)}'s own beds, admissions and occupancy and today's flexibility,
-      the model predicts ${fav ? `at least ${pct(fav.wait12, 1)} of emergency admissions waiting over 12 hours even with every favourable assumption` : "far more long waits than observed"},
-      against ${pct(y.wait12Observed, 2)} observed. Reproducing ${esc(y.fy)} needs pools of about ${num(Math.min(...pn))}–${num(Math.max(...pn))} beds against ${num(fc.poolToday)} today.
-      Average length of stay barely changed nationally, so slower turnover overall cannot explain the break.
+      the model predicts ${g0 ? pct(g0.wait12, 1) : "far more"} of emergency admissions waiting over 12 hours${ft ? `, against the ${pct(ft.target, 1)} that ${esc(y.fy)}'s
+      waits counted from arrival imply` : ""}. No single change closes the gap, including removing discharge delays; only every favourable assumption at once
+      comes close${fav ? ` (${pct(fav.wait12, 1)})` : ""}. ${ft ? `Matching the arrival-based figure needs pools of about ${num(ft.pool)} beds against ${num(fc.poolToday)} today;
+      matching the recorded decision-to-admit figure (${pct(y.wait12Observed, 2)}) without corridor spaces would need ${num(Math.min(...pn))}–${num(Math.max(...pn))}, but that figure was held down by when
+      decisions were recorded (pool-size test D).` : ""} Longer stays work through occupancy, which these runs hold at each year's observed level, so they cannot explain
+      longer waits at the same occupancy.
       Across trusts, size made no clear difference${bd ? ` (${bd.pct >= 0 ? "+" : ""}${bd.pct.toFixed(0)}% per SD, p=${bd.p.toFixed(2)})` : ""}, which is not what simple pooling theory predicts.
       Trusts with more long-stay patients saw much bigger rises${ls ? ` (${ls.pct >= 0 ? "+" : ""}${ls.pct.toFixed(0)}% per SD, p=${ls.p.toFixed(3)})` : ""},
       and the same pattern is absent before the pandemic${pl ? ` (placebo ${pl.pct >= 0 ? "+" : ""}${pl.pct.toFixed(0)}%, p=${pl.p.toFixed(2)})` : ""}.
-      This is an association across trusts, not proof of cause. The follow-up tests below ask what lies behind it. Other explanations, such as
-      changes in how decision-to-admit times are recorded or in A&amp;E processes, cannot be tested with these data.`;
+      This is an association across trusts, not proof of cause. The follow-up tests below ask what lies behind it, and the pool-size tests
+      look at how waits are recorded, escalation, infection control and hospital layout.`;
   }
   const [lt, lm] = await Promise.all(["data/longstay_tests.json", "data/longstay_mechanism.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
   const sgn = (x, d = 0) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(d)}`;
@@ -240,8 +246,8 @@ async function renderValidation() {
       (${sgn(b2["post:ls_rise_z"].pct)}%, p=${b2["post:ls_rise_z"].p.toFixed(3)}) predict the increase in long waits.
       Within trusts, months with more long-stay patients have more long waits (A1: ${sgn(a1.pct, 1)}% per point, p=${a1.p.toFixed(3)}), but last month's long stays do not predict this month's waits
       (A5: ${sgn(a5.pct, 1)}%, p=${a5.p.toFixed(2)}) and earlier waits do not predict long stays (A6). The link is same-month only, so neither clearly drives the other.
-      Patients fit to leave do not explain it (C2: ${sgn(c2.pct)}%, p=${c2.p.toFixed(2)}), and the long-stay effect survives regional differences (C4: ${sgn(c4.pct)}%, p=${c4.p.toFixed(3)}).
-      The ward simulation explains the national break: with fully shared beds, waits over 12 hours are ${pct(full.wait12, 2)}; when patients can rarely be placed outside their own ward
+      Patients fit to leave do not explain it (C2: ${sgn(c2.pct)}%, p=${c2.p.toFixed(2)}), and the long-stay effect survives regional differences (C4: ${sgn(c4.pct)}%, ${c4.p < 0.001 ? "p<0.001" : "p=" + c4.p.toFixed(3)}).
+      The ward simulation can reproduce the national break: with fully shared beds, waits over 12 hours are ${pct(full.wait12, 2)}; when patients can rarely be placed outside their own ward
       they reach today's level. But in that simulation, raising long stays from ${pct(lo.longShare, 0)} to ${pct(hi.longShare, 0)} of beds only moves waits from ${pct(lo.wait12, 1)} to ${pct(hi.wait12, 1)},
       and concentrating long-stay patients on some wards makes no difference. So beds blocked by long-stay patients are probably not the mechanism.
       More likely, a high long-stay share marks trusts whose patients or local services (older, frailer populations; weaker community and social care)
@@ -275,6 +281,10 @@ async function renderPoolTests(base) {
   const pv = (p) => (p < 0.05 ? `<b>${p < 0.001 ? "&lt;0.001" : p.toFixed(3)}</b>` : `<span class="na">${p.toFixed(3)}</span>`);
   let h = "";
   const pt = J.pool_tests;
+  if (pt?.years?.length) {
+    const f12 = (y) => y.fits.find((f) => f.fittedTo === "wait12"), a = pt.years[0], z = pt.years[pt.years.length - 1];
+    if (f12(a) && f12(z)) POOL_FITS = { pre: f12(a).pool, preFy: a.fy, post: f12(z).pool, postFy: z.fy };
+  }
   if (pt) {
     const rows = [];
     for (const y of pt.years) {
@@ -330,7 +340,7 @@ async function renderPoolTests(base) {
   if (it) {
     const rows = it.by_year.map((y) => [esc(y.fy), pct(y.wait12, 1), pct(y.covid_share, 1), pct(y.void_share, 2), pct(y.explained, 1)]);
     h += `<h4>G. Infection control</h4>` + table(["Year", "Waiting over 12 hours", "G&A beds with COVID-19 patients", "COVID void beds", "Share of 12-hour waits explained"], rows, [1, 2, 3, 4]) +
-      `<p class="cap">${num(it.n_trust_months)} trust-months, ${it.months.join(" to ")}. Within trusts, holding occupancy: COVID inpatients ${ef(it.covid.covid_pts, 1)} per point of beds (p=${it.covid.covid_pts.p.toFixed(2)}),
+      `<p class="cap">${num(it.n_trust_months)} trust-months, ${it.months.map((m) => `${MONTH_NAMES[+m.slice(5, 7) - 1]} ${m.slice(0, 4)}`).join(" to ")}. Within trusts, holding occupancy: COVID inpatients ${ef(it.covid.covid_pts, 1)} per point of beds (p=${it.covid.covid_pts.p.toFixed(2)}),
       void beds ${ef(it.void.void_pts, 1)} per point (p=${it.void.void_pts.p.toFixed(2)}). The "explained" column applies these estimates.</p>`;
   }
   const st = J.site_tests;
@@ -347,14 +357,22 @@ async function renderPoolTests(base) {
 }
 
 
-let POOL_B = 96;
+let POOL_B = 96, POOL_FITS = null;
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+// how much the pool fitted to 12-hour waits from the decision to admit shrank (pool test A), in words
+const poolDrop = () => {
+  const f = POOL_FITS;
+  if (!f) return "The drop in pool size that the model needs is mostly a product of the 12-hour measure it is fitted to.";
+  return `Fitted to 12-hour waits from the decision to admit, the pool shrinks from ${num(f.pre)} beds (${f.preFy}) to ${num(f.post)} (${f.postFy}), about
+  ${(f.pre / f.post).toFixed(1)}-fold, and that drop is mostly a product of the measure it is fitted to.`;
+};
 const poolSummary = () => `<strong>What the pool tests show.</strong>
-  The sixfold drop in pool size that the model needs is mostly a product of the 12-hour measure it is fitted to.
+  ${poolDrop()}
   Before the pandemic about 320,000 patients a year spent over 12 hours in A&amp;E from arrival, but only about 3,300 were counted
   as waiting 12 hours from the decision to admit (D). Measured from arrival, 12-hour waits rose about fivefold, not 140-fold.
   Other measures that do not depend on when a decision is recorded tell the same story: 4-hour waits from the decision to admit rose
   about 2.5-fold, and ambulance handover delays about fourfold at the same occupancy (E). Fitted to 4-hour waits, pools shrink by about
-  40%, not sixfold (B). Part of what changed is the room to escalate: hospitals open fewer escalation beds at the same occupancy, and
+  40% (B), far less than the 12-hour fit suggests. Part of what changed is the room to escalate: hospitals open fewer escalation beds at the same occupancy, and
   running out of them now matters less, because delays are common on ordinary days too (F). But the handover curve moved up at every
   occupancy, including around 80%, rather than changing shape, which points to pressures outside the bed pool as well (emergency department
   crowding, staffing, processes). Infection control (G), split sites and single rooms (H) do not explain which trusts got worse; a high
@@ -393,7 +411,8 @@ async function renderExtra() {
   const e6 = x.tests.find((t) => t.id === "E6");
   if (e6) h += `<h3>E6. Uncertainty and sensitivity</h3>` + table(["Variant", "Pool size", "12-hour waits a year", "+5,000 beds", "Stays 10% shorter"],
     e6.rows.map((r) => [esc(r.label), num(r.pool), num(r.base12), num(r.beds5k), num(r.los10)]), [1, 2, 3, 4]) +
-    `<p class="cap">Changes in emergency patients a year waiting over 12 hours, today's system. Each variant is refitted to 2025/26 before the policies are run.</p>`;
+    `<p class="cap">Changes in emergency patients a year waiting over 12 hours, today's system. Each variant is refitted to 2025/26 before the policies are run,
+      with fewer simulation runs than the main results, so its central figures differ by a few percent from those quoted elsewhere on the site.</p>`;
   $("extraDetail").innerHTML = h;
   const g = (id) => x.tests.find((t) => t.id === id) || {};
   const E1 = g("E1"), E2 = g("E2"), E4 = g("E4"), E5 = g("E5"), E6 = g("E6");
