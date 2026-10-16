@@ -144,6 +144,12 @@ SOURCES = [
            depth=0, files=r"(?i)\.(xlsx?|csv|ods)",
            notes="Hospital A&E activity tables (HES A&E / ECDS) via a public mirror of the NHS England Digital pages, "
                  "which block automated browsers; the files themselves come from files.digital.nhs.uk"),
+    Source("eric_mirror",
+           [f"https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/estates-returns-information-collection/{p}"
+            for p in ("summary-page-and-dataset-for-eric-2024-25", "summary-page-and-dataset-for-eric-2023-24",
+                      "england-2018-19", "england-2017-18", "summary-page-and-dataset-for-eric-2018-19")],
+           depth=0, files=r"(?i)site.*\.(csv|xlsx?)|\.(csv)",
+           notes="ERIC estates returns via the public mirror: site-level data (site type, beds, single rooms)"),
     Source("ons_projections",
            ["https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/tablea14principalprojectionenglandpopulationinagegroups",
             "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/z1zippedpopulationprojectionsdatafilesuk"],

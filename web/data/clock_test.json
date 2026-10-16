@@ -1,0 +1,52 @@
+{
+ "years": [
+  {
+   "fy": "2017/18",
+   "arrival_over12": 313666.0,
+   "arrival_share": 0.020238598746129,
+   "attendances_type1": 15498405.0,
+   "dta_over12": 3471.0,
+   "dta_share": 0.0005769109948166101,
+   "ratio": 90.36761740132526
+  },
+  {
+   "fy": "2018/19",
+   "arrival_over12": 324572.0,
+   "arrival_share": 0.0203176398055272,
+   "attendances_type1": 15974887.0,
+   "dta_over12": 3262.0,
+   "dta_share": 0.0005121560119532377,
+   "ratio": 99.5009196811772
+  },
+  {
+   "fy": "2019/20",
+   "arrival_over12": 505974.0,
+   "arrival_share": 0.0314042654770003,
+   "attendances_type1": 16111633.0,
+   "dta_over12": 12435.0,
+   "dta_share": 0.0019411692254664543,
+   "ratio": 40.68950542822678
+  },
+  {
+   "fy": "2022/23",
+   "arrival_over12": 1733354.0,
+   "arrival_share": 0.1070401880064381,
+   "attendances_type1": 16193488.0,
+   "dta_over12": 410092.0,
+   "dta_share": 0.06811407045567225,
+   "ratio": 4.226744242755284
+  },
+  {
+   "fy": "2024/25",
+   "arrival_over12": 1809915.0,
+   "arrival_share": 0.106301165344545,
+   "attendances_type1": 17026295.0,
+   "dta_over12": 532451.0,
+   "dta_share": 0.08162902059923514,
+   "ratio": 3.399214199992112
+  }
+ ],
+ "rise_from_arrival": 5.260383136351555,
+ "rise_from_decision": 137.4966738722924,
+ "html": "<div class=\"table-scroll\"><table><thead><tr><th>Year</th><th class=\"num\">Over 12 hours from arrival</th><th class=\"num\">% of type 1 attendances</th><th class=\"num\">Over 12 hours from decision to admit</th><th class=\"num\">% of emergency admissions</th><th class=\"num\">Ratio</th></tr></thead><tbody><tr><td>2017/18</td><td class=\"num\">313,666</td><td class=\"num\">2.0%</td><td class=\"num\">3,471</td><td class=\"num\">0.06%</td><td class=\"num\">90</td></tr><tr><td>2018/19</td><td class=\"num\">324,572</td><td class=\"num\">2.0%</td><td class=\"num\">3,262</td><td class=\"num\">0.05%</td><td class=\"num\">100</td></tr><tr><td>2019/20</td><td class=\"num\">505,974</td><td class=\"num\">3.1%</td><td class=\"num\">12,435</td><td class=\"num\">0.19%</td><td class=\"num\">41</td></tr><tr><td>2022/23</td><td class=\"num\">1,733,354</td><td class=\"num\">10.7%</td><td class=\"num\">410,092</td><td class=\"num\">6.81%</td><td class=\"num\">4</td></tr><tr><td>2024/25</td><td class=\"num\">1,809,915</td><td class=\"num\">10.6%</td><td class=\"num\">532,451</td><td class=\"num\">8.16%</td><td class=\"num\">3</td></tr></tbody></table></div><p class=\"cap\">From arrival: HES A&amp;E (to 2019/20) and ECDS (2022/23 on), type 1 departments, all attendances whether admitted or not (NHS England Digital, Hospital A&amp;E Activity, Home Nations Comparison). From decision to admit: A&amp;E monthly situation reports. Between 2017/18\u20132018/19 and 2022/23\u20132024/25, 12-hour waits rose about 5-fold from arrival but about 137-fold from the decision to admit.</p>"
+}
