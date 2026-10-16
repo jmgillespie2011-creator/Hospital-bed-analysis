@@ -71,7 +71,7 @@ gives the curves below.</p>
 <p>Beds are not the only lever. Fewer people needing admission, shorter stays and faster discharges all free up space. We ran each policy at
 a size that has been proposed or achieved somewhere. The effect of each on admissions and length of stay comes from measured data, not
 assumption: OHID attributable-admission estimates for smoking, a large cohort study for obesity, a test-negative study for flu vaccine
-effectiveness, and NHS England's discharge data for delays (<a href="data.html">sources</a>). Bars show the change from today.</p>
+effectiveness, NHS England's discharge data for delays, and HES readmission counts for readmissions (<a href="data.html">sources</a>). Bars show the change from today.</p>
 <div class="grid2">
   <figure class="chart-card"><h3>Change in occupied beds</h3><p class="cap">Average beds in use. Negative means space freed. Capacity levers add beds rather than freeing them, so they are not shown.</p><div class="chart-box bars"><canvas id="cLevBeds"></canvas></div></figure>
   <figure class="chart-card"><h3>Change in waits over 12 hours</h3><p class="cap">Thousands of emergency patients a year, today's system.</p><div class="chart-box bars"><canvas id="cLevWait"></canvas></div></figure>
@@ -79,6 +79,11 @@ effectiveness, and NHS England's discharge data for delays (<a href="data.html">
 <details class="chart-card"><summary>Show all policy results as a table</summary><div id="tLevers"></div></details>
 <p id="leverText"></p>
 <figure class="chart-card"><h3>Beds occupied by patients well enough to leave</h3><p class="cap">Patients no longer meeting the criteria to reside, England, 7-day average.</p><div class="chart-box"><canvas id="cNctr"></canvas></div><details><summary>Show as table</summary><div id="tNctr"></div></details></figure>
+
+<h3 id="readmissions">Readmissions: patients who come straight back</h3>
+<p id="readmText1"></p>
+<figure class="chart-card"><h3>Emergency readmissions within 30 days of discharge, England</h3><p class="cap">Share of eligible discharges followed by an emergency readmission within 30 days. Excludes day cases, maternity, cancer and deaths. The 2020/21 peak reflects the pandemic, with fewer and sicker admissions. OHID Fingertips 41101, from HES.</p><div class="chart-box"><canvas id="cReadm"></canvas></div><details><summary>Show as table</summary><div id="tReadm"></div></details></figure>
+<p id="readmText2"></p>
 
 <h2>5. Flu: the winter wild card</h2>
 <p>Flu fills thousands of beds for a few weeks each winter, and no two seasons are alike. In 2024/25 a sharp early-January peak put

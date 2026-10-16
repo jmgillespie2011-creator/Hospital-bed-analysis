@@ -188,6 +188,31 @@ async function main() {
       scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, callback: (v, i) => (i > 0 && N[i].date.slice(0, 4) !== N[i - 1].date.slice(0, 4) ? N[i].date.slice(0, 4) : null) } }, y: { title: { display: true, text: "Patients" }, min: 0 } } }) });
   $("tNctr").innerHTML = table(["Week ending", "Patients ready to leave (7-day average)"], N.slice().reverse().map((x) => [x.date, int(x.nctr)]), [1]);
 
+  // ---------------------------------------------------------------- readmissions
+  const RM = base.readmissions, rl = by("readmissions");
+  if (RM && rl) {
+    const H = RM.history, h0 = H[0], hN = H.at(-1);
+    const extra = Math.round((hN.rate - h0.rate) * RM.discharges);
+    $("readmText1").innerHTML = `About one emergency admission in seven is a patient who left hospital in the previous 30 days. In
+      ${esc(RM.year)} there were <b>${int(RM.count)}</b> emergency readmissions within 30 days, out of ${(RM.discharges / 1e6).toFixed(2)} million
+      eligible discharges: <b>${pct(hN.rate)}</b>. In ${esc(h0.year)} the rate was ${pct(h0.rate)}. At today's number of discharges, that rise
+      means about ${int(Math.round(extra / 1000) * 1000)} extra emergency admissions a year.`;
+    new Chart($("cReadm"), { type: "line", data: { labels: H.map((h) => h.year), datasets: [
+      { label: "Readmitted within 30 days", data: H.map((h) => 100 * h.rate), borderColor: BLUE, backgroundColor: BLUE, borderWidth: 2, pointRadius: 4 }] },
+      options: lineOpts("Share of discharges (%)", { plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.parsed.y.toFixed(1)}% of eligible discharges` } } },
+        scales: { x: { grid: { display: false } }, y: { title: { display: true, text: "Share of discharges (%)" }, min: 10, max: 17 } } }) });
+    $("tReadm").innerHTML = table(["Year", "Readmitted within 30 days"], H.map((h) => [h.year, pct(h.rate)]), [1]);
+    const dAdm = 1 - rl.demand.readmissions;
+    $("readmText2").innerHTML = `Readmissions are not extra patients on top of emergency admissions; they are part of them. Fewer readmissions
+      also means fewer discharges, which in turn means fewer readmissions after those. Taking both into account, getting back to the
+      ${esc(h0.year)} rate would cut emergency admissions by <b>${pct(dAdm)}</b>. In the simulation that frees <b>${int(-dBeds(rl))}</b> beds,
+      takes occupancy from ${pct(A0.occupancy)} to ${pct(rl.A.occupancy)}, and cuts 12-hour waits by about <b>${int(Math.round(-dWait(rl) / 1000) * 1000)}</b> a year.
+      That is a similar size to the community response for older people (${int(-dBeds(by("community")))} beds), and smaller than halving
+      discharge delays (${int(-dBeds(by("delays")))}). Two caveats. The national rate is not published by age, so the effect is spread evenly
+      across ages, although older patients are readmitted more often. And community response and virtual wards also prevent some
+      readmissions, so their effects partly overlap; the policy packages above leave readmissions out to avoid double counting.`;
+  }
+
   // ---------------------------------------------------------------- 5. flu
   const seasons = Object.keys(obs.flu).sort();
   const offset = (d, s) => Math.round((new Date(d) - new Date(`${s.slice(0, 4)}-11-01`)) / 864e5);
