@@ -59,10 +59,8 @@ async function main() {
     const y = fc.years.find((x) => x.fy === "2018/19") || fc.years[0];
     const fav = (y.favourable || []).find((g) => /all/.test(g.label));
     if (fav) fill("flexFav", pct(fav.wait12, 1));
-    fill("flexObs", pct(y.wait12Observed, 2));
-    const pn = y.poolNeeded.map((n) => n.pool / fc.poolToday);
-    const lo = Math.round(Math.min(...pn)), hi = Math.round(Math.max(...pn));
-    fill("flexPoolX", lo === hi ? `about ${lo}` : `${lo}–${hi}`);
+    const g0 = (y.grid || []).find((g) => g.delayChangePct === 0 && g.corridorPct === fc.corridorToday) || (y.grid || [])[0];
+    if (g0) fill("flexToday", pct(g0.wait12, 1));
   }
   const lsT = tf?.models?.["all together"]?.terms?.["post:long_stay_z"];
   if (lsT) fill("flexLS", `+${lsT.pct.toFixed(0)}% (95% CI +${lsT.lo.toFixed(0)}% to +${lsT.hi.toFixed(0)}%)`);
@@ -105,6 +103,7 @@ async function main() {
   const BY = sc.baseYear;
   fill("baseYear", BY);
   if (base.calibration?.B) { fill("poolB", Math.round(base.calibration.B.poolSize)); fill("poolA", Math.round(base.calibration.A.poolSize)); }
+  if (base.calibration?.flexibleFit) fill("flexTarget", pct(base.calibration.flexibleFit.target, 1));
   $("genDate").textContent = new Date(sc.generated).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
   // ---------------------------------------------------------------- 1. beds
@@ -576,7 +575,7 @@ function renderBlame(HM, HD, HT, C) {
   // flow
   const fl = HM.scenarios.find((x) => x.id === "flex"), sd = HM.scenarios.find((x) => x.id === "sevenDay"), hp = HM.scenarios.find((x) => x.id === "hospitalProcess");
   $("flowText1").innerHTML = `The evidence for flow is the strongest of the three, although it is indirect. Section 2 showed that the same occupancy now
-    produces far longer waits than before the pandemic, that this is not explained by delays, flu, weekend discharging or longer stays, and that a
+    produces far longer waits than before the pandemic, that at the same occupancy this is not explained by delays, flu, weekend discharging or longer stays, and that a
     hospital that can no longer place patients flexibly across its wards reproduces the break on its own. The decomposition above puts
     ${pct(sh("flex").wait12 / tot, 0)} of the simulated rise in long waits there. Delays caused by hospitals' own processes are ${pct(G["Hospital processes"], 0)} of
     long discharge delays, and they are the delays that track long waits most closely${T ? `, within trusts and between them` : ""}.`;

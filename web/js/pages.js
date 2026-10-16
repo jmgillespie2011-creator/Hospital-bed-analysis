@@ -358,9 +358,8 @@ const poolSummary = () => `<strong>What the pool tests show.</strong>
   running out of them now matters less, because delays are common on ordinary days too (F). But the handover curve moved up at every
   occupancy, including around 80%, rather than changing shape, which points to pressures outside the bed pool as well (emergency department
   crowding, staffing, processes). Infection control (G), split sites and single rooms (H) do not explain which trusts got worse; a high
-  long-stay share does (C, H). Implication for the simulator: its "pre-pandemic flexibility" setting was fitted to 12-hour waits from the
-  decision to admit (pools of 1,000 beds), which overstated how flexible hospitals were. It is now fitted to 12-hour waits counted from
-  arrival (pools of about ${Math.round(POOL_B)} beds; see the methods page).`;
+  long-stay share does (C, H). For this reason the simulator's "pre-pandemic flexibility" setting is fitted to 12-hour waits counted from
+  arrival, not from the decision to admit: pools of about ${Math.round(POOL_B)} beds (see the methods page).`;
 
 async function renderExtra() {
   if (!$("extraSummary")) return;

@@ -93,66 +93,59 @@ is. NHS England publishes the number who wait more than 12 hours from the decisi
 it happens to about <b data-k="wait12Now"></b> of emergency admissions.</p>
 <figure class="chart-card"><h3>Emergency admissions waiting over 12 hours for a bed, each month</h3><p class="cap">"Trolley waits": decision to admit to admission, all type 1 A&amp;E departments, England.</p><div class="chart-box tall"><canvas id="cWaits"></canvas></div><details><summary>Show as table</summary><div id="tWaits"></div></details></figure>
 <p>The striking thing is not that waits rise as hospitals fill. It is that the same occupancy now produces far longer waits than it did
-before the pandemic. Each dot below is one quarter. Before 2020, quarters at 90–93% occupancy had almost no 12-hour waits (under 0.3% of admissions). Since 2022,
-quarters at the same occupancy have had 5–11% of admissions waiting more than 12 hours.</p>
+before the pandemic. Each dot below is one quarter. Before 2020, quarters at 90–93% occupancy had almost no 12-hour waits from the
+decision to admit (under 0.3% of admissions). Since 2022, quarters at the same occupancy have had 5–11%.</p>
 <figure class="chart-card"><h3>Occupancy and long waits, each quarter since 2010</h3><p class="cap" id="capBreak">x: G&amp;A occupancy (KH03). y: share of emergency admissions waiting over 12 hours for a bed.</p><div class="legend" id="lBreak"></div><div class="chart-box tall"><canvas id="cBreak"></canvas></div><details><summary>Show as table</summary><div id="tBreak"></div></details></figure>
-<p>Why? No published study has tested it. Patients are older and sicker, and more of them are waiting to be discharged. Beds may
-also be less interchangeable than before, through more single-specialty wards, ring-fenced planned-surgery beds and infection-control rules.
-The simulator can only reproduce today's waits if hospitals behave as if their beds are split into small pools that cannot lend to each
-other, and the waits of 2018/19 only if the pools are large. We show both versions throughout, as "today's hospitals" and
-"pre-pandemic flexibility".</p>
-<p>We tested whether something other than flexibility could explain the change. Give the model 2018/19's own beds, admissions and
-occupancy, with today's flexibility. Removing discharge delays entirely makes almost no difference once occupancy is matched. Then set
-everything else that matters as favourably as is plausible: steadier lengths of stay, 7-day discharging, no flu season and double
-today's corridor spaces. It still predicts <b data-k="flexFav"></b> of
-emergency admissions waiting over 12 hours, against <b data-k="flexObs"></b> observed. Matching 2018/19 needs bed pools <b data-k="flexPoolX"></b> times larger than today's. Average stays barely changed, so slower turnover overall is not the answer either.</p>
-<p>Part of that break is in how the waits are counted. The 12-hour figure starts when a doctor decides to admit. Counted from
-arrival instead, <b data-k="clkArr0"></b> patients spent over 12 hours in A&amp;E in 2018/19, against <b data-k="clkDta0"></b> counted from the
-decision to admit. From arrival, 12-hour waits rose about <b data-k="clkRiseA"></b>-fold since then; from the decision to admit, about
-<b data-k="clkRiseD"></b>-fold. Measures that do not depend on when a decision is recorded, such as 4-hour waits and ambulance handover delays,
-rose 2.5 to 4 times at the same occupancy. So hospitals did lose flexibility, but much less than the 12-hour figure alone suggests.
-The simulator's "pre-pandemic flexibility" setting is now fitted to 12-hour waits counted from arrival: pools of about
-<b data-k="poolB"></b> beds, against <b data-k="poolA"></b> today (it used to be 1,000). The <a href="validation.html#pool-tests">validation page</a> has these tests.</p>
-<h3 id="long-stay">The long-stay clue</h3>
-<p>Comparing hospitals gives a clue. We followed <b data-k="lsTrusts"></b> acute trusts through three years before the pandemic and three
-after. Bigger trusts did not hold up better, which simple pooling theory would predict. What mattered was how many of a trust's beds
-were held by patients who had been in hospital for three weeks or more. Group the trusts into fifths by that share and the pattern is
-plain. Before the pandemic, every group had almost no 12-hour waits. Afterwards, trusts in the fifth with the fewest long-stay patients
-had <b data-k="lsLow"></b> of emergency admissions waiting over 12 hours. In the fifth with the most, it was <b data-k="lsHigh"></b>,
-even though occupancy was about the same (<span data-k="lsOcc"></span>).</p>
+<p>That figure exaggerates the change, because the 12-hour clock starts when a doctor decides to admit, and before the pandemic that
+decision was often recorded late. Counted from arrival in A&amp;E, <b data-k="clkArr0"></b> patients spent over 12 hours there in 2018/19,
+against <b data-k="clkDta0"></b> counted from the decision to admit. From arrival, 12-hour waits have risen about <b data-k="clkRiseA"></b>-fold
+since then, not <b data-k="clkRiseD"></b>-fold. Four-hour waits and ambulance handover delays, which do not depend on when a decision is
+recorded, rose 2.5 to 4 times at the same occupancy. The real change is a several-fold rise in long waits at the same level of fullness,
+and the simulator's pre-pandemic setting is fitted to that, not to the decision-to-admit figure.</p>
+<p>Why did it happen? No published study has tested it. Patients are older and sicker, and more of them are waiting to be discharged.
+Beds may also be less interchangeable than before, through more single-specialty wards, ring-fenced planned-surgery beds and
+infection-control rules. The simulator reproduces today's waits only if hospitals behave as if their beds are split into small pools,
+about <b data-k="poolA"></b> beds each, that cannot lend to each other. It reproduces 2018/19's waits, counted from arrival, with pools of
+about <b data-k="poolB"></b>. We show both versions throughout, as "today's hospitals" and "pre-pandemic flexibility". The
+<a href="validation.html#pool-tests">validation page</a> has the tests behind both.</p>
+<p>Could something other than flexibility explain the change? Give the model 2018/19's own beds, admissions and occupancy, with today's
+flexibility. It predicts <b data-k="flexToday"></b> of emergency admissions waiting over 12 hours, against the <b data-k="flexTarget"></b>
+that 2018/19's arrival-based waits imply. At the same occupancy, removing discharge delays entirely makes almost no difference to waits (delays matter
+by making hospitals fuller, which section 3 tests), and nor does any other single change. Only with every favourable assumption at once (steadier lengths of stay, 7-day discharging, no flu
+season and double today's corridor spaces) does it come close, at <b data-k="flexFav"></b>.</p>
+<h3 id="long-stay">Trusts with many long-stay patients got worse</h3>
+<p>The rise in long waits was concentrated in trusts with many long-stay patients, but those patients seem to mark strain rather than cause
+it. We followed <b data-k="lsTrusts"></b> acute trusts through three years before the pandemic and three after, grouped into fifths by the
+share of their beds held by patients in hospital three weeks or more. Before the pandemic, every group had almost no 12-hour waits.
+Afterwards, the fifth with the fewest long-stay patients had <b data-k="lsLow"></b> of emergency admissions waiting over 12 hours and the
+fifth with the most had <b data-k="lsHigh"></b>, at about the same occupancy (<span data-k="lsOcc"></span>). Bigger trusts did not hold up better.</p>
 <figure class="chart-card"><h3>12-hour waits before and after the pandemic, by trusts' share of long-stay patients</h3>
   <p class="cap">Acute trusts grouped into fifths by the share of G&amp;A beds held by patients in hospital 21 days or more (2025/26).
   Before: 2017/18 to 2019/20. After: 2022/23, 2023/24 and 2025/26. Share of emergency admissions waiting over 12 hours from decision to admit.</p>
   <div class="legend" id="lLongStay"></div>
   <div class="chart-box"><canvas id="cLongStay"></canvas></div>
   <details><summary>Show as table</summary><div id="tLongStay"></div></details></figure>
-<p>A statistical model that compares each trust with itself over time, and allows for year-to-year changes in its occupancy, puts the
-effect at <b data-k="flexLS"></b> more long waits for each standard deviation of long-stay share. Before the pandemic the same comparison
-shows nothing (<span data-k="lsPlacebo"></span>).</p>
-<p>Why would long stays only matter after 2020? We tested four ideas.</p>
+<p>Comparing each trust with itself over time, and allowing for changes in its occupancy, each standard deviation of long-stay share went
+with <b data-k="flexLS"></b> more long waits after the pandemic, and with nothing before it (<span data-k="lsPlacebo"></span>). Four findings
+point to long stays as a marker rather than the mechanism:</p>
 <ul>
-<li><b>Did long stays simply grow?</b> Not much. The winter sitreps of 2017/18 to 2019/20 show <span data-k="lsPreMean"></span> of beds held
-by patients in hospital three weeks or more, against <span data-k="lsPostMean"></span> since. The same trusts tended to have high shares
-in both periods. Even measured at the time, long stays did not predict long waits before the pandemic (<span data-k="lsB1"></span>).
-After it, both a trust's earlier level of long stays (<span data-k="lsB2pre"></span>) and its rise since (<span data-k="lsB2rise"></span>)
-predict the increase in waits.</li>
-<li><b>Is it really delayed discharge?</b> No. Patients who no longer meet the criteria to reside do not predict the rise
-(<span data-k="lsNctr"></span>). The long-stay result also holds when we allow each region its own change (<span data-k="lsRegion"></span>).</li>
-<li><b>Does one cause the other?</b> Month by month within a trust, months with more long-stay patients also have more long waits
-(<span data-k="lsMonth"></span> for each extra point of long-stay share). But last month's long stays do not predict this month's waits
-(<span data-k="lsLag"></span>), and earlier waits do not predict later long stays. The two move together but neither leads.</li>
-<li><b>Do long-stay patients block the beds that emergency patients need?</b> We built a separate simulation of a hospital split into
-20 specialty wards. With beds fully shared between wards, almost nobody waits 12 hours (<span data-k="lsMechFull"></span>). When patients
-can rarely be placed outside their own ward, waits reach today's level. So losing the ability to place patients flexibly is enough, on
-its own, to explain the national break. At today's level of flexibility, raising long-stay patients from <span data-k="lsMechLo"></span>,
-and it makes no difference whether they are spread out or concentrated on a few wards.</li>
+<li><b>Long stays grew only a little.</b> The winter sitreps of 2017/18 to 2019/20 show <span data-k="lsPreMean"></span> of beds held by patients
+in hospital three weeks or more, against <span data-k="lsPostMean"></span> since, and the same trusts had high shares in both periods. Before the
+pandemic, long stays did not predict long waits (<span data-k="lsB1"></span>); after it, both a trust's earlier level (<span data-k="lsB2pre"></span>)
+and its rise since (<span data-k="lsB2rise"></span>) predict the increase in waits.</li>
+<li><b>The total number of patients fit to leave does not predict which trusts got worse</b> (<span data-k="lsNctr"></span>); section 3 shows which
+kinds of delay do track waits. The long-stay result holds when each region has its own change (<span data-k="lsRegion"></span>).</li>
+<li><b>Long stays and long waits move together, but neither leads.</b> Months with more long-stay patients have more long waits
+(<span data-k="lsMonth"></span> for each extra point of long-stay share), but last month's long stays do not predict this month's waits
+(<span data-k="lsLag"></span>), and earlier waits do not predict later long stays.</li>
+<li><b>Blocked beds are too small an effect.</b> In a separate simulation of a hospital split into 20 specialty wards, waits stay near zero
+when beds are fully shared (<span data-k="lsMechFull"></span>) and reach today's level when patients can rarely be placed outside their own ward. At
+today's level of sharing, raising long-stay patients from <span data-k="lsMechLo"></span>, whether they are spread out or concentrated on a few wards.</li>
 </ul>
-<p>So the clue is real, but blocked beds are probably not the explanation. A high long-stay share more likely marks hospitals whose
-patients or local services, such as older and frailer populations or weaker community and social care, struggle most once beds can no
-longer be shared flexibly. It may also share a common cause with long waits. Getting long-stay patients home matters for those patients,
-but on this evidence it is not a hidden lever that the simulator misses.</p>
-<p>Two cautions. These are associations, not proof of cause. And the trust-level result weakens when the ten trusts with the most long
-waits are left out (<span data-k="lsNoBig"></span>). The <a href="validation.html#flexibility">validation page</a> has the full tests.</p>
+<p>A high long-stay share more likely marks hospitals whose patients or local services (older and frailer populations, weaker community
+and social care) struggle most once beds cannot be shared flexibly, or it shares a common cause with long waits. These are associations,
+and the trust-level result weakens when the ten trusts with the most long waits are left out (<span data-k="lsNoBig"></span>). The
+<a href="validation.html#flexibility">validation page</a> has the full tests.</p>
 
 <h2 id="blame">3. Who is to blame? Social care, GPs, or how hospitals run</h2>
 <p>Three explanations dominate the debate. Social care cannot take patients who are ready to leave, so they block beds. GPs are
