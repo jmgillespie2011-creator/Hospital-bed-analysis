@@ -108,8 +108,11 @@ SOURCES = [
            notes="Corridor care (experimental, monthly from May 2026): patients 45+ minutes in a clinically "
                  "inappropriate area of an emergency department or G&A ward, 08:00 snapshot"),
     Source("eric_pages",
-           ["https://digital.nhs.uk/data-and-information/publications/statistical/estates-returns-information-collection"],
-           follow=r"estates-returns-information-collection/(summary-page-and-dataset-for-eric|england)-20(1[7-9]|2[2-5])",
+           ["https://digital.nhs.uk/data-and-information/publications/statistical/estates-returns-information-collection/england-2022-23",
+            "https://digital.nhs.uk/data-and-information/publications/statistical/estates-returns-information-collection/summary-page-and-dataset-for-eric-2024-25",
+            "https://digital.nhs.uk/data-and-information/publications/statistical/estates-returns-information-collection/summary-page-and-dataset-for-eric-2017-18",
+            "https://www.gov.uk/government/statistics/estates-returns-information-collection-summary-page-and-dataset-for-eric-202223"],
+           follow=r"estates-returns-information-collection",
            files=r"(?i)(site|trust).*\.(csv|xlsx?)", depth=1,
            notes="ERIC estates data (site and trust level), backup route via NHS England Digital pages"),
     Source("ons_projections",
