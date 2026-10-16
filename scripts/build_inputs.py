@@ -551,6 +551,10 @@ def assemble() -> dict:
     w = winter_daily()
     h = hes_diagnosis()
     hd = hes_derived(h)
+    # Health Foundation definitions (scripts/hes_admissions.py): same-day share of emergency admissions, and nights per
+    # overnight emergency admission measured on emergency-dominated diagnoses
+    from hes_admissions import hes_admissions
+    hfm = hes_admissions().set_index("fy").loc["2023/24"].to_dict()
     trust = trust_panel(BASE_FY)
     months = list(pd.date_range(f"{BASE_FY[:4]}-04-01", periods=12, freq="MS"))
     drd = drd_delays(months)
@@ -641,7 +645,8 @@ def assemble() -> dict:
                       occupancy=base["occupancy"]),
         targets=dict(occupancy=base["occupancy"], nctrShare=base["nctr_share"], wait12Share=base["wait12_share"],
                      long21Share=base["long21_share"], weekendRatio=weekend_ratio, delayedShare=drd["delayed_share"],
-                     emBedDaysPerAdm=hd["mean_emergency_bed_days"], fluPeakBeds=wave["peak_beds_7day"],
+                     emBedDaysPerAdm=hd["mean_emergency_bed_days"], emZeroNightShare=hfm["em_same_day_share"],
+                     emLosOvernight=hfm["hf_em_los"], fluPeakBeds=wave["peak_beds_7day"],
                      **({"wardCorridor8am": corridor["wardMean"]} if corridor else {})),
         corridorCare=corridor,
         readmissions=readmissions(ae),
@@ -655,7 +660,8 @@ def assemble() -> dict:
         bedHistory=bed_history, presets=presets, backtests=backtests, winterValidation=winter_val,
         trustPanel=dict(fy=BASE_FY, n=int(len(trust)), file=f"data/processed/trust_panel_{BASE_FY.replace('/', '_')}.csv"),
         hes=dict(year="2023/24", emergencyTotal=hd["emergency_total"], meanEmergencyBedDays=hd["mean_emergency_bed_days"],
-                 emergencyBedDaysDominant=hd["emergency_bed_days_per_admission_dominant"]),
+                 emergencyBedDaysDominant=hd["emergency_bed_days_per_admission_dominant"],
+                 emZeroNightShare=hfm["em_same_day_share"], emLosOvernight=hfm["hf_em_los"], emLosOvernightSplit=hfm["em_bd_per_overnight"]),
     )
     import json
     (OUT / "model_inputs_core.json").write_text(json.dumps(inputs, indent=1, default=float))

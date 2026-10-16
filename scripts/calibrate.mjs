@@ -5,7 +5,9 @@
 // Uses the same model code as the website (web/js/model.js). Each unknown parameter is fitted to
 // one measured target (bisection), cycling until all targets are met together:
 //   median acute length of stay  -> KH03 G&A occupancy (midnight)
-//   share discharged same day    -> HES midnights per emergency admission
+//   share discharged same day    -> HES share of emergency admissions with no night in hospital (zero bed day
+//                                   cases, 2023/24); nights per overnight emergency admission is then a check
+//                                   (Health Foundation definitions; scripts/hes_admissions.py)
 //   spread (sigma) of stays      -> share of occupied beds with patients in hospital 21+ days (sitrep)
 //   share delayed once fit       -> share discharged after their Discharge Ready Date (DRD)
 //   weekend discharging          -> weekend/weekday discharge-rate ratio (discharge sitrep)
@@ -128,7 +130,8 @@ function fitAll(which, rounds = 3, withPool = false, behaviour = true) {
       if (r === 0 || r === rounds - 1) fitWeekly(which);
     }
     fit1(which, "losSigma", (x) => x.long21Share, T.long21Share, 0.6, 1.8, true, 9);
-    fit1(which, "sameDayFrac", (x) => x.emBedDaysPerAdm, T.emBedDaysPerAdm, 0.05, 0.6, false, 9);
+    if (T.emZeroNightShare != null) fit1(which, "sameDayFrac", (x) => x.emZeroNightShare, T.emZeroNightShare, 0.05, 0.6, true, 9);
+    else fit1(which, "sameDayFrac", (x) => x.emBedDaysPerAdm, T.emBedDaysPerAdm, 0.05, 0.6, false, 9);
     fit1(which, "losMedianDays", (x) => x.occMidnight, T.occupancy, 0.5, 8, true, 11);
     fit1(which, "delayProb", (x) => x.delayedShareOvernight, T.delayedShare, 0.0, 0.4, true, 9);
     if (base.flu) fit1(which, "fluAdmissions", (x) => x.fluBedsPeak, T.fluPeakBeds, 5000, 150000, true, 9);
@@ -144,7 +147,7 @@ function fitAll(which, rounds = 3, withPool = false, behaviour = true) {
     }
     const m = measure(which, which === "B" ? repsB(96) : 96);
     log(`[${which}] round ${r + 1}`, JSON.stringify(Object.fromEntries(Object.entries(base.calibration[which]).map(([k, v]) => [k, +(+v).toFixed(4)]))));
-    log(`   occ ${m.occMidnight.toFixed(4)}/${T.occupancy.toFixed(4)}  bd/adm ${m.emBedDaysPerAdm.toFixed(2)}/${T.emBedDaysPerAdm.toFixed(2)}  21+ ${m.long21Share.toFixed(3)}/${T.long21Share.toFixed(3)}  delayed ${m.delayedShareOvernight.toFixed(3)}/${T.delayedShare.toFixed(3)}  wkend ${m.weekendDischargeRatio.toFixed(3)}/${T.weekendRatio.toFixed(3)}  week-shape ${weekShape(m).toFixed(2)}  flu ${Math.round(m.fluBedsPeak)}/${T.fluPeakBeds}  >12h ${m.wait12.toFixed(4)}/${T.wait12Share.toFixed(4)}  ward corridor ${Math.round(wardCorridor(m))}/${Math.round(T.wardCorridor8am ?? 0)}  nctr ${m.nctrShare.toFixed(3)} (validation ${T.nctrShare.toFixed(3)})`);
+    log(`   occ ${m.occMidnight.toFixed(4)}/${T.occupancy.toFixed(4)}  same-day ${m.emZeroNightShare.toFixed(3)}/${(T.emZeroNightShare ?? 0).toFixed(3)}  overnight stay ${m.emBedDaysPerOvernight.toFixed(2)} (check ${(T.emLosOvernight ?? 0).toFixed(2)})  21+ ${m.long21Share.toFixed(3)}/${T.long21Share.toFixed(3)}  delayed ${m.delayedShareOvernight.toFixed(3)}/${T.delayedShare.toFixed(3)}  wkend ${m.weekendDischargeRatio.toFixed(3)}/${T.weekendRatio.toFixed(3)}  week-shape ${weekShape(m).toFixed(2)}  flu ${Math.round(m.fluBedsPeak)}/${T.fluPeakBeds}  >12h ${m.wait12.toFixed(4)}/${T.wait12Share.toFixed(4)}  ward corridor ${Math.round(wardCorridor(m))}/${Math.round(T.wardCorridor8am ?? 0)}  nctr ${m.nctrShare.toFixed(3)} (validation ${T.nctrShare.toFixed(3)})`);
   }
 }
 

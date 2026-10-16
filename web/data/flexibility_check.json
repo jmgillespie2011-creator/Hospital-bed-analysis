@@ -1,7 +1,7 @@
 {
  "generated": "2026-10-16",
- "poolToday": 58.105632627869,
- "corridorToday": 4.3,
+ "poolToday": 59.7553572564957,
+ "corridorToday": 4.4,
  "years": [
   {
    "fy": "2018/19",
@@ -12,83 +12,83 @@
    "grid": [
     {
      "delayChangePct": 0,
-     "corridorPct": 4.3,
+     "corridorPct": 4.4,
      "losChangePct": -2.666015625,
-     "occupancy": 0.9032160289718156,
-     "wait12": 0.0632423243237076,
-     "wait12SE": 0.00573651782520581
+     "occupancy": 0.904668756288213,
+     "wait12": 0.06499598482540914,
+     "wait12SE": 0.005954993934553846
     },
     {
      "delayChangePct": 0,
      "corridorPct": 0,
      "losChangePct": -2.001953125,
-     "occupancy": 0.904270980947882,
-     "wait12": 0.12521820484443277,
-     "wait12SE": 0.008939580728600637
+     "occupancy": 0.9056535871836547,
+     "wait12": 0.12445933597319525,
+     "wait12SE": 0.009429682235965811
     },
     {
      "delayChangePct": -50,
-     "corridorPct": 4.3,
-     "losChangePct": 2.314453125,
-     "occupancy": 0.903025114155251,
-     "wait12": 0.06398964026150353,
-     "wait12SE": 0.005944027454692633
+     "corridorPct": 4.4,
+     "losChangePct": 3.310546875,
+     "occupancy": 0.9045700797151922,
+     "wait12": 0.06479661063882812,
+     "wait12SE": 0.006222754994829658
     },
     {
      "delayChangePct": -50,
      "corridorPct": 0,
-     "losChangePct": 2.978515625,
-     "occupancy": 0.9036450952605889,
-     "wait12": 0.11963330176731662,
-     "wait12SE": 0.00870397061520585
+     "losChangePct": 3.974609375,
+     "occupancy": 0.9050034827025772,
+     "wait12": 0.12131365436269488,
+     "wait12SE": 0.009421488542398855
     },
     {
      "delayChangePct": -100,
-     "corridorPct": 4.3,
-     "losChangePct": 7.294921875,
-     "occupancy": 0.9013236104550466,
-     "wait12": 0.06372151927618744,
-     "wait12SE": 0.005825596090268809
+     "corridorPct": 4.4,
+     "losChangePct": 9.619140625,
+     "occupancy": 0.9036123365064624,
+     "wait12": 0.06471353806108604,
+     "wait12SE": 0.007020610629315403
     },
     {
      "delayChangePct": -100,
      "corridorPct": 0,
-     "losChangePct": 7.958984375,
-     "occupancy": 0.9015302708234926,
-     "wait12": 0.11623900418725114,
-     "wait12SE": 0.008450664494437841
+     "losChangePct": 10.283203125,
+     "occupancy": 0.9040815339370015,
+     "wait12": 0.12317448010411763,
+     "wait12SE": 0.010360789775587825
     }
    ],
    "favourable": [
     {
      "label": "stays 20% less variable",
-     "occupancy": 0.9045563690757361,
-     "wait12": 0.056162789370999576,
-     "wait12SE": 0.00460062926054871
+     "occupancy": 0.9046223202538505,
+     "wait12": 0.057552681859718104,
+     "wait12SE": 0.004194814675308081
     },
     {
      "label": "full 7-day discharging",
-     "occupancy": 0.9031530467642889,
-     "wait12": 0.06453158693395096,
-     "wait12SE": 0.005785372354293914
+     "occupancy": 0.904568144880427,
+     "wait12": 0.06641375681887408,
+     "wait12SE": 0.006039911164962244
     },
     {
      "label": "no flu wave and no seasonal swing",
-     "occupancy": 0.9068699811053379,
-     "wait12": 0.055735902852922486,
-     "wait12SE": 0.006431420328745162
+     "occupancy": 0.9044646312204937,
+     "wait12": 0.04939851262480933,
+     "wait12SE": 0.004648086612874311
     },
     {
      "label": "twice today's corridor spaces",
-     "occupancy": 0.9031746968981264,
-     "wait12": 0.03232854518694308,
-     "wait12SE": 0.00354927861294451
+     "occupancy": 0.9046155483321724,
+     "wait12": 0.03370531387588957,
+     "wait12SE": 0.0038575205741712736
     },
     {
      "label": "all of the above",
-     "occupancy": 0.906802078412848,
-     "wait12": 0.027704780062176877,
-     "wait12SE": 0.0029969314031466983
+     "occupancy": 0.9034933441684081,
+     "wait12": 0.020159465394221476,
+     "wait12SE": 0.002028189526662885
     }
    ],
    "poolNeeded": [
@@ -96,15 +96,15 @@
      "label": "delays as today, no corridor spaces",
      "delayChangePct": 0,
      "corridorPct": 0,
-     "pool": 386.557948003138,
-     "wait12AtPool": 0.0005823797115719449
+     "pool": 404.40680271820605,
+     "wait12AtPool": 0.0004855199201099041
     },
     {
      "label": "no delays at all, no corridor spaces",
      "delayChangePct": -100,
      "corridorPct": 0,
-     "pool": 423.9950357266533,
-     "wait12AtPool": 0.0004368451168714506
+     "pool": 583.7988573931688,
+     "wait12AtPool": 0.00011263073209975865
     }
    ]
   },
@@ -117,83 +117,83 @@
    "grid": [
     {
      "delayChangePct": 0,
-     "corridorPct": 4.3,
+     "corridorPct": 4.4,
      "losChangePct": -3.330078125,
-     "occupancy": 0.9033006613131788,
-     "wait12": 0.06526466396788717,
-     "wait12SE": 0.005825377368319363
+     "occupancy": 0.9050005804504297,
+     "wait12": 0.06592516245666444,
+     "wait12SE": 0.006128014477041438
     },
     {
      "delayChangePct": 0,
      "corridorPct": 0,
      "losChangePct": -2.998046875,
-     "occupancy": 0.9028095969138716,
-     "wait12": 0.12047419788904723,
-     "wait12SE": 0.008743663247997283
+     "occupancy": 0.9044636638031113,
+     "wait12": 0.12010494232030557,
+     "wait12SE": 0.009425054181969903
     },
     {
      "delayChangePct": -50,
-     "corridorPct": 4.3,
-     "losChangePct": 1.650390625,
-     "occupancy": 0.9033390410958905,
-     "wait12": 0.06404964543033799,
-     "wait12SE": 0.005889676457844594
+     "corridorPct": 4.4,
+     "losChangePct": 2.314453125,
+     "occupancy": 0.9034140159430383,
+     "wait12": 0.06271185506495511,
+     "wait12SE": 0.006158202048020996
     },
     {
      "delayChangePct": -50,
      "corridorPct": 0,
-     "losChangePct": 1.982421875,
-     "occupancy": 0.9025793182176033,
-     "wait12": 0.11853811694837307,
-     "wait12SE": 0.008551454974069223
+     "losChangePct": 3.310546875,
+     "occupancy": 0.9050615277455306,
+     "wait12": 0.12130097611790579,
+     "wait12SE": 0.00978978332078479
     },
     {
      "delayChangePct": -100,
-     "corridorPct": 4.3,
-     "losChangePct": 6.630859375,
-     "occupancy": 0.9016434419776412,
-     "wait12": 0.06498645878872872,
-     "wait12SE": 0.005854817652685641
+     "corridorPct": 4.4,
+     "losChangePct": 8.955078125,
+     "occupancy": 0.9041231328844516,
+     "wait12": 0.06655349357614106,
+     "wait12SE": 0.007044892716366947
     },
     {
      "delayChangePct": -100,
      "corridorPct": 0,
-     "losChangePct": 7.294921875,
-     "occupancy": 0.9017566131317903,
-     "wait12": 0.11734580903769397,
-     "wait12SE": 0.008578287365549303
+     "losChangePct": 9.619140625,
+     "occupancy": 0.9040844361891492,
+     "wait12": 0.12185214376656947,
+     "wait12SE": 0.010160783181037329
     }
    ],
    "favourable": [
     {
      "label": "stays 20% less variable",
-     "occupancy": 0.9040761297433478,
-     "wait12": 0.05470422247330082,
-     "wait12SE": 0.004425764165258362
+     "occupancy": 0.9050944199365375,
+     "wait12": 0.05697971151885269,
+     "wait12SE": 0.004186903446720544
     },
     {
      "label": "full 7-day discharging",
-     "occupancy": 0.9034177688552986,
-     "wait12": 0.06500349175888127,
-     "wait12SE": 0.005575509760434537
+     "occupancy": 0.9047326058354618,
+     "wait12": 0.06650388848776133,
+     "wait12SE": 0.006145588065391649
     },
     {
      "label": "no flu wave and no seasonal swing",
-     "occupancy": 0.9073374271768224,
-     "wait12": 0.05516117637675049,
-     "wait12SE": 0.006209890053340392
+     "occupancy": 0.9037516446095504,
+     "wait12": 0.04791124747104204,
+     "wait12SE": 0.004771072748189036
     },
     {
      "label": "twice today's corridor spaces",
-     "occupancy": 0.9034138324673279,
-     "wait12": 0.03073883346865082,
-     "wait12SE": 0.0033566548238185196
+     "occupancy": 0.9048061295565358,
+     "wait12": 0.034161370864175755,
+     "wait12SE": 0.003910658420702223
     },
     {
      "label": "all of the above",
-     "occupancy": 0.9062982207526376,
-     "wait12": 0.026731691753740273,
-     "wait12SE": 0.0028899351018129233
+     "occupancy": 0.9036858602275365,
+     "wait12": 0.019559127592876677,
+     "wait12SE": 0.0020060456759631554
     }
    ],
    "poolNeeded": [
@@ -201,15 +201,15 @@
      "label": "delays as today, no corridor spaces",
      "delayChangePct": 0,
      "corridorPct": 0,
-     "pool": 292.9382707665581,
-     "wait12AtPool": 0.000778940287145715
+     "pool": 336.5860080880667,
+     "wait12AtPool": 0.0010833608518576452
     },
     {
      "label": "no delays at all, no corridor spaces",
      "delayChangePct": -100,
      "corridorPct": 0,
-     "pool": 321.30854693579465,
-     "wait12AtPool": 0.0030953042511808835
+     "pool": 336.5860080880667,
+     "wait12AtPool": 0.0018075325442758572
     }
    ]
   }

@@ -15,6 +15,8 @@
   "weekendRatio": 0.7549449849445672,
   "delayedShare": 0.14147928467193285,
   "emBedDaysPerAdm": 4.52361697908072,
+  "emZeroNightShare": 0.36630074737687135,
+  "emLosOvernight": 8.815151192961054,
   "fluPeakBeds": 3065.0,
   "wardCorridor8am": 714.1633986928105
  },
@@ -1662,7 +1664,10 @@
   "year": "2023/24",
   "emergencyTotal": 6238352.0,
   "meanEmergencyBedDays": 4.52361697908072,
-  "emergencyBedDaysDominant": 5.821732255916645
+  "emergencyBedDaysDominant": 5.821732255916645,
+  "emZeroNightShare": 0.36630074737687135,
+  "emLosOvernight": 8.815151192961054,
+  "emLosOvernightSplit": 7.140291511631962
  },
  "riskFactors": [
   {
@@ -1942,11 +1947,25 @@
    "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/corridor-care-urgent-and-emergency-care-daily-situation-reports/"
   },
   {
+   "dataset": "covid_activity",
+   "files": [
+    "12 files, 66 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/covid-19-hospital-activity/"
+  },
+  {
    "dataset": "Acute discharge sitrep and Discharge Ready Date",
    "files": [
     "180 files, 1744 MB"
    ],
    "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/discharge-delays/acute-discharge-situation-report/"
+  },
+  {
+   "dataset": "eric_mirror",
+   "files": [
+    "9 files, 14 MB"
+   ],
+   "page": "https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/estates-returns-information-collection/england-2018-19"
   },
   {
    "dataset": "OHID Fingertips public health indicators",
@@ -1961,6 +1980,34 @@
     "73 files, 32 MB"
    ],
    "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/bed-availability-and-occupancy/critical-care-and-general-acute-beds-urgent-and-emergency-care-daily-situation-reports/critical-care-and-general-acute-beds-urgent-and-emergency-care-daily-situation-reports-2021-22/"
+  },
+  {
+   "dataset": "hes_ae_mirror",
+   "files": [
+    "38 files, 157 MB"
+   ],
+   "page": "https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/hospital-accident--emergency-activity/2018-19"
+  },
+  {
+   "dataset": "hes_apc_diag_mirror",
+   "files": [
+    "11 files, 95 MB"
+   ],
+   "page": "https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/2016-17"
+  },
+  {
+   "dataset": "hes_apc_diag_old_mirror",
+   "files": [
+    "18 files, 229 MB"
+   ],
+   "page": "https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/hospital-episode-statistics-admitted-patient-care-england-2011-12"
+  },
+  {
+   "dataset": "hes_apc_mirror",
+   "files": [
+    "33 files, 43 MB"
+   ],
+   "page": "https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/2019-20"
   },
   {
    "dataset": "HES admitted patient care tables",
@@ -1996,6 +2043,20 @@
     "6 files, 42 MB"
    ],
    "page": "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/z1zippedpopulationprojectionsdatafilesuk"
+  },
+  {
+   "dataset": "uec_sitreps_post",
+   "files": [
+    "10 files, 24 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/uec-sitrep/urgent-and-emergency-care-daily-situation-reports-2022-23/"
+  },
+  {
+   "dataset": "winter_sitreps_pre",
+   "files": [
+    "47 files, 15 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/winter-daily-sitreps/winter-daily-sitrep-2017-18-data/"
   }
  ]
 }

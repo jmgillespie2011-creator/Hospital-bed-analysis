@@ -171,14 +171,20 @@ async function main() {
       $(tid).innerHTML = table(["Year", yTitle], rows.map((r) => [r.fy, fmt(f(r))]), [1]);
     };
     const nights = (v) => (v == null ? "" : v.toFixed(2) + " nights");
-    legend("lLos", [["All emergency admissions", BLUE], ["Emergency admissions staying at least one night", ORANGE]]);
-    new Chart($("cLos"), { type: "line", data: { labels: H.map((r) => r.fy), datasets: [
-      { label: "All emergency admissions", data: H.map((r) => r.em_bd_per_adm), borderColor: BLUE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: BLUE },
-      { label: "Staying at least one night", data: H.map((r) => r.em_bd_per_overnight), borderColor: ORANGE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: ORANGE, spanGaps: false }] },
-      options: lineOpts("Nights per admission", { interaction: { mode: "index", intersect: false }, scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: "Nights per admission" } } },
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)}` } } } }) });
-    $("tLos").innerHTML = table(["Year", "All emergency admissions", "Staying at least one night", "All overnight admissions (any type)"],
-      H.map((r) => [r.fy, nights(r.em_bd_per_adm), nights(r.em_bd_per_overnight), nights(r.bd_per_overnight)]), [1, 2, 3]);
+    const HO = H.filter((r) => r.hf_em_los != null), HF = TR.healthFoundation || [];
+    const hfAt = (k) => HO.map((r) => { const h = HF.find((x) => x.fy === r.fy); return h ? h[k] : null; });
+    legend("lLos", [["Emergency", BLUE], ["Planned", GREY], ["All overnight admissions", ORANGE]]);
+    new Chart($("cLos"), { type: "line", data: { labels: HO.map((r) => r.fy), datasets: [
+      { label: "Emergency", data: HO.map((r) => r.hf_em_los), borderColor: BLUE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: BLUE },
+      { label: "Planned", data: HO.map((r) => r.hf_el_los), borderColor: GREY, borderWidth: 2, pointRadius: 3, pointBackgroundColor: GREY },
+      { label: "All overnight admissions", data: HO.map((r) => r.bd_per_overnight), borderColor: ORANGE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: ORANGE },
+      ...[["emergency", BLUE], ["elective", GREY], ["all", ORANGE]].map(([k, c]) => ({ label: `Health Foundation (${k === "elective" ? "planned" : k})`, data: hfAt(k),
+        showLine: false, pointStyle: "rectRot", pointRadius: 7, pointBackgroundColor: "transparent", pointBorderColor: c, borderColor: c, pointBorderWidth: 2 }))] },
+      options: lineOpts("Nights per overnight admission", { interaction: { mode: "index", intersect: false }, scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: "Nights per overnight admission" } } },
+        plugins: { legend: { display: false }, tooltip: { filter: (c) => c.parsed.y != null, callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)}` } } } }) });
+    $("tLos").innerHTML = table(["Year", "Emergency", "Planned", "All overnight admissions", "Emergency, all diagnoses (bed days split by admissions)"],
+      HO.map((r) => [r.fy, nights(r.hf_em_los), nights(r.hf_el_los), nights(r.bd_per_overnight), nights(r.em_bd_per_overnight)]), [1, 2, 3, 4]) +
+      `<p class="cap">Health Foundation (adults, patient-level HES): ${HF.map((h) => `${h.year}: emergency ${h.emergency}, planned ${h.elective}, all ${h.all} days`).join("; ")}.</p>`;
     lineOne("cEmerg", "tEmerg", TR.years.filter((y) => y.hes_emergency_per1000 != null), (r) => r.hes_emergency_per1000, "Per 1,000 people", (v) => v.toFixed(1) + " per 1,000", { min: 0 });
     lineOne("cSame", "tSame", H.filter((r) => r.em_same_day_share != null), (r) => 100 * r.em_same_day_share, "% of emergency admissions", (v) => v.toFixed(1) + "%", { min: 0 });
     lineOne("cAge", "tAge", H, (r) => 100 * r.share75_emergency, "% of emergency admissions", (v) => v.toFixed(1) + "%", { min: 0 });
@@ -187,14 +193,16 @@ async function main() {
       const f = (fy) => H.find((r) => r.fy === fy), h0 = H[0], h19 = f("2019/20"), hN = H.at(-1), z0 = H.find((r) => r.em_same_day_share != null);
       const ch = (a, b) => pct(b / a - 1, 0);
       if (h19) {
-        fill("bdOvernight19", nights(h19.bd_per_overnight)); fill("bdOvernightLast", nights(hN.bd_per_overnight)); fill("hesLast", hN.fy);
-        $("trendsText").innerHTML = `All of these are counted per admission (one per hospital stay), not per consultant episode. Between ${h0.fy}
-          and ${h19.fy}, nights per emergency admission fell ${ch(h0.em_bd_per_adm, h19.em_bd_per_adm).replace("-", "")} (${h0.em_bd_per_adm.toFixed(2)} to
-          ${h19.em_bd_per_adm.toFixed(2)}), while emergency admissions per person rose. Part of that fall was more patients going home the same day
-          (${pct(z0.em_same_day_share, 0)} of emergency admissions in ${z0.fy}, ${pct(h19.em_same_day_share, 0)} in ${h19.fy}): among patients who stayed
-          at least one night, stays barely changed (${z0.em_bd_per_overnight.toFixed(2)} to ${h19.em_bd_per_overnight.toFixed(2)} nights). After the
-          pandemic, stays got longer: ${hN.em_bd_per_overnight.toFixed(2)} nights per overnight emergency admission in ${hN.fy}, ${ch(h19.em_bd_per_overnight, hN.em_bd_per_overnight)}
-          more than in ${h19.fy}. So nights spent in hospital after an emergency admission, per person, are now higher than in ${h0.fy}
+        const h22 = f("2022/23");
+        fill("hfEm19", nights(h19.hf_em_los)); fill("hfEm22", nights(h22.hf_em_los)); fill("hfAll19", nights(h19.bd_per_overnight));
+        fill("hfAll22", nights(h22.bd_per_overnight)); fill("hfEl19", nights(h19.hf_el_los));
+        $("trendsText").innerHTML = `All of these are counted per admission (one per hospital stay), not per consultant episode, using the
+          Health Foundation's definitions. Before the pandemic, emergency patients who stayed overnight stayed about as long each year
+          (${z0.hf_em_los.toFixed(1)} nights in ${z0.fy}, ${h19.hf_em_los.toFixed(1)} in ${h19.fy}), while more emergency patients went home the
+          same day (${pct(z0.em_same_day_share, 0)} of emergency admissions in ${z0.fy}, ${pct(h19.em_same_day_share, 0)} in ${h19.fy}). So nights per
+          emergency admission fell, and hospitals absorbed rising admissions. After the pandemic, overnight emergency stays jumped:
+          ${h22.hf_em_los.toFixed(1)} nights in ${h22.fy}, ${ch(h19.hf_em_los, h22.hf_em_los)} more than in ${h19.fy} (the Health Foundation found 15%), and
+          ${hN.hf_em_los.toFixed(1)} in ${hN.fy}. Nights spent in hospital after an emergency admission, per person, are now higher than in ${h0.fy}
           (${Math.round(hN.em_bed_days_per1000)} against ${Math.round(h0.em_bed_days_per1000)} per 1,000 people). The share of beds held by people in hospital for
           three weeks or more has also crept up.`;
       }

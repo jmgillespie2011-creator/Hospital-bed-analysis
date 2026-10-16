@@ -15,6 +15,8 @@
   "weekendRatio": 0.7549449849445672,
   "delayedShare": 0.14147928467193285,
   "emBedDaysPerAdm": 4.52361697908072,
+  "emZeroNightShare": 0.36630074737687135,
+  "emLosOvernight": 8.815151192961054,
   "fluPeakBeds": 3065,
   "wardCorridor8am": 714.1633986928105
  },
@@ -1662,7 +1664,10 @@
   "year": "2023/24",
   "emergencyTotal": 6238352,
   "meanEmergencyBedDays": 4.52361697908072,
-  "emergencyBedDaysDominant": 5.821732255916645
+  "emergencyBedDaysDominant": 5.821732255916645,
+  "emZeroNightShare": 0.36630074737687135,
+  "emLosOvernight": 8.815151192961054,
+  "emLosOvernightSplit": 7.140291511631962
  },
  "riskFactors": [
   {
@@ -1942,11 +1947,25 @@
    "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/corridor-care-urgent-and-emergency-care-daily-situation-reports/"
   },
   {
+   "dataset": "covid_activity",
+   "files": [
+    "12 files, 66 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/covid-19-hospital-activity/"
+  },
+  {
    "dataset": "Acute discharge sitrep and Discharge Ready Date",
    "files": [
     "180 files, 1744 MB"
    ],
    "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/discharge-delays/acute-discharge-situation-report/"
+  },
+  {
+   "dataset": "eric_mirror",
+   "files": [
+    "9 files, 14 MB"
+   ],
+   "page": "https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/estates-returns-information-collection/england-2018-19"
   },
   {
    "dataset": "OHID Fingertips public health indicators",
@@ -1961,6 +1980,34 @@
     "73 files, 32 MB"
    ],
    "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/bed-availability-and-occupancy/critical-care-and-general-acute-beds-urgent-and-emergency-care-daily-situation-reports/critical-care-and-general-acute-beds-urgent-and-emergency-care-daily-situation-reports-2021-22/"
+  },
+  {
+   "dataset": "hes_ae_mirror",
+   "files": [
+    "38 files, 157 MB"
+   ],
+   "page": "https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/hospital-accident--emergency-activity/2018-19"
+  },
+  {
+   "dataset": "hes_apc_diag_mirror",
+   "files": [
+    "11 files, 95 MB"
+   ],
+   "page": "https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/2016-17"
+  },
+  {
+   "dataset": "hes_apc_diag_old_mirror",
+   "files": [
+    "18 files, 229 MB"
+   ],
+   "page": "https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/hospital-episode-statistics-admitted-patient-care-england-2011-12"
+  },
+  {
+   "dataset": "hes_apc_mirror",
+   "files": [
+    "33 files, 43 MB"
+   ],
+   "page": "https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/2019-20"
   },
   {
    "dataset": "HES admitted patient care tables",
@@ -1996,41 +2043,55 @@
     "6 files, 42 MB"
    ],
    "page": "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/z1zippedpopulationprojectionsdatafilesuk"
+  },
+  {
+   "dataset": "uec_sitreps_post",
+   "files": [
+    "10 files, 24 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/uec-sitrep/urgent-and-emergency-care-daily-situation-reports-2022-23/"
+  },
+  {
+   "dataset": "winter_sitreps_pre",
+   "files": [
+    "47 files, 15 MB"
+   ],
+   "page": "https://www.england.nhs.uk/statistics/statistical-work-areas/winter-daily-sitreps/winter-daily-sitrep-2017-18-data/"
   }
  ],
  "generated": "2026-10-16",
  "calibration": {
   "A": {
-   "poolSize": 58.105632627869,
-   "losMedianDays": 4.618554068553101,
-   "losSigma": 1.144921875,
-   "sameDayFrac": 0.574755859375,
+   "poolSize": 59.7553572564957,
+   "losMedianDays": 3.394360454333257,
+   "losSigma": 1.2503906249999999,
+   "sameDayFrac": 0.504931640625,
+   "delayProb": 0.195703125,
+   "delayMeanDays": 5.146633900506387,
+   "delayShape": 0.48248522160587276,
+   "weekendDischargePct": 92.48046875,
+   "electiveFrontLoad": 0.15,
+   "electiveLosSigma": 1.2,
+   "electiveLosMedianDays": 2.2101073382681045,
+   "seasonAmp": 0.04,
+   "fluAdmissions": 38559.5703125,
+   "corridorPct": 4.4
+  },
+  "B": {
+   "poolSize": 101.62513437786383,
+   "losMedianDays": 3.259765625,
+   "losSigma": 1.264453125,
+   "sameDayFrac": 0.5994628906249999,
    "delayProb": 0.199609375,
    "delayMeanDays": 5.146633900506387,
    "delayShape": 0.48248522160587276,
-   "weekendDischargePct": 91.38671875,
-   "electiveFrontLoad": 0.3,
+   "weekendDischargePct": 92.48046875,
+   "electiveFrontLoad": 0.15,
    "electiveLosSigma": 1.2,
    "electiveLosMedianDays": 2.2101073382681045,
    "seasonAmp": 0.04,
-   "fluAdmissions": 37709.9609375,
-   "corridorPct": 4.3
-  },
-  "B": {
-   "poolSize": 95.55175747025163,
-   "losMedianDays": 4.462890625,
-   "losSigma": 1.142578125,
-   "sameDayFrac": 0.5994628906249999,
-   "delayProb": 0.20429687500000002,
-   "delayMeanDays": 5.146633900506387,
-   "delayShape": 0.48248522160587276,
-   "weekendDischargePct": 91.38671875,
-   "electiveFrontLoad": 0.3,
-   "electiveLosSigma": 1.2,
-   "electiveLosMedianDays": 2.2101073382681045,
-   "seasonAmp": 0.04,
-   "fluAdmissions": 37709.9609375,
-   "corridorPct": 4.3
+   "fluAdmissions": 43657.2265625,
+   "corridorPct": 4.4
   },
   "targets": {
    "occupancy": 0.9158285358490685,
@@ -2040,6 +2101,8 @@
    "weekendRatio": 0.7549449849445672,
    "delayedShare": 0.14147928467193285,
    "emBedDaysPerAdm": 4.52361697908072,
+   "emZeroNightShare": 0.36630074737687135,
+   "emLosOvernight": 8.815151192961054,
    "fluPeakBeds": 3065,
    "wardCorridor8am": 714.1633986928105
   },
@@ -2051,11 +2114,11 @@
    "dtaPost": 0.08162902059923514,
    "target": 0.015601983598558248,
    "fittedYear": "2018/19",
-   "pool": 95.55175747025163,
+   "pool": 101.62513437786383,
    "model2018": {
-    "occupancy": 0.9028953838759171,
-    "wait12": 0.015893943660769908,
-    "wait4": 0.045298806140822476
+    "occupancy": 0.9016602920566028,
+    "wait12": 0.014771239650126325,
+    "wait4": 0.0413661416338
    }
   }
  }

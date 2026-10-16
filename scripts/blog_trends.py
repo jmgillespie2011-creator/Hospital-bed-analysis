@@ -185,7 +185,13 @@ def main() -> int:
     if not hes.empty:
         t = t.merge(hes[["fy", "fae", "emergency", "waiting_list", "planned", "mean_los"]].rename(columns={"mean_los": "ep_mean_los"}), on="fy", how="outer")
     adm = hes_admissions()
+    # Health Foundation definitions: nights per overnight emergency admission, measured on emergency-dominated diagnoses
+    # (from 2013/14, when same-day stays were first published). For earlier years the series is linked back using nights
+    # per admission (same-day stays included) on the same diagnoses, scaled to match in 2013/14.
+    first = adm.dropna(subset=["hf_em_los"]).iloc[0]
+    adm["hf_em_los_linked"] = adm.hf_em_los.fillna(adm.hf_em_bd_per_adm * first.hf_em_los / first.hf_em_bd_per_adm)
     t = t.merge(adm[["fy", "em_bd_per_adm", "em_bd_per_overnight", "bd_per_overnight", "share75_emergency", "em_same_day_share",
+                     "hf_em_los", "hf_el_los", "hf_em_los_linked", "hf_em_bd_per_adm",
                      "bed_days", "emergency_bed_days"]].rename(columns={"bed_days": "ga_bed_days"}), on="fy", how="left")
     t = t.sort_values("fy")
     if "emergency" in t:
@@ -204,6 +210,9 @@ def main() -> int:
         "longStaysYearRound": long_stays_year_round(),
         "dtocAcute": dt[dt.months == 12].to_dict(orient="records") if not dt.empty else [],
         "sources": {"hes_years": hes.fy.tolist() if not hes.empty else []},
+        # published figures from the Health Foundation's briefing (calendar years 2019 and 2022, adults, record-level HES)
+        "healthFoundation": [{"year": "2019", "fy": "2019/20", "emergency": 7.9, "elective": 5.2, "all": 7.3, "emergencyAdmissions": 5538000, "bedDays": 36233000},
+                             {"year": "2022", "fy": "2022/23", "emergency": 9.1, "elective": 5.1, "all": 8.3, "emergencyAdmissions": 5017000, "bedDays": 35343000}],
     }
     for r in out["years"]:
         if r.get("fy") in ("2010/11", "2015/16", "2019/20", "2022/23", "2025/26"):

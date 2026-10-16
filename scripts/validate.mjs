@@ -80,16 +80,21 @@ out.checks.push({
   pass: mae("occ_A") < 0.02,
   note: "Length of stay and delays are held at 2025/26 values, so this tests whether bed numbers and admissions alone explain the trend.",
 });
-// V2c: the same back-cast, with each year's measured length of stay (HES emergency bed days per emergency admission,
-// relative to the latest HES year: the quantity the model is calibrated to)
+// V2c: the same back-cast, with each year's measured length of stay: nights per overnight emergency admission (Health
+// Foundation definitions, emergency-dominated diagnoses; linked back before 2013/14), relative to the latest HES year
 const trends = fs.existsSync(path.join(ROOT, "web/data/blog_trends.json")) ? JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/blog_trends.json"), "utf8")) : null;
 if (trends) {
-  const losBy = Object.fromEntries(trends.years.filter((y) => y.em_bd_per_adm != null).map((y) => [y.fy, y.em_bd_per_adm]));
+  const losBy = Object.fromEntries(trends.years.filter((y) => y.hf_em_los_linked != null).map((y) => [y.fy, y.hf_em_los_linked]));
   const losRefYear = Object.keys(losBy).sort().at(-1), losRef = losBy[losRefYear];
+  // each year's share of emergency admissions going home the same day (HES zero bed day cases; from 2013/14, earlier
+  // years held at 2013/14), applied as a proportional change to the calibrated same-day share
+  const sdBy = Object.fromEntries(trends.years.filter((y) => y.em_same_day_share != null).map((y) => [y.fy, y.em_same_day_share]));
+  const sdFirst = Object.keys(sdBy).sort()[0];
+  const sameDayPctFor = (fy) => 100 * base.calibration.A.sameDayFrac * (sdBy[fy] ?? sdBy[sdFirst]) / sdBy[losRefYear];
   const rows = [];
   for (const bt of base.backtests) {
     if (losBy[bt.fy] == null) continue;
-    const set = { ...yearSettings(bt), otherGrowthPct: matchAdmissions(bt), losChangePct: 100 * (losBy[bt.fy] / losRef - 1) };
+    const set = { ...yearSettings(bt), otherGrowthPct: matchAdmissions(bt), losChangePct: 100 * (losBy[bt.fy] / losRef - 1), sameDayPct: sameDayPctFor(bt.fy) };
     const a = scenario(set, "A", 24);
     rows.push({ fy: bt.fy, obs: bt.occupancy, model: a.occMidnight, losChangePct: set.losChangePct });
     const y = out.years.find((x) => x.fy === bt.fy); if (y) y.occ_A_hesLos = a.occMidnight;
@@ -105,7 +110,7 @@ if (trends) {
     observed: rows.map((r) => `${r.fy}: ${pct(r.obs)}`).join("; "),
     modelA: `mean absolute error ${(100 * maeL).toFixed(1)} pts (` + rows.map((r) => `${r.fy}: ${pct(r.model)}`).join("; ") + ")",
     modelB: "", criterion: "mean absolute error < 2 pts", pass: maeL < 0.02,
-    note: `As V2, but stays scaled by each year's HES emergency bed days per emergency admission relative to ${losRefYear} (per admission, general and acute scope). Discharge delays are still held at 2025/26 values (not measured on today's definitions before 2022). ${nonEmNote}`,
+    note: `As V2, but stays scaled by each year's nights per overnight emergency admission relative to ${losRefYear} (HES, Health Foundation definitions; before 2013/14 linked back using nights per admission), and the same-day share scaled by each year's HES share (held at 2013/14 before then). Discharge delays are still held at 2025/26 values (not measured on today's definitions before 2022). ${nonEmNote}`,
   });
 }
 const old = out.years.filter((y) => ["2015/16", "2018/19", "2019/20"].includes(y.fy));
@@ -170,16 +175,17 @@ if (lsy) {
   });
 }
 
-// ---------------------------------------------------------------- V6b: stays per admission (only midnights per emergency admission is fitted)
-const hy = trends?.years?.find((y) => y.fy === base.hes?.year && y.em_same_day_share != null);
+// ---------------------------------------------------------------- V6b: stays of emergency patients who stay overnight (not fitted)
+const hy = trends?.years?.find((y) => y.fy === base.hes?.year && y.hf_em_los != null);
 if (hy) {
-  const dz = ref.emZeroNightShare - hy.em_same_day_share, dn = ref.emBedDaysPerOvernight / hy.em_bd_per_overnight - 1;
+  const hf = (trends.healthFoundation || []).map((h) => `${h.year} ${h.emergency}`).join(", ");
+  const dn = ref.emBedDaysPerOvernight / hy.hf_em_los - 1;
   out.checks.push({
-    id: "V6b", name: `Emergency stays per admission: same-day share and nights per overnight admission (HES ${hy.fy}, not fitted)`,
-    observed: `${pct(hy.em_same_day_share)} with no night in hospital; ${hy.em_bd_per_overnight.toFixed(2)} nights per overnight admission; ${hy.em_bd_per_adm.toFixed(2)} per admission`,
-    modelA: `${pct(ref.emZeroNightShare)}; ${ref.emBedDaysPerOvernight.toFixed(2)} nights; ${ref.emBedDaysPerAdm.toFixed(2)} per admission`, modelB: "",
-    criterion: "same-day share within 5 pts and nights per overnight admission within 10%", pass: Math.abs(dz) <= 0.05 && Math.abs(dn) <= 0.1,
-    note: "HES zero bed day emergency cases and bed days per admission (general and acute scope). The model fits the share sent home the same day so that midnights per emergency admission match HES; how that splits between same-day and overnight patients is a test.",
+    id: "V6b", name: `Nights per overnight emergency admission (HES ${hy.fy}, Health Foundation definitions; not fitted)`,
+    observed: `${hy.hf_em_los.toFixed(2)} nights (same-day share ${pct(hy.em_same_day_share)}, fitted)`,
+    modelA: `${ref.emBedDaysPerOvernight.toFixed(2)} nights (same-day share ${pct(ref.emZeroNightShare)})`, modelB: "",
+    criterion: "within 10%", pass: Math.abs(dn) <= 0.1,
+    note: `Mean nights among emergency admissions lasting at least one night. HES published tables do not split bed days by admission method, so the observed figure uses diagnoses where at least 85% of admissions are emergencies; it reproduces the Health Foundation's patient-level figures (${hf} days) to within 2%. The model's stays are fitted to occupancy and the 21+ day share, so this tests whether they add up to the right stays per overnight patient.`,
   });
 }
 

@@ -35,7 +35,7 @@ async function main() {
       [
         r("Median acute length of stay, overnight emergency patients (days)", "losMedianDays", 2, (x) => x, `G&A occupancy ${pct(t.occupancy)} (KH03)`),
         r("Spread of length of stay (lognormal sigma)", "losSigma", 2, (x) => x, `Occupied beds with stays of 21+ days ${pct(t.long21Share)} (sitrep)`),
-        r("Emergency patients discharged the same day (%)", "sameDayFrac", 1, (x) => 100 * x, `Midnights per emergency admission ${num(t.emBedDaysPerAdm, 2)} (HES)`),
+        r("Emergency patients discharged the same day (%)", "sameDayFrac", 1, (x) => 100 * x, `Emergency admissions with no night in hospital ${t.emZeroNightShare != null ? pct(t.emZeroNightShare) : ""} (HES zero bed day cases)`),
         r("Overnight emergency patients delayed once fit (%)", "delayProb", 1, (x) => 100 * x, `Discharged after Discharge Ready Date ${pct(t.delayedShare)} (DRD)`),
         r("Weekend-ready patients discharged at the weekend (%)", "weekendDischargePct", 0, (x) => x, `Weekend/weekday discharge-rate ratio ${num(t.weekendRatio, 2)} (discharge sitrep)`),
         r("Planned admissions front-loaded towards Monday", "electiveFrontLoad", 2, (x) => x, "Weekday pattern of winter occupancy (daily sitrep)"),
@@ -405,11 +405,11 @@ async function renderExtra() {
   const e1r = E1.rows || [], e1Occ = e1r.length ? Math.max(...e1r.map((r) => Math.abs(r.occ_model - r.occ_obs))) : null;
   const e1Occ1 = e1r.length ? e1r.map((r) => r.occ_model - r.occ_obs).reduce((s, d) => s + d, 0) / e1r.length : 0;
   const e1Wait = e1r.length ? e1r.map((r) => r.wait12_model / r.wait12_obs - 1) : [];
-  $("extraTakeaway").innerHTML = `<strong>What the further tests show.</strong> Stays are measured per admission (HES bed days divided by
-    admissions, the same measure the model is calibrated to). On that basis occupancy is only partly founded. The mix of short and long stays
-    matches (V6), but forecasting forward from 2023/24 ${e1Occ1 > 0 ? "over" : "under"}-predicts occupancy by up to ${(100 * e1Occ).toFixed(1)} points (E1), and
-    back-casting earlier years with each year's own stays and admissions misses by ${v2cMae != null ? v2cMae.toFixed(1) : "?"} points on average (V2c): nights per
-    emergency admission changed less over time than beds in use did, so admissions and stays alone do not explain past occupancy.
+  const v6 = V ? V.checks.find((c) => c.id === "V6") : null, v6b = V ? V.checks.find((c) => c.id === "V6b") : null;
+  $("extraTakeaway").innerHTML = `<strong>What the further tests show.</strong> Stays are measured per admission, as defined by the Health
+    Foundation (nights per overnight admission, with the same-day share separately). With each year's own beds, admissions, overnight stays
+    and same-day share, the model back-casts past occupancy within ${v2cMae != null ? v2cMae.toFixed(1) : "?"} points on average (V2c)
+    and forecasts later years from 2023/24 within ${(100 * e1Occ).toFixed(1)} points (E1). ${v6 && !v6.pass ? "The mix of stay lengths is less right: it has too few patients in hospital 7 to 13 days (V6), " : ""}${v6b && !v6b.pass ? `and its overnight emergency patients stay ${esc(v6b.modelA.split(" (")[0])} against ${esc(v6b.observed.split(" (")[0])} in HES (V6b): KH03 occupancy leaves room for fewer bed days than HES records. ` : ""}
     ${e1Wait.length ? `Forecast 12-hour waits were within ${(100 * Math.max(...e1Wait.map(Math.abs))).toFixed(0)}% of the published figures (E1), ` : ""}but the model's waits respond to
     occupancy far more steeply than hospitals' do:
     ${slope ? `${(100 * slope.model).toFixed(0)}% more 12-hour waits per point of occupancy, against about ${(100 * slope.observed).toFixed(0)}% within trusts (E4)` : ""};

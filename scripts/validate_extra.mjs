@@ -32,13 +32,16 @@ const rank = (a) => { const o = a.map((v, i) => [v, i]).sort((p, q) => p[0] - q[
 const spearman = (a, b) => corr(rank(a), rank(b));
 const out = { generated: new Date().toISOString().slice(0, 10), tests: [] };
 
-const losBy = Object.fromEntries(trends.years.filter((y) => y.em_bd_per_adm != null).map((y) => [y.fy, y.em_bd_per_adm]));
+const losBy = Object.fromEntries(trends.years.filter((y) => y.hf_em_los_linked != null).map((y) => [y.fy, y.hf_em_los_linked]));
 const losRefYear = Object.keys(losBy).sort().at(-1);
 const losPct = (fy) => (losBy[fy] != null ? 100 * (losBy[fy] / losBy[losRefYear] - 1) : 0);
+// same-day share of emergency admissions (HES zero bed day cases) relative to the latest HES year
+const sdBy = Object.fromEntries(trends.years.filter((y) => y.em_same_day_share != null).map((y) => [y.fy, y.em_same_day_share]));
+const sdPct = (fy) => 100 * A.sameDayFrac * (sdBy[fy] ?? sdBy[losRefYear]) / sdBy[losRefYear];
 function yearSettings(fy, extra = {}) {
   const bt = base.backtests.find((b) => b.fy === fy);
-  if (!bt || fy === base.baseYearLabel) return { ...defaultSettings(base), losChangePct: losPct(fy === base.baseYearLabel ? losRefYear : fy), ...extra };
-  const s = { ...defaultSettings(base), beds: bt.beds, popYear: parseInt(fy.slice(0, 4), 10), otherGrowthPct: 0, losChangePct: losPct(fy), ...extra };
+  if (!bt || fy === base.baseYearLabel) return { ...defaultSettings(base), losChangePct: losPct(fy === base.baseYearLabel ? losRefYear : fy), sameDayPct: sdPct(losRefYear), ...extra };
+  const s = { ...defaultSettings(base), beds: bt.beds, popYear: parseInt(fy.slice(0, 4), 10), otherGrowthPct: 0, losChangePct: losPct(fy), sameDayPct: sdPct(fy), ...extra };
   const p = buildParams(base, s);
   s.otherGrowthPct = 100 * (bt.emergency_admissions / (p.emergPerYear + p.fluPerYear) - 1);
   return s;

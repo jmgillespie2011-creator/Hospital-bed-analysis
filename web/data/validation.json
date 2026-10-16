@@ -5,8 +5,8 @@
    "id": "V1",
    "name": "Forecast 2024/25 (beds and admissions of that year; parameters from 2025/26)",
    "observed": "occupancy 91.1%, >12h 8.16%",
-   "modelA": "occupancy 90.6%, >12h 7.73%",
-   "modelB": "occupancy 91.2%, >12h 1.99%",
+   "modelA": "occupancy 90.6%, >12h 6.99%",
+   "modelB": "occupancy 91.2%, >12h 2.18%",
    "criterion": "occupancy within ±1.5 pts; >12h within a factor of 1.5",
    "pass": true
   },
@@ -14,8 +14,8 @@
    "id": "V2",
    "name": "Back-cast occupancy, 2024/25, 2023/24, 2022/23, 2019/20, 2018/19, 2015/16, 2010/11",
    "observed": "2024/25: 91.1%; 2023/24: 91.1%; 2022/23: 91.1%; 2019/20: 90.2%; 2018/19: 90.2%; 2015/16: 89.0%; 2010/11: 87.1%",
-   "modelA": "mean absolute error 3.6 pts",
-   "modelB": "mean absolute error 3.8 pts",
+   "modelA": "mean absolute error 3.7 pts",
+   "modelB": "mean absolute error 3.7 pts",
    "criterion": "mean absolute error < 2 pts",
    "pass": false,
    "note": "Length of stay and delays are held at 2025/26 values, so this tests whether bed numbers and admissions alone explain the trend."
@@ -24,18 +24,18 @@
    "id": "V2c",
    "name": "Back-cast occupancy with each year's measured length of stay, 2024/25, 2023/24, 2022/23, 2019/20, 2018/19, 2015/16, 2010/11",
    "observed": "2024/25: 91.1%; 2023/24: 91.1%; 2022/23: 91.1%; 2019/20: 90.2%; 2018/19: 90.2%; 2015/16: 89.0%; 2010/11: 87.1%",
-   "modelA": "mean absolute error 3.9 pts (2024/25: 90.6%; 2023/24: 90.0%; 2022/23: 87.5%; 2019/20: 86.3%; 2018/19: 85.8%; 2015/16: 83.2%; 2010/11: 79.0%)",
+   "modelA": "mean absolute error 1.7 pts (2024/25: 90.1%; 2023/24: 90.0%; 2022/23: 90.4%; 2019/20: 90.5%; 2018/19: 89.9%; 2015/16: 87.5%; 2010/11: 80.3%)",
    "modelB": "",
    "criterion": "mean absolute error < 2 pts",
-   "pass": false,
-   "note": "As V2, but stays scaled by each year's HES emergency bed days per emergency admission relative to 2024/25 (per admission, general and acute scope). Discharge delays are still held at 2025/26 values (not measured on today's definitions before 2022). Non-emergency bed days (planned and other admissions) are held at today's level, but per person HES puts them 24% higher in 2010/11 than in 2024/25."
+   "pass": true,
+   "note": "As V2, but stays scaled by each year's nights per overnight emergency admission relative to 2024/25 (HES, Health Foundation definitions; before 2013/14 linked back using nights per admission), and the same-day share scaled by each year's HES share (held at 2013/14 before then). Discharge delays are still held at 2025/26 values (not measured on today's definitions before 2022). Non-emergency bed days (planned and other admissions) are held at today's level, but per person HES puts them 24% higher in 2010/11 than in 2024/25."
   },
   {
    "id": "V2b",
    "name": "Back-cast >12h waits before the pandemic (2015/16-2019/20)",
    "observed": "2019/20: 0.19%; 2018/19: 0.05%; 2015/16: 0.02%",
-   "modelA": "9.27%; 8.46%; 1.48%",
-   "modelB": "2.27%; 2.13%; 0.19%",
+   "modelA": "8.40%; 7.59%; 1.44%",
+   "modelB": "2.75%; 2.37%; 0.27%",
    "criterion": "reported, not scored (known structural change)",
    "pass": null,
    "note": "Today's system (pool size fitted to 2025/26) over-predicts pre-pandemic waits. The more flexible system is fitted to 2018/19 12-hour waits counted from arrival, not to the recorded decision-to-admit figures shown here, which were held down by when decisions were recorded (see the pool-size tests); so it gives more waits than recorded. These runs also keep 2025/26 stays, so occupancy is not matched to each year."
@@ -44,7 +44,7 @@
    "id": "V3",
    "name": "Day-to-day variation of national occupancy, winter 2025/26 (08:00)",
    "observed": "SD 2.1 pts",
-   "modelA": "SD 1.8 pts",
+   "modelA": "SD 1.6 pts",
    "modelB": "",
    "criterion": "SD within 1 pt of observed",
    "pass": true
@@ -53,8 +53,8 @@
    "id": "V4",
    "name": "Weekday pattern of winter occupancy (Mon-Sun)",
    "observed": "range 1.8 pts; 93.5, 94.3, 94.2, 93.5, 93.5, 92.5, 92.5",
-   "modelA": "range 4.0 pts; 91.2, 93.7, 95.0, 95.2, 94.7, 93.5, 92.2",
-   "modelB": "correlation 0.40",
+   "modelA": "range 3.5 pts; 91.9, 93.8, 95.1, 95.4, 95.3, 94.9, 93.2",
+   "modelB": "correlation 0.10",
    "criterion": "same shape (correlation > 0.7), range within 50%",
    "pass": false
   },
@@ -62,7 +62,7 @@
    "id": "V5",
    "name": "Beds occupied by patients no longer meeting the criteria to reside (end of day)",
    "observed": "13.7%",
-   "modelA": "9.0%",
+   "modelA": "10.4%",
    "modelB": "",
    "criterion": "within 20% of observed",
    "pass": false,
@@ -72,38 +72,38 @@
    "id": "V6",
    "name": "Beds held by patients in hospital 7+ and 14+ days (not fitted)",
    "observed": "7+ days 50.2%; 14+ days 29.6%; 21+ days 19.4% (monthly bed sitrep, year)",
-   "modelA": "7+ days 49.3%; 14+ days 29.9%; 21+ days 19.9%",
+   "modelA": "7+ days 47.2%; 14+ days 28.6%; 21+ days 19.2%",
    "modelB": "",
    "criterion": "7+ and 14+ day shares within 2 pts",
-   "pass": true,
+   "pass": false,
    "note": "Only the 21+ day share is used in calibration (to fit the spread of stays), so the 7+ and 14+ day shares test the shape of the length-of-stay distribution."
   },
   {
    "id": "V6b",
-   "name": "Emergency stays per admission: same-day share and nights per overnight admission (HES 2023/24, not fitted)",
-   "observed": "36.6% with no night in hospital; 7.14 nights per overnight admission; 4.52 per admission",
-   "modelA": "41.3%; 8.04 nights; 4.72 per admission",
+   "name": "Nights per overnight emergency admission (HES 2023/24, Health Foundation definitions; not fitted)",
+   "observed": "8.82 nights (same-day share 36.6%, fitted)",
+   "modelA": "7.39 nights (same-day share 36.6%)",
    "modelB": "",
-   "criterion": "same-day share within 5 pts and nights per overnight admission within 10%",
+   "criterion": "within 10%",
    "pass": false,
-   "note": "HES zero bed day emergency cases and bed days per admission (general and acute scope). The model fits the share sent home the same day so that midnights per emergency admission match HES; how that splits between same-day and overnight patients is a test."
+   "note": "Mean nights among emergency admissions lasting at least one night. HES published tables do not split bed days by admission method, so the observed figure uses diagnoses where at least 85% of admissions are emergencies; it reproduces the Health Foundation's patient-level figures (2019 7.9, 2022 9.1 days) to within 2%. The model's stays are fitted to occupancy and the 21+ day share, so this tests whether they add up to the right stays per overnight patient."
   },
   {
    "id": "C1",
    "name": "Patients in corridor care on G&A wards at 08:00, 2026-05-01 to 2026-09-30",
    "observed": "714 a day",
-   "modelA": "727 a day",
-   "modelB": "357 a day",
+   "modelA": "719 a day",
+   "modelB": "488 a day",
    "criterion": "calibration target (today's system)",
    "pass": null,
-   "note": "Corridor spaces equal to 4.3% of beds (4,446) were fitted so that today's system matches. The more flexible system rarely fills every bed, so it rarely uses them."
+   "note": "Corridor spaces equal to 4.4% of beds (4,550) were fitted so that today's system matches. The more flexible system rarely fills every bed, so it rarely uses them."
   },
   {
    "id": "C2",
    "name": "Ward corridor care by day of the week (Mon-Sun)",
    "observed": "731, 811, 807, 750, 700, 595, 607",
-   "modelA": "387, 712, 979, 988, 858, 685, 480",
-   "modelB": "correlation 0.45",
+   "modelA": "415, 658, 894, 908, 870, 798, 490",
+   "modelB": "correlation 0.24",
    "criterion": "same shape (correlation > 0.7)",
    "pass": false,
    "note": "Not used in calibration. Observed corridor care is lowest at weekends."
@@ -112,8 +112,8 @@
    "id": "C3",
    "name": "Ward corridor care by month",
    "observed": "05: 658; 06: 749; 07: 728; 08: 678; 09: 761",
-   "modelA": "05: 879; 06: 621; 07: 573; 08: 819; 09: 741",
-   "modelB": "mean error 19%",
+   "modelA": "05: 908; 06: 660; 07: 579; 08: 741; 09: 707",
+   "modelB": "mean error 17%",
    "criterion": "each month within 20% on average",
    "pass": true,
    "note": "Only the average over these months was fitted. The model uses 2025/26 demand; the data are for 2026/27."
@@ -122,11 +122,11 @@
    "id": "C4",
    "name": "Corridor care in emergency departments (45+ minutes, per day)",
    "observed": "2364 patients a day",
-   "modelA": "2459 admitted patients a day wait 45+ minutes for a bed",
-   "modelB": "1050 a day",
+   "modelA": "2195 admitted patients a day wait 45+ minutes for a bed",
+   "modelB": "1348 a day",
    "criterion": "reported: not the same measure",
    "pass": null,
-   "note": "The NHS count includes patients who are not admitted and excludes patients waiting in a proper cubicle; the model counts only patients waiting for a bed, wherever they wait. Weekly pattern correlation 0.84."
+   "note": "The NHS count includes patients who are not admitted and excludes patients waiting in a proper cubicle; the model counts only patients waiting for a bed, wherever they wait. Weekly pattern correlation 0.74."
   },
   {
    "id": "V7",
@@ -142,7 +142,7 @@
    "id": "V7b",
    "name": "Trusts: given each trust's own occupancy, does the model rank trusts' >12h waits correctly?",
    "observed": ">12h share by trust",
-   "modelA": "rank correlation 0.35",
+   "modelA": "rank correlation 0.38",
    "modelB": "",
    "criterion": "rank correlation > 0.5",
    "pass": false,
@@ -165,98 +165,98 @@
    "beds": 105450.17761188088,
    "admissions": 6522815,
    "occ_obs": 0.9110475871643836,
-   "occ_A": 0.9064773264052909,
-   "occ_B": 0.9122345590002402,
+   "occ_A": 0.9060579676495629,
+   "occ_B": 0.9117552459746955,
    "wait12_obs": 0.08162902059923514,
-   "wait12_A": 0.07729765451994759,
-   "wait12_B": 0.01986001059501133,
+   "wait12_A": 0.0698550561164063,
+   "wait12_B": 0.021808546776275563,
    "nctr_obs": 0.1318134394371835,
-   "nctr_A": 0.08615263558600979,
-   "occ_A_hesLos": 0.9064773264052909
+   "nctr_A": 0.10121226478988227,
+   "occ_A_hesLos": 0.9014569305781285
   },
   {
    "fy": "2023/24",
    "beds": 104417.50328674949,
    "admissions": 6410632,
    "occ_obs": 0.9113992377693235,
-   "occ_A": 0.9026019524484332,
-   "occ_B": 0.9080567171353041,
+   "occ_A": 0.9023353455614891,
+   "occ_B": 0.9078181007924666,
    "wait12_obs": 0.06854409986410076,
-   "wait12_A": 0.06971580817051509,
-   "wait12_B": 0.01735586909883424,
+   "wait12_A": 0.06341141837442175,
+   "wait12_B": 0.018771681577505934,
    "nctr_obs": 0.1333814687697478,
-   "nctr_A": 0.08586766649294046,
-   "occ_A_hesLos": 0.8997283892300425
+   "nctr_A": 0.1008257128039759,
+   "occ_A_hesLos": 0.8995704666821455
   },
   {
    "fy": "2022/23",
    "beds": 103356.99124993362,
    "admissions": 6020665,
    "occ_obs": 0.9107220819316533,
-   "occ_A": 0.8781353330184222,
-   "occ_B": 0.8766892573900503,
+   "occ_A": 0.8756384954724866,
+   "occ_B": 0.8767103911956753,
    "wait12_obs": 0.06811407045567225,
-   "wait12_A": 0.03831020659882824,
-   "wait12_B": 0.006412173559354476,
+   "wait12_A": 0.034692825192771226,
+   "wait12_B": 0.007751192722290988,
    "nctr_obs": 0.14051594731134942,
-   "nctr_A": 0.08441653644593056,
-   "occ_A_hesLos": 0.8748208943473469
+   "nctr_A": 0.09904630385236164,
+   "occ_A_hesLos": 0.9037090782447179
   },
   {
    "fy": "2019/20",
    "beds": 101431.6323757764,
    "admissions": 6405933,
    "occ_obs": 0.9017107196141357,
-   "occ_A": 0.9171429696110849,
-   "occ_B": 0.922845469838981,
+   "occ_A": 0.9170342852720378,
+   "occ_B": 0.92316172908876,
    "wait12_obs": 0.0019411692254664543,
-   "wait12_A": 0.0927323137058837,
-   "wait12_B": 0.022734044783861037,
+   "wait12_A": 0.08399240047717935,
+   "wait12_B": 0.027548178802436398,
    "nctr_obs": null,
-   "nctr_A": 0.08721552746515847,
-   "occ_A_hesLos": 0.8632754684301687
+   "nctr_A": 0.10220626097674013,
+   "occ_A_hesLos": 0.9054272115161365
   },
   {
    "fy": "2018/19",
    "beds": 101352.12940622178,
    "admissions": 6369153,
    "occ_obs": 0.9015369012412664,
-   "occ_A": 0.9137320894347347,
-   "occ_B": 0.9189367940398941,
+   "occ_A": 0.9132787709929572,
+   "occ_B": 0.9184979946135512,
    "wait12_obs": 0.0005121560119532377,
-   "wait12_A": 0.08464182530347497,
-   "wait12_B": 0.02127305597764,
+   "wait12_A": 0.07594599395985077,
+   "wait12_B": 0.023692719366707547,
    "nctr_obs": null,
-   "nctr_A": 0.0870463470989455,
-   "occ_A_hesLos": 0.8581798142024878
+   "nctr_A": 0.10197721480605,
+   "occ_A_hesLos": 0.899026778113149
   },
   {
    "fy": "2015/16",
    "beds": 102940.71451863355,
    "admissions": 5656122,
    "occ_obs": 0.8895046325764555,
-   "occ_A": 0.8400527475988033,
-   "occ_B": 0.8343552030761838,
+   "occ_A": 0.8360885380388513,
+   "occ_B": 0.8367770436534847,
    "wait12_obs": 0.00017909797560943698,
-   "wait12_A": 0.01484196060467247,
-   "wait12_B": 0.0018896399538369836,
+   "wait12_A": 0.01437037413841341,
+   "wait12_B": 0.0026761819803746653,
    "nctr_obs": null,
-   "nctr_A": 0.08349702749658071,
-   "occ_A_hesLos": 0.8323374271768226
+   "nctr_A": 0.09819009287330689,
+   "occ_A_hesLos": 0.8746381858989243
   },
   {
    "fy": "2010/11",
    "beds": 108957.51545037692,
    "admissions": 5188050.642857144,
    "occ_obs": 0.8707805906376571,
-   "occ_A": 0.743833648244371,
-   "occ_B": 0.7351848113434271,
+   "occ_A": 0.7391126847767201,
+   "occ_B": 0.7399798492569414,
    "wait12_obs": 0.0000111520004024633,
-   "wait12_A": 0.002337012242928653,
-   "wait12_B": 0.000029266294009189618,
+   "wait12_A": 0.0013769867428404014,
+   "wait12_B": 0,
    "nctr_obs": null,
-   "nctr_A": 0.08112803094602414,
-   "occ_A_hesLos": 0.7898500236183278
+   "nctr_A": 0.09607063327758397,
+   "occ_A_hesLos": 0.8032524572401517
   }
  ],
  "trusts": [
@@ -267,12 +267,12 @@
    "admissions": 78966,
    "bedsPerAdm": 1.6962127327406942,
    "occ_obs": 0.9158127619934793,
-   "occ_model": 0.529821551647483,
+   "occ_model": 0.5353449045594958,
    "wait12_obs": 0.015411696173036497,
    "wait12_model": 0,
    "los_scale": 2.0824218749999996,
-   "wait12_model_matched": 0.17224803717352988,
-   "occ_model_matched": 0.9189058769549837
+   "wait12_model_matched": 0.14696436764031198,
+   "occ_model_matched": 0.9175616423635731
   },
   {
    "org": "R0B",
@@ -281,12 +281,12 @@
    "admissions": 69930,
    "bedsPerAdm": 1.010701363647518,
    "occ_obs": 0.8728944464876792,
-   "occ_model": 0.8916095033053143,
+   "occ_model": 0.8802787277670518,
    "wait12_obs": 0.0006578006578006579,
-   "wait12_model": 0.05820328975115985,
-   "los_scale": 0.9644531249999999,
-   "wait12_model_matched": 0.03869998121360135,
-   "occ_model_matched": 0.8678572967827504
+   "wait12_model": 0.022411075320402988,
+   "los_scale": 1.006640625,
+   "wait12_model_matched": 0.019036233216847526,
+   "occ_model_matched": 0.8679071272891327
   },
   {
    "org": "R0D",
@@ -295,12 +295,12 @@
    "admissions": 80539,
    "bedsPerAdm": 0.8355442200470846,
    "occ_obs": 0.9235939431396786,
-   "occ_model": 0.9727677871305511,
+   "occ_model": 0.9651796957163545,
    "wait12_obs": 0.043345459963495946,
-   "wait12_model": 0.42930934416715033,
-   "los_scale": 0.8589843749999999,
-   "wait12_model_matched": 0.16173279603223806,
-   "occ_model_matched": 0.933648354849551
+   "wait12_model": 0.3464964539007092,
+   "los_scale": 0.880078125,
+   "wait12_model_matched": 0.0774567355340398,
+   "occ_model_matched": 0.91554428441041
   },
   {
    "org": "R1F",
@@ -309,12 +309,12 @@
    "admissions": 18234,
    "bedsPerAdm": 0.9722536819360648,
    "occ_obs": 0.9609970674486802,
-   "occ_model": 0.910198699179301,
+   "occ_model": 0.9028823066513538,
    "wait12_obs": 0.09964900734890864,
-   "wait12_model": 0.07587837837837838,
-   "los_scale": 1.133203125,
-   "wait12_model_matched": 0.23658338594750608,
-   "occ_model_matched": 0.9560764102392607
+   "wait12_model": 0.04075049374588545,
+   "los_scale": 1.217578125,
+   "wait12_model_matched": 0.3092947303380704,
+   "occ_model_matched": 0.9593454048177188
   },
   {
    "org": "R1H",
@@ -323,12 +323,12 @@
    "admissions": 66662,
    "bedsPerAdm": 1.5460378345330235,
    "occ_obs": 0.89704398708636,
-   "occ_model": 0.5951018095740133,
+   "occ_model": 0.5978715388464468,
    "wait12_obs": 0.19256847979358555,
    "wait12_model": 0,
-   "los_scale": 1.723828125,
-   "wait12_model_matched": 0.0720314318975553,
-   "occ_model_matched": 0.8927529097731499
+   "los_scale": 1.744921875,
+   "wait12_model_matched": 0.08634398102943228,
+   "occ_model_matched": 0.8991303265187668
   },
   {
    "org": "R1K",
@@ -337,12 +337,12 @@
    "admissions": 79863,
    "bedsPerAdm": 0.8368230396467714,
    "occ_obs": 0.9571373006612213,
-   "occ_model": 0.9721312515711374,
+   "occ_model": 0.9646065826614788,
    "wait12_obs": 0.06821682130648736,
-   "wait12_model": 0.42377411108528934,
-   "los_scale": 0.943359375,
-   "wait12_model_matched": 0.34124767225325886,
-   "occ_model_matched": 0.9607600546023535
+   "wait12_model": 0.33155262559672655,
+   "los_scale": 0.985546875,
+   "wait12_model_matched": 0.28585611730563615,
+   "occ_model_matched": 0.9592078576845485
   },
   {
    "org": "RA2",
@@ -351,12 +351,12 @@
    "admissions": 41061,
    "bedsPerAdm": 0.7422042896960682,
    "occ_obs": 0.959740702831798,
-   "occ_model": 0.9936673713312983,
+   "occ_model": 0.9844133698379868,
    "wait12_obs": 0.005650130293952899,
-   "wait12_model": 0.8580641832628212,
-   "los_scale": 0.795703125,
-   "wait12_model_matched": 0.2372041827187672,
-   "occ_model_matched": 0.953577418783785
+   "wait12_model": 0.8298463715383061,
+   "los_scale": 0.837890625,
+   "wait12_model_matched": 0.24030902683654107,
+   "occ_model_matched": 0.9525138972035991
   },
   {
    "org": "RA7",
@@ -365,12 +365,12 @@
    "admissions": 78953,
    "bedsPerAdm": 0.8018894523437274,
    "occ_obs": 0.9090162588273937,
-   "occ_model": 0.9841311256356389,
+   "occ_model": 0.9735929953619316,
    "wait12_obs": 0.056995934290020644,
-   "wait12_model": 0.5867253187816693,
-   "los_scale": 0.7746093749999998,
-   "wait12_model_matched": 0.09330855018587361,
-   "occ_model_matched": 0.9150237958889301
+   "wait12_model": 0.5163979080409675,
+   "los_scale": 0.8167968749999999,
+   "wait12_model_matched": 0.08917197452229299,
+   "occ_model_matched": 0.9190593778136483
   },
   {
    "org": "RA9",
@@ -379,12 +379,12 @@
    "admissions": 41233,
    "bedsPerAdm": 0.6082323750315919,
    "occ_obs": 0.9628938640132669,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.016564402299129338,
-   "wait12_model": 0.9975541873998481,
-   "los_scale": 0.626953125,
-   "wait12_model_matched": 0.2693064851791439,
-   "occ_model_matched": 0.9577109706881252
+   "wait12_model": 0.9980994091641532,
+   "los_scale": 0.669140625,
+   "wait12_model_matched": 0.26223969871510855,
+   "occ_model_matched": 0.961102951519338
   },
   {
    "org": "RAE",
@@ -393,12 +393,12 @@
    "admissions": 47119,
    "bedsPerAdm": 0.8123924966230239,
    "occ_obs": 0.90710308298248,
-   "occ_model": 0.9801822476281654,
+   "occ_model": 0.9717590335863289,
    "wait12_obs": 0.017721089157240178,
-   "wait12_model": 0.5407979262932492,
-   "los_scale": 0.795703125,
-   "wait12_model_matched": 0.07915130539462795,
-   "occ_model_matched": 0.9070553137007152
+   "wait12_model": 0.46793388429752064,
+   "los_scale": 0.8167968749999999,
+   "wait12_model_matched": 0.06660245962364794,
+   "occ_model_matched": 0.9117388137260347
   },
   {
    "org": "RAJ",
@@ -407,12 +407,12 @@
    "admissions": 118676,
    "bedsPerAdm": 0.9165316480130513,
    "occ_obs": 0.9485708823248254,
-   "occ_model": 0.9401394458628307,
+   "occ_model": 0.9314921103507544,
    "wait12_obs": 0.0632815396541845,
-   "wait12_model": 0.16850353570746002,
-   "los_scale": 1.0277343749999999,
-   "wait12_model_matched": 0.2574636386833376,
-   "occ_model_matched": 0.9524143661567082
+   "wait12_model": 0.120872312743944,
+   "los_scale": 1.069921875,
+   "wait12_model_matched": 0.2439308280678417,
+   "occ_model_matched": 0.9504201241764528
   },
   {
    "org": "RAL",
@@ -421,12 +421,12 @@
    "admissions": 85065,
    "bedsPerAdm": 1.0888460141020262,
    "occ_obs": 0.95655590480467,
-   "occ_model": 0.8368792328912875,
+   "occ_model": 0.8287902509170089,
    "wait12_obs": 0.2662669723152883,
-   "wait12_model": 0.015809075017101163,
-   "los_scale": 1.301953125,
-   "wait12_model_matched": 0.26225340654870855,
-   "occ_model_matched": 0.9550390930313273
+   "wait12_model": 0.004953056849264434,
+   "los_scale": 1.365234375,
+   "wait12_model_matched": 0.31785714285714284,
+   "occ_model_matched": 0.9580310655452037
   },
   {
    "org": "RAS",
@@ -435,12 +435,12 @@
    "admissions": 23519,
    "bedsPerAdm": 0.9109424283492004,
    "occ_obs": 0.9441883038097548,
-   "occ_model": 0.943310335964354,
+   "occ_model": 0.9340252700533055,
    "wait12_obs": 0.0176453080488116,
-   "wait12_model": 0.17902327935222673,
-   "los_scale": 1.006640625,
-   "wait12_model_matched": 0.18976437800861415,
-   "occ_model_matched": 0.9413339323446932
+   "wait12_model": 0.12670853343184338,
+   "los_scale": 1.048828125,
+   "wait12_model_matched": 0.18913780276101513,
+   "occ_model_matched": 0.9401805042626717
   },
   {
    "org": "RAX",
@@ -449,12 +449,12 @@
    "admissions": 39131,
    "bedsPerAdm": 0.6042361123745346,
    "occ_obs": 0.9311785400175902,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.12197490480693057,
-   "wait12_model": 0.9975288993131177,
-   "los_scale": 0.563671875,
-   "wait12_model_matched": 0.14661675141085098,
-   "occ_model_matched": 0.938284848430465
+   "wait12_model": 0.9981132075471698,
+   "los_scale": 0.584765625,
+   "wait12_model_matched": 0.10020348677335973,
+   "occ_model_matched": 0.9263493758716689
   },
   {
    "org": "RBD",
@@ -463,12 +463,12 @@
    "admissions": 29828,
    "bedsPerAdm": 0.6827105358489924,
    "occ_obs": 0.9698749042634668,
-   "occ_model": 0.9978520032496657,
+   "occ_model": 0.9872216238068783,
    "wait12_obs": 0.02423897009521255,
-   "wait12_model": 0.9732249013173538,
-   "los_scale": 0.7535156249999999,
-   "wait12_model_matched": 0.31201218351418236,
-   "occ_model_matched": 0.96530224661891
+   "wait12_model": 0.9752319109461967,
+   "los_scale": 0.795703125,
+   "wait12_model_matched": 0.3639982583815388,
+   "occ_model_matched": 0.9664978557425691
   },
   {
    "org": "RBK",
@@ -477,12 +477,12 @@
    "admissions": 57282,
    "bedsPerAdm": 0.5587114943592598,
    "occ_obs": 0.9364847303443795,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.059774449216158654,
-   "wait12_model": 0.9975983885962194,
-   "los_scale": 0.5003906250000001,
-   "wait12_model_matched": 0.10869452911091594,
-   "occ_model_matched": 0.9267171898692693
+   "wait12_model": 0.9981076375747483,
+   "los_scale": 0.521484375,
+   "wait12_model_matched": 0.1360198954473938,
+   "occ_model_matched": 0.94138786243161
   },
   {
    "org": "RBL",
@@ -491,12 +491,12 @@
    "admissions": 47116,
    "bedsPerAdm": 1.0225343775525044,
    "occ_obs": 0.9398942484083307,
-   "occ_model": 0.8810830911839,
+   "occ_model": 0.8707994378394059,
    "wait12_obs": 0.1976186433483318,
-   "wait12_model": 0.04878917378917379,
-   "los_scale": 1.133203125,
-   "wait12_model_matched": 0.1512700979925792,
-   "occ_model_matched": 0.9350000106053429
+   "wait12_model": 0.020113746705507005,
+   "los_scale": 1.196484375,
+   "wait12_model_matched": 0.18350074404761904,
+   "occ_model_matched": 0.9405167305881988
   },
   {
    "org": "RBN",
@@ -505,12 +505,12 @@
    "admissions": 99513,
    "bedsPerAdm": 0.7507828409663669,
    "occ_obs": 0.9762716582005428,
-   "occ_model": 0.9930072603807953,
+   "occ_model": 0.9836683228666483,
    "wait12_obs": 0.048898133912152184,
-   "wait12_model": 0.823394375749987,
-   "los_scale": 0.880078125,
-   "wait12_model_matched": 0.4558036024758328,
-   "occ_model_matched": 0.9744180645068088
+   "wait12_model": 0.8073127077473792,
+   "los_scale": 0.943359375,
+   "wait12_model_matched": 0.607559335985732,
+   "occ_model_matched": 0.9772723811742342
   },
   {
    "org": "RBS",
@@ -519,12 +519,12 @@
    "admissions": 13548,
    "bedsPerAdm": 0.9217326744981921,
    "occ_obs": 0.7160699417152374,
-   "occ_model": 0.9369331926746731,
+   "occ_model": 0.9293945165699089,
    "wait12_obs": 0,
-   "wait12_model": 0.15424032795285678,
-   "los_scale": 0.6480468749999999,
-   "wait12_model_matched": 0.0014531156509103341,
-   "occ_model_matched": 0.7202281977809689
+   "wait12_model": 0.1041056631985546,
+   "los_scale": 0.669140625,
+   "wait12_model_matched": 0.00016707042018210673,
+   "occ_model_matched": 0.7069464154504113
   },
   {
    "org": "RBT",
@@ -533,12 +533,12 @@
    "admissions": 36469,
    "bedsPerAdm": 0.8634573421560167,
    "occ_obs": 0.930988938418359,
-   "occ_model": 0.9627718213086482,
+   "occ_model": 0.9554482360445633,
    "wait12_obs": 0.1767802791411884,
-   "wait12_model": 0.31974865350089765,
-   "los_scale": 0.901171875,
-   "wait12_model_matched": 0.15907638223074463,
-   "occ_model_matched": 0.934104145743946
+   "wait12_model": 0.22785551197236695,
+   "los_scale": 0.943359375,
+   "wait12_model_matched": 0.13621706645694062,
+   "occ_model_matched": 0.9348467320986275
   },
   {
    "org": "RC9",
@@ -547,12 +547,12 @@
    "admissions": 87817,
    "bedsPerAdm": 0.7533911082056871,
    "occ_obs": 0.9571742888574573,
-   "occ_model": 0.9930308357718848,
+   "occ_model": 0.9835422379945756,
    "wait12_obs": 0.003165674072218363,
-   "wait12_model": 0.8254541647034187,
-   "los_scale": 0.8167968749999999,
-   "wait12_model_matched": 0.34080279232111693,
-   "occ_model_matched": 0.9641077601370474
+   "wait12_model": 0.7996103962680063,
+   "los_scale": 0.8589843749999999,
+   "wait12_model_matched": 0.313643240269564,
+   "occ_model_matched": 0.9630133283689241
   },
   {
    "org": "RCB",
@@ -561,12 +561,12 @@
    "admissions": 79148,
    "bedsPerAdm": 0.6988243540698759,
    "occ_obs": 0.9220791427765767,
-   "occ_model": 0.9973451323412438,
+   "occ_model": 0.9868319069295628,
    "wait12_obs": 0.07600950118764846,
-   "wait12_model": 0.9462088419823939,
-   "los_scale": 0.669140625,
-   "wait12_model_matched": 0.08718780408692832,
-   "occ_model_matched": 0.9158410761133625
+   "wait12_model": 0.946253917006932,
+   "los_scale": 0.690234375,
+   "wait12_model_matched": 0.1200356415478615,
+   "occ_model_matched": 0.9261048476349217
   },
   {
    "org": "RCD",
@@ -575,12 +575,12 @@
    "admissions": 17383,
    "bedsPerAdm": 1.11764926192442,
    "occ_obs": 0.8453304789938453,
-   "occ_model": 0.8173705967648144,
+   "occ_model": 0.8053270024503932,
    "wait12_obs": 0.005925329344762124,
-   "wait12_model": 0.007102161866853977,
-   "los_scale": 1.048828125,
-   "wait12_model_matched": 0.01640200585039699,
-   "occ_model_matched": 0.8388595657427965
+   "wait12_model": 0.002577124232547563,
+   "los_scale": 1.091015625,
+   "wait12_model_matched": 0.013127098809402667,
+   "occ_model_matched": 0.8378912862284368
   },
   {
    "org": "RCF",
@@ -589,12 +589,12 @@
    "admissions": 25163,
    "bedsPerAdm": 0.9181609133116044,
    "occ_obs": 0.9421692169216923,
-   "occ_model": 0.9391846425237103,
+   "occ_model": 0.9311138557345363,
    "wait12_obs": 0.08500576242896316,
-   "wait12_model": 0.16185856522849118,
-   "los_scale": 1.006640625,
-   "wait12_model_matched": 0.17183506559890951,
-   "occ_model_matched": 0.9374361343512468
+   "wait12_model": 0.11577837066451573,
+   "los_scale": 1.048828125,
+   "wait12_model_matched": 0.17013484268353588,
+   "occ_model_matched": 0.9369099390961804
   },
   {
    "org": "RCU",
@@ -603,12 +603,12 @@
    "admissions": 13327,
    "bedsPerAdm": 0.6885246291464662,
    "occ_obs": 0.6679886685552407,
-   "occ_model": 0.9977577016853082,
+   "occ_model": 0.9871986992846833,
    "wait12_obs": 0,
-   "wait12_model": 0.9593519317419231,
+   "wait12_model": 0.9703433436242866,
    "los_scale": 0.39492187500000003,
-   "wait12_model_matched": 0,
-   "occ_model_matched": 0.6902245833878675
+   "wait12_model_matched": 0.00012539971158066337,
+   "occ_model_matched": 0.6838690631074119
   },
   {
    "org": "RCX",
@@ -617,12 +617,12 @@
    "admissions": 25601,
    "bedsPerAdm": 1.2147772418287548,
    "occ_obs": 0.9515212303577398,
-   "occ_model": 0.7487190579125008,
+   "occ_model": 0.7424679625916141,
    "wait12_obs": 0.0665208390297254,
-   "wait12_model": 0.001619226180330663,
-   "los_scale": 1.512890625,
-   "wait12_model_matched": 0.26936257710760797,
-   "occ_model_matched": 0.9501196947573405
+   "wait12_model": 0.00016498927569707968,
+   "los_scale": 1.5550781249999999,
+   "wait12_model_matched": 0.279804813130753,
+   "occ_model_matched": 0.9494420112294648
   },
   {
    "org": "RD1",
@@ -631,12 +631,12 @@
    "admissions": 57432,
    "bedsPerAdm": 0.5588816529846475,
    "occ_obs": 0.9483317136378361,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.026274550773088174,
-   "wait12_model": 0.9975975510520402,
-   "los_scale": 0.521484375,
-   "wait12_model_matched": 0.22001137009664581,
-   "occ_model_matched": 0.9533102310181052
+   "wait12_model": 0.9981067060471809,
+   "los_scale": 0.5425781249999999,
+   "wait12_model_matched": 0.13476869953790688,
+   "occ_model_matched": 0.9411433341948631
   },
   {
    "org": "RD8",
@@ -645,12 +645,12 @@
    "admissions": 32272,
    "bedsPerAdm": 1.0651582414944345,
    "occ_obs": 0.882637628554144,
-   "occ_model": 0.8558927858048833,
+   "occ_model": 0.8423959548397606,
    "wait12_obs": 0,
-   "wait12_model": 0.03366527942925089,
-   "los_scale": 1.048828125,
-   "wait12_model_matched": 0.05234925995827953,
-   "occ_model_matched": 0.8756371758422503
+   "wait12_model": 0.007390233299521809,
+   "los_scale": 1.091015625,
+   "wait12_model_matched": 0.034496161694684675,
+   "occ_model_matched": 0.8742342954149617
   },
   {
    "org": "RDE",
@@ -659,12 +659,12 @@
    "admissions": 76304,
    "bedsPerAdm": 1.0442120103926276,
    "occ_obs": 0.9312932271956152,
-   "occ_model": 0.8706038298446648,
+   "occ_model": 0.8576866111438474,
    "wait12_obs": 0.08019238834137135,
-   "wait12_model": 0.038192928852029684,
-   "los_scale": 1.133203125,
-   "wait12_model_matched": 0.1309083835829605,
-   "occ_model_matched": 0.9267800575788411
+   "wait12_model": 0.014033595577291091,
+   "los_scale": 1.196484375,
+   "wait12_model_matched": 0.15505276166936022,
+   "occ_model_matched": 0.933792204077656
   },
   {
    "org": "RDU",
@@ -673,12 +673,12 @@
    "admissions": 79744,
    "bedsPerAdm": 1.0056861719799874,
    "occ_obs": 0.9263580967198236,
-   "occ_model": 0.8930947529439461,
+   "occ_model": 0.8833162269578936,
    "wait12_obs": 0.06366623194221509,
-   "wait12_model": 0.061157371772444194,
-   "los_scale": 1.069921875,
-   "wait12_model_matched": 0.13951748644099496,
-   "occ_model_matched": 0.9284932026646704
+   "wait12_model": 0.025306957708049114,
+   "los_scale": 1.133203125,
+   "wait12_model_matched": 0.11914348462664714,
+   "occ_model_matched": 0.9233997540159079
   },
   {
    "org": "REF",
@@ -687,12 +687,12 @@
    "admissions": 46481,
    "bedsPerAdm": 0.8800271202881681,
    "occ_obs": 0.9546263345195729,
-   "occ_model": 0.9558052932417327,
+   "occ_model": 0.948158237986543,
    "wait12_obs": 0.12852563413007465,
-   "wait12_model": 0.25354090354090353,
-   "los_scale": 0.985546875,
-   "wait12_model_matched": 0.27110349889894786,
-   "occ_model_matched": 0.9548347729752192
+   "wait12_model": 0.1850438308784066,
+   "los_scale": 1.048828125,
+   "wait12_model_matched": 0.24381257509010812,
+   "occ_model_matched": 0.9531863498546534
   },
   {
    "org": "REM",
@@ -701,12 +701,12 @@
    "admissions": 87842,
    "bedsPerAdm": 1.092183142228423,
    "occ_obs": 0.9556735667064052,
-   "occ_model": 0.8354293463392898,
+   "occ_model": 0.8243772803944651,
    "wait12_obs": 0.1338995013774732,
-   "wait12_model": 0.014718218561732633,
-   "los_scale": 1.301953125,
-   "wait12_model_matched": 0.2606122448979592,
-   "occ_model_matched": 0.9539860588960011
+   "wait12_model": 0.004078303425774877,
+   "los_scale": 1.365234375,
+   "wait12_model_matched": 0.29812860840135375,
+   "occ_model_matched": 0.9558150283996838
   },
   {
    "org": "RF4",
@@ -715,12 +715,12 @@
    "admissions": 87301,
    "bedsPerAdm": 0.6938864798926918,
    "occ_obs": 0.9309989701338826,
-   "occ_model": 0.9973333446456991,
+   "occ_model": 0.9869923785849279,
    "wait12_obs": 0.1065165347475974,
-   "wait12_model": 0.9499710256905544,
-   "los_scale": 0.669140625,
-   "wait12_model_matched": 0.09533625354290132,
-   "occ_model_matched": 0.9191416308658775
+   "wait12_model": 0.9573415036530757,
+   "los_scale": 0.7113281249999999,
+   "wait12_model_matched": 0.13195980534664728,
+   "occ_model_matched": 0.9305674879555547
   },
   {
    "org": "RFF",
@@ -729,12 +729,12 @@
    "admissions": 44265,
    "bedsPerAdm": 0.6557138051991268,
    "occ_obs": 0.9462654486835035,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.0009262396927595166,
-   "wait12_model": 0.9976319504531171,
-   "los_scale": 0.669140625,
-   "wait12_model_matched": 0.1694287622169611,
-   "occ_model_matched": 0.9441158284932417
+   "wait12_model": 0.9819695485709198,
+   "los_scale": 0.690234375,
+   "wait12_model_matched": 0.21079983274595304,
+   "occ_model_matched": 0.9508938976351501
   },
   {
    "org": "RFR",
@@ -743,12 +743,12 @@
    "admissions": 27146,
    "bedsPerAdm": 1.0860778848311965,
    "occ_obs": 0.9243519661435373,
-   "occ_model": 0.8385530856586344,
+   "occ_model": 0.8303147316429786,
    "wait12_obs": 0.009319973476755323,
-   "wait12_model": 0.0167576584774037,
-   "los_scale": 1.196484375,
-   "wait12_model_matched": 0.1566081752713257,
-   "occ_model_matched": 0.9315265696515057
+   "wait12_model": 0.004942460902921215,
+   "los_scale": 1.2386718749999999,
+   "wait12_model_matched": 0.13990099009900991,
+   "occ_model_matched": 0.9289016393427157
   },
   {
    "org": "RFS",
@@ -757,12 +757,12 @@
    "admissions": 28898,
    "bedsPerAdm": 1.1637951215815934,
    "occ_obs": 0.9491420621425258,
-   "occ_model": 0.7848837078436304,
+   "occ_model": 0.7774622457223312,
    "wait12_obs": 0.10471312893625856,
-   "wait12_model": 0.005140339425587467,
-   "los_scale": 1.407421875,
-   "wait12_model_matched": 0.2890855457227139,
-   "occ_model_matched": 0.9539703419686081
+   "wait12_model": 0.0009468202619536059,
+   "los_scale": 1.4496093749999999,
+   "wait12_model_matched": 0.2721102863202545,
+   "occ_model_matched": 0.951489935212221
   },
   {
    "org": "RGN",
@@ -771,12 +771,12 @@
    "admissions": 61017,
    "bedsPerAdm": 0.9921922028466782,
    "occ_obs": 0.9569772434521254,
-   "occ_model": 0.8997194378400656,
+   "occ_model": 0.892405800008224,
    "wait12_obs": 0.1586443122408509,
-   "wait12_model": 0.06980597942415245,
-   "los_scale": 1.154296875,
-   "wait12_model_matched": 0.29027495847942425,
-   "occ_model_matched": 0.9597384543218132
+   "wait12_model": 0.032954469029524515,
+   "los_scale": 1.217578125,
+   "wait12_model_matched": 0.25358592692828147,
+   "occ_model_matched": 0.9534920101505872
   },
   {
    "org": "RGP",
@@ -785,12 +785,12 @@
    "admissions": 24989,
    "bedsPerAdm": 1.1122111519134474,
    "occ_obs": 0.9465020576131687,
-   "occ_model": 0.8211426593391173,
+   "occ_model": 0.8097285107118395,
    "wait12_obs": 0.15366761375005003,
-   "wait12_model": 0.007304942493005906,
-   "los_scale": 1.280859375,
-   "wait12_model_matched": 0.21132036208511082,
-   "occ_model_matched": 0.9468820077143971
+   "wait12_model": 0.0026399155227032735,
+   "los_scale": 1.365234375,
+   "wait12_model_matched": 0.25240555049123875,
+   "occ_model_matched": 0.9489071057115807
   },
   {
    "org": "RGR",
@@ -799,12 +799,12 @@
    "admissions": 27220,
    "bedsPerAdm": 1.0588690849656077,
    "occ_obs": 0.9258658008658008,
-   "occ_model": 0.8603131716341446,
+   "occ_model": 0.8462358123074286,
    "wait12_obs": 0.13409257898603968,
-   "wait12_model": 0.03485195303847006,
-   "los_scale": 1.154296875,
-   "wait12_model_matched": 0.15045382794001577,
-   "occ_model_matched": 0.930803590991431
+   "wait12_model": 0.008213256484149856,
+   "los_scale": 1.196484375,
+   "wait12_model_matched": 0.13450574934776308,
+   "occ_model_matched": 0.9258756024129714
   },
   {
    "org": "RGT",
@@ -813,12 +813,12 @@
    "admissions": 40105,
    "bedsPerAdm": 1.6903873681947466,
    "occ_obs": 0.9028374233128834,
-   "occ_model": 0.5318490352811707,
+   "occ_model": 0.5370183946797331,
    "wait12_obs": 0.1241989776835806,
    "wait12_model": 0,
-   "los_scale": 1.998046875,
-   "wait12_model_matched": 0.1332163369495852,
-   "occ_model_matched": 0.904902094647884
+   "los_scale": 2.0191406250000004,
+   "wait12_model_matched": 0.1182205971968312,
+   "occ_model_matched": 0.9003071186581119
   },
   {
    "org": "RH5",
@@ -827,12 +827,12 @@
    "admissions": 56675,
    "bedsPerAdm": 1.0696739870891128,
    "occ_obs": 0.9307092016122116,
-   "occ_model": 0.8523329017503849,
+   "occ_model": 0.8397825593095269,
    "wait12_obs": 0.029201588001764447,
-   "wait12_model": 0.029640137374944003,
-   "los_scale": 1.1753906250000001,
-   "wait12_model_matched": 0.14255765199161424,
-   "occ_model_matched": 0.9264657190309825
+   "wait12_model": 0.007492543827744235,
+   "los_scale": 1.2386718749999999,
+   "wait12_model_matched": 0.17167675190318174,
+   "occ_model_matched": 0.935748429971632
   },
   {
    "org": "RH8",
@@ -841,12 +841,12 @@
    "admissions": 65049,
    "bedsPerAdm": 1.0792671853473754,
    "occ_obs": 0.9115817535545023,
-   "occ_model": 0.8447298381240556,
+   "occ_model": 0.8339597306719886,
    "wait12_obs": 0.03854017740472567,
-   "wait12_model": 0.01943210062514122,
-   "los_scale": 1.133203125,
-   "wait12_model_matched": 0.09570824098327624,
-   "occ_model_matched": 0.9058922610736384
+   "wait12_model": 0.005648474178403756,
+   "los_scale": 1.196484375,
+   "wait12_model_matched": 0.10622169718448514,
+   "occ_model_matched": 0.9185856043549512
   },
   {
    "org": "RHM",
@@ -855,12 +855,12 @@
    "admissions": 65815,
    "bedsPerAdm": 1.0264200921835247,
    "occ_obs": 0.9134215791903957,
-   "occ_model": 0.8798925339338858,
+   "occ_model": 0.8690457118914858,
    "wait12_obs": 0.002263921598419813,
-   "wait12_model": 0.04762245262781552,
-   "los_scale": 1.069921875,
-   "wait12_model_matched": 0.11194956538351324,
-   "occ_model_matched": 0.9169569779582605
+   "wait12_model": 0.02005291742097201,
+   "los_scale": 1.133203125,
+   "wait12_model_matched": 0.09230912824341983,
+   "occ_model_matched": 0.9127322096878195
   },
   {
    "org": "RHQ",
@@ -869,12 +869,12 @@
    "admissions": 80385,
    "bedsPerAdm": 1.1577357506793056,
    "occ_obs": 0.9278252611585944,
-   "occ_model": 0.7924042576011467,
+   "occ_model": 0.7823222444276781,
    "wait12_obs": 0.0012813335821359707,
-   "wait12_model": 0.00486815415821501,
-   "los_scale": 1.301953125,
-   "wait12_model_matched": 0.13591916558018252,
-   "occ_model_matched": 0.9262771159022675
+   "wait12_model": 0.0010988148496978258,
+   "los_scale": 1.344140625,
+   "wait12_model_matched": 0.14430273005164962,
+   "occ_model_matched": 0.9235831501934681
   },
   {
    "org": "RHU",
@@ -883,12 +883,12 @@
    "admissions": 67871,
    "bedsPerAdm": 1.000765520116008,
    "occ_obs": 0.96884806735553,
-   "occ_model": 0.8948275441890166,
+   "occ_model": 0.8880386785300702,
    "wait12_obs": 0.17216484212697616,
-   "wait12_model": 0.06232156535060233,
-   "los_scale": 1.217578125,
-   "wait12_model_matched": 0.3499348352262149,
-   "occ_model_matched": 0.9671725609786684
+   "wait12_model": 0.02872080391091798,
+   "los_scale": 1.301953125,
+   "wait12_model_matched": 0.3930230439930777,
+   "occ_model_matched": 0.966299176550212
   },
   {
    "org": "RHW",
@@ -897,12 +897,12 @@
    "admissions": 32245,
    "bedsPerAdm": 1.0939428616146325,
    "occ_obs": 0.9354458364038319,
-   "occ_model": 0.8335668904432277,
+   "occ_model": 0.8222796866136197,
    "wait12_obs": 0.0061404868971933636,
-   "wait12_model": 0.014294450389848647,
-   "los_scale": 1.2386718749999999,
-   "wait12_model_matched": 0.19451830640212722,
-   "occ_model_matched": 0.9399351258067226
+   "wait12_model": 0.0040855742088842665,
+   "los_scale": 1.301953125,
+   "wait12_model_matched": 0.17682257903660117,
+   "occ_model_matched": 0.9353663546017149
   },
   {
    "org": "RJ1",
@@ -911,12 +911,12 @@
    "admissions": 27553,
    "bedsPerAdm": 2.752165110747948,
    "occ_obs": 0.8685040449746333,
-   "occ_model": 0.32640128963265186,
+   "occ_model": 0.34070424886257256,
    "wait12_obs": 0.030414110986099516,
    "wait12_model": 0,
    "los_scale": 2.989453125,
-   "wait12_model_matched": 0.018455939693267483,
-   "occ_model_matched": 0.8169973197392325
+   "wait12_model_matched": 0.01994515083520319,
+   "occ_model_matched": 0.8295161941198517
   },
   {
    "org": "RJ2",
@@ -925,12 +925,12 @@
    "admissions": 55420,
    "bedsPerAdm": 1.0960546144978576,
    "occ_obs": 0.9769770626497775,
-   "occ_model": 0.8322348808466771,
+   "occ_model": 0.8206405832766749,
    "wait12_obs": 0.14395525081198124,
-   "wait12_model": 0.01324756872654874,
-   "los_scale": 1.428515625,
-   "wait12_model_matched": 0.5095789365843664,
-   "occ_model_matched": 0.976115492665245
+   "wait12_model": 0.0037224538415723644,
+   "los_scale": 1.5761718749999998,
+   "wait12_model_matched": 0.6349190485708575,
+   "occ_model_matched": 0.9773335132334209
   },
   {
    "org": "RJ6",
@@ -939,12 +939,12 @@
    "admissions": 15545,
    "bedsPerAdm": 1.7695148152852966,
    "occ_obs": 0.9790209790209791,
-   "occ_model": 0.5102068262611077,
+   "occ_model": 0.5162487775710337,
    "wait12_obs": 0.4909617240270183,
    "wait12_model": 0,
-   "los_scale": 2.694140625,
-   "wait12_model_matched": 0.5190420755030767,
-   "occ_model_matched": 0.9790074073055438
+   "los_scale": 2.883984375,
+   "wait12_model_matched": 0.709256014019436,
+   "occ_model_matched": 0.9802525690595885
   },
   {
    "org": "RJ7",
@@ -953,12 +953,12 @@
    "admissions": 36733,
    "bedsPerAdm": 1.36308253106476,
    "occ_obs": 0.9476689855674385,
-   "occ_model": 0.6792777434586925,
+   "occ_model": 0.6735453866122489,
    "wait12_obs": 0.19475675822829608,
-   "wait12_model": 0.0005709391949757351,
-   "los_scale": 1.681640625,
-   "wait12_model_matched": 0.2586008440977107,
-   "occ_model_matched": 0.9457661058694993
+   "wait12_model": 0,
+   "los_scale": 1.744921875,
+   "wait12_model_matched": 0.2685425151178576,
+   "occ_model_matched": 0.9512606899902707
   },
   {
    "org": "RJC",
@@ -967,12 +967,12 @@
    "admissions": 32655,
    "bedsPerAdm": 0.7909318546714094,
    "occ_obs": 0.9595410628019324,
-   "occ_model": 0.9876556466035031,
+   "occ_model": 0.9767107303804559,
    "wait12_obs": 0.025754095850558874,
-   "wait12_model": 0.644840288086206,
-   "los_scale": 0.8589843749999999,
-   "wait12_model_matched": 0.3057002420952241,
-   "occ_model_matched": 0.9603514144901372
+   "wait12_model": 0.5904961565338924,
+   "los_scale": 0.9222656250000001,
+   "wait12_model_matched": 0.2844970756011264,
+   "occ_model_matched": 0.9562582358287878
   },
   {
    "org": "RJE",
@@ -981,12 +981,12 @@
    "admissions": 75696,
    "bedsPerAdm": 1.154864705760995,
    "occ_obs": 0.9270889087124591,
-   "occ_model": 0.7942077750194854,
+   "occ_model": 0.7844656872529137,
    "wait12_obs": 0.1462296554639611,
-   "wait12_model": 0.004853583562530335,
-   "los_scale": 1.280859375,
-   "wait12_model_matched": 0.14754275817276466,
-   "occ_model_matched": 0.9285089195920633
+   "wait12_model": 0.0010956331194240101,
+   "los_scale": 1.344140625,
+   "wait12_model_matched": 0.15019430732065958,
+   "occ_model_matched": 0.9251878667471205
   },
   {
    "org": "RJL",
@@ -995,12 +995,12 @@
    "admissions": 70611,
    "bedsPerAdm": 0.5390940399775855,
    "occ_obs": 0.9019393608303743,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.13410091912025038,
-   "wait12_model": 0.9975703659402684,
+   "wait12_model": 0.9981014968966776,
    "los_scale": 0.437109375,
-   "wait12_model_matched": 0.07301017354877319,
-   "occ_model_matched": 0.9144737034301776
+   "wait12_model_matched": 0.054202401372212695,
+   "occ_model_matched": 0.9026148538924118
   },
   {
    "org": "RJN",
@@ -1009,12 +1009,12 @@
    "admissions": 11889,
    "bedsPerAdm": 1.5436063138421994,
    "occ_obs": 0.9575070821529745,
-   "occ_model": 0.596433819170564,
+   "occ_model": 0.5987197461676631,
    "wait12_obs": 0.34527714694255196,
    "wait12_model": 0,
-   "los_scale": 2.0191406250000004,
-   "wait12_model_matched": 0.27643811737362,
-   "occ_model_matched": 0.9568308227541212
+   "los_scale": 2.061328125,
+   "wait12_model_matched": 0.3034396323631806,
+   "occ_model_matched": 0.956395782961958
   },
   {
    "org": "RJR",
@@ -1023,12 +1023,12 @@
    "admissions": 36871,
    "bedsPerAdm": 0.8601062162609692,
    "occ_obs": 0.9637704918032788,
-   "occ_model": 0.964339584816093,
+   "occ_model": 0.9561015849271217,
    "wait12_obs": 0.21111442597163083,
-   "wait12_model": 0.33806259314456033,
-   "los_scale": 0.985546875,
-   "wait12_model_matched": 0.3553751889870295,
-   "occ_model_matched": 0.9638405723713674
+   "wait12_model": 0.24342143648987688,
+   "los_scale": 1.069921875,
+   "wait12_model_matched": 0.3898597288613745,
+   "occ_model_matched": 0.9665437047869591
   },
   {
    "org": "RJZ",
@@ -1037,12 +1037,12 @@
    "admissions": 47278,
    "bedsPerAdm": 1.797791262996017,
    "occ_obs": 0.9760841641690622,
-   "occ_model": 0.50253303646151,
+   "occ_model": 0.5089702417741109,
    "wait12_obs": 0.18833283979863785,
    "wait12_model": 0,
-   "los_scale": 2.673046875,
-   "wait12_model_matched": 0.477391158177845,
-   "occ_model_matched": 0.9765555666322471
+   "los_scale": 2.799609375,
+   "wait12_model_matched": 0.6554621848739496,
+   "occ_model_matched": 0.9769972869078938
   },
   {
    "org": "RK5",
@@ -1051,12 +1051,12 @@
    "admissions": 47908,
    "bedsPerAdm": 0.8960276503568433,
    "occ_obs": 0.9526462395543175,
-   "occ_model": 0.9491334575634343,
+   "occ_model": 0.9413840416779109,
    "wait12_obs": 0.08201135509726977,
-   "wait12_model": 0.2075377822003856,
-   "los_scale": 1.006640625,
-   "wait12_model_matched": 0.22391159853772016,
-   "occ_model_matched": 0.9473377986087922
+   "wait12_model": 0.1497663693185266,
+   "los_scale": 1.048828125,
+   "wait12_model_matched": 0.209334527979148,
+   "occ_model_matched": 0.9468591817288244
   },
   {
    "org": "RK9",
@@ -1065,12 +1065,12 @@
    "admissions": 56568,
    "bedsPerAdm": 1.1769278538254364,
    "occ_obs": 0.9001249414337029,
-   "occ_model": 0.7765498070935297,
+   "occ_model": 0.7700690873144332,
    "wait12_obs": 0.10801159666242399,
-   "wait12_model": 0.004455445544554455,
-   "los_scale": 1.259765625,
-   "wait12_model_matched": 0.08646616541353383,
-   "occ_model_matched": 0.8960534645256649
+   "wait12_model": 0.000796876245119133,
+   "los_scale": 1.280859375,
+   "wait12_model_matched": 0.08062098501070664,
+   "occ_model_matched": 0.9002459865989252
   },
   {
    "org": "RKB",
@@ -1079,12 +1079,12 @@
    "admissions": 19726,
    "bedsPerAdm": 3.3595114452675237,
    "occ_obs": 0.9676786694908607,
-   "occ_model": 0.262500192084851,
+   "occ_model": 0.2803210574008571,
    "wait12_obs": 0.01013890297069857,
    "wait12_model": 0,
    "los_scale": 2.989453125,
-   "wait12_model_matched": 0,
-   "occ_model_matched": 0.6658790628562206
+   "wait12_model_matched": 0.000919963201471941,
+   "occ_model_matched": 0.6839301951665987
   },
   {
    "org": "RKE",
@@ -1093,12 +1093,12 @@
    "admissions": 16645,
    "bedsPerAdm": 0.9407589008156999,
    "occ_obs": 0.9654714475431607,
-   "occ_model": 0.9258056080804794,
+   "occ_model": 0.9182875855664157,
    "wait12_obs": 0.1730249324121358,
-   "wait12_model": 0.11162089532673528,
-   "los_scale": 1.133203125,
-   "wait12_model_matched": 0.3455515702913131,
-   "occ_model_matched": 0.9653965481832675
+   "wait12_model": 0.06867991845056065,
+   "los_scale": 1.196484375,
+   "wait12_model_matched": 0.4075877980005127,
+   "occ_model_matched": 0.967032761260453
   },
   {
    "org": "RL4",
@@ -1107,12 +1107,12 @@
    "admissions": 77509,
    "bedsPerAdm": 0.6541068945673827,
    "occ_obs": 0.9485233798195243,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.987301859634561,
    "wait12_obs": 0.06903714407359145,
-   "wait12_model": 0.9976380813953488,
-   "los_scale": 0.669140625,
-   "wait12_model_matched": 0.17526334907373775,
-   "occ_model_matched": 0.9447602225163517
+   "wait12_model": 0.9794721407624634,
+   "los_scale": 0.690234375,
+   "wait12_model_matched": 0.21795101019131058,
+   "occ_model_matched": 0.9513371050642542
   },
   {
    "org": "RLQ",
@@ -1121,12 +1121,12 @@
    "admissions": 19115,
    "bedsPerAdm": 1.151008483600783,
    "occ_obs": 0.9938563327032136,
-   "occ_model": 0.7956576615714831,
+   "occ_model": 0.786563281033759,
    "wait12_obs": 0.1474234894062255,
-   "wait12_model": 0.004918958148536408,
-   "los_scale": 1.744921875,
-   "wait12_model_matched": 0.8110295704726959,
-   "occ_model_matched": 0.9939070544740405
+   "wait12_model": 0.0013266739503667864,
+   "los_scale": 2.989453125,
+   "wait12_model_matched": 0.9982191493819401,
+   "occ_model_matched": 0.9873591709400485
   },
   {
    "org": "RLT",
@@ -1135,12 +1135,12 @@
    "admissions": 13278,
    "bedsPerAdm": 1.840622619755139,
    "occ_obs": 0.9772388853435439,
-   "occ_model": 0.48900076197619824,
+   "occ_model": 0.49886052748610155,
    "wait12_obs": 0.3464377165235728,
    "wait12_model": 0,
-   "los_scale": 2.778515625,
-   "wait12_model_matched": 0.4747805129970735,
-   "occ_model_matched": 0.9757540033352076
+   "los_scale": 2.883984375,
+   "wait12_model_matched": 0.6324574450504049,
+   "occ_model_matched": 0.9782504941212223
   },
   {
    "org": "RM1",
@@ -1149,12 +1149,12 @@
    "admissions": 46835,
    "bedsPerAdm": 1.2227034704739048,
    "occ_obs": 0.9568769859282797,
-   "occ_model": 0.7441925828233373,
+   "occ_model": 0.73777989780273,
    "wait12_obs": 0.06580548734920466,
-   "wait12_model": 0.0016309012875536481,
-   "los_scale": 1.5550781249999999,
-   "wait12_model_matched": 0.3026255181943805,
-   "occ_model_matched": 0.9560921271666535
+   "wait12_model": 0.00016608536787908985,
+   "los_scale": 1.597265625,
+   "wait12_model_matched": 0.31911091254328156,
+   "occ_model_matched": 0.9547146513343222
   },
   {
    "org": "RM3",
@@ -1163,12 +1163,12 @@
    "admissions": 120425,
    "bedsPerAdm": 0.7897673722884135,
    "occ_obs": 0.9247840822127473,
-   "occ_model": 0.9878796128188524,
+   "occ_model": 0.9770316736911864,
    "wait12_obs": 0.11517542038613245,
-   "wait12_model": 0.6477790589139626,
-   "los_scale": 0.7746093749999998,
-   "wait12_model_matched": 0.13176591225371714,
-   "occ_model_matched": 0.9256798726613361
+   "wait12_model": 0.5966278258067981,
+   "los_scale": 0.8167968749999999,
+   "wait12_model_matched": 0.11539016298860522,
+   "occ_model_matched": 0.9270523945523165
   },
   {
    "org": "RMC",
@@ -1177,12 +1177,12 @@
    "admissions": 43970,
    "bedsPerAdm": 0.8051889649103274,
    "occ_obs": 0.8923641703377386,
-   "occ_model": 0.9822097312618533,
+   "occ_model": 0.9731345049180309,
    "wait12_obs": 0.09654309756652263,
-   "wait12_model": 0.563289723806329,
-   "los_scale": 0.7535156249999999,
-   "wait12_model_matched": 0.04263739545997611,
-   "occ_model_matched": 0.8867333265816582
+   "wait12_model": 0.49805766810745744,
+   "los_scale": 0.7746093749999998,
+   "wait12_model_matched": 0.038303190707248934,
+   "occ_model_matched": 0.8941480636950465
   },
   {
    "org": "RMP",
@@ -1191,12 +1191,12 @@
    "admissions": 22962,
    "bedsPerAdm": 1.2069968533472333,
    "occ_obs": 0.9290939786156444,
-   "occ_model": 0.7577130696131044,
+   "occ_model": 0.7480271592239096,
    "wait12_obs": 0.30254333246232906,
-   "wait12_model": 0.001945031712473573,
-   "los_scale": 1.3863281250000001,
-   "wait12_model_matched": 0.15589267519529038,
-   "occ_model_matched": 0.925664155733943
+   "wait12_model": 0.0001637331150225133,
+   "los_scale": 1.428515625,
+   "wait12_model_matched": 0.15614691005058282,
+   "occ_model_matched": 0.9250197535843568
   },
   {
    "org": "RN3",
@@ -1205,12 +1205,12 @@
    "admissions": 46652,
    "bedsPerAdm": 0.7681484870686521,
    "occ_obs": 0.9569128100972001,
-   "occ_model": 0.9914041337867167,
+   "occ_model": 0.9808142198533667,
    "wait12_obs": 0.07793878075966733,
-   "wait12_model": 0.74398634593845,
-   "los_scale": 0.837890625,
-   "wait12_model_matched": 0.2874306839186691,
-   "occ_model_matched": 0.956862256608907
+   "wait12_model": 0.7311586638830898,
+   "los_scale": 0.880078125,
+   "wait12_model_matched": 0.27137156059651335,
+   "occ_model_matched": 0.9544395570679818
   },
   {
    "org": "RN5",
@@ -1219,12 +1219,12 @@
    "admissions": 58634,
    "bedsPerAdm": 0.9099802659242033,
    "occ_obs": 0.9034395400954887,
-   "occ_model": 0.9441944131302062,
+   "occ_model": 0.9350683358131794,
    "wait12_obs": 0.005167650168844015,
-   "wait12_model": 0.18084165297611526,
-   "los_scale": 0.901171875,
-   "wait12_model_matched": 0.0930566101408926,
-   "occ_model_matched": 0.9052793009053142
+   "wait12_model": 0.13261604672609897,
+   "los_scale": 0.943359375,
+   "wait12_model_matched": 0.06801485761452744,
+   "occ_model_matched": 0.9101799462167725
   },
   {
    "org": "RN7",
@@ -1233,12 +1233,12 @@
    "admissions": 47411,
    "bedsPerAdm": 0.7138534140808641,
    "occ_obs": 0.9311827956989248,
-   "occ_model": 0.9963431782199446,
+   "occ_model": 0.9857773789085913,
    "wait12_obs": 0.07730273565206387,
-   "wait12_model": 0.9277664697413494,
-   "los_scale": 0.7113281249999999,
-   "wait12_model_matched": 0.13049523305084745,
-   "occ_model_matched": 0.9284774857372774
+   "wait12_model": 0.9056548775748154,
+   "los_scale": 0.732421875,
+   "wait12_model_matched": 0.15289444552972586,
+   "occ_model_matched": 0.935305222542528
   },
   {
    "org": "RNA",
@@ -1247,12 +1247,12 @@
    "admissions": 73993,
    "bedsPerAdm": 0.5592804001310608,
    "occ_obs": 0.9586683417085426,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.019758625815955562,
-   "wait12_model": 0.9975954080049643,
-   "los_scale": 0.5425781249999999,
-   "wait12_model_matched": 0.21986549405069838,
-   "occ_model_matched": 0.95312162788939
+   "wait12_model": 0.9981057736020609,
+   "los_scale": 0.563671875,
+   "wait12_model_matched": 0.2505715592135345,
+   "occ_model_matched": 0.9620657814515293
   },
   {
    "org": "RNN",
@@ -1261,12 +1261,12 @@
    "admissions": 32855,
    "bedsPerAdm": 1.1116089249873453,
    "occ_obs": 0.8953736654804271,
-   "occ_model": 0.821119083948028,
+   "occ_model": 0.8100838408058624,
    "wait12_obs": 0.14003956779789986,
-   "wait12_model": 0.0073797871514021595,
-   "los_scale": 1.133203125,
-   "wait12_model_matched": 0.06063442537701508,
-   "occ_model_matched": 0.887393437532161
+   "wait12_model": 0.0027134996608125426,
+   "los_scale": 1.196484375,
+   "wait12_model_matched": 0.07439271255060728,
+   "occ_model_matched": 0.9007350430724191
   },
   {
    "org": "RNQ",
@@ -1275,12 +1275,12 @@
    "admissions": 26363,
    "bedsPerAdm": 1.270969884220132,
    "occ_obs": 0.9719162141194724,
-   "occ_model": 0.7175995416745015,
+   "occ_model": 0.7133079703595329,
    "wait12_obs": 0.2825171642074119,
-   "wait12_model": 0.0011591618368256798,
-   "los_scale": 1.723828125,
-   "wait12_model_matched": 0.44273075083692015,
-   "occ_model_matched": 0.9712432451734371
+   "wait12_model": 0.00017195426016679562,
+   "los_scale": 1.8082031250000001,
+   "wait12_model_matched": 0.4714384828862165,
+   "occ_model_matched": 0.9714342695218994
   },
   {
    "org": "RNS",
@@ -1289,12 +1289,12 @@
    "admissions": 33866,
    "bedsPerAdm": 1.2945694803718264,
    "occ_obs": 0.959682200877505,
-   "occ_model": 0.7069552525976405,
+   "occ_model": 0.7016623130844564,
    "wait12_obs": 0.25606803283529206,
-   "wait12_model": 0.0009057971014492754,
-   "los_scale": 1.6605468749999999,
-   "wait12_model_matched": 0.3567521575300839,
-   "occ_model_matched": 0.9628346890182201
+   "wait12_model": 0,
+   "los_scale": 1.702734375,
+   "wait12_model_matched": 0.31858823529411767,
+   "occ_model_matched": 0.9598344612912127
   },
   {
    "org": "RNZ",
@@ -1303,12 +1303,12 @@
    "admissions": 28237,
    "bedsPerAdm": 0.9949561813380147,
    "occ_obs": 0.9624352331606219,
-   "occ_model": 0.8980809481593528,
+   "occ_model": 0.8906635363214015,
    "wait12_obs": 0.03442292028189964,
-   "wait12_model": 0.06771446375406771,
-   "los_scale": 1.1753906250000001,
-   "wait12_model_matched": 0.27971121806738247,
-   "occ_model_matched": 0.9585754016947363
+   "wait12_model": 0.03136805180787911,
+   "los_scale": 1.259765625,
+   "wait12_model_matched": 0.33152321477056745,
+   "occ_model_matched": 0.9613321967412883
   },
   {
    "org": "RP5",
@@ -1317,12 +1317,12 @@
    "admissions": 63794,
    "bedsPerAdm": 0.7204097782202202,
    "occ_obs": 0.933371040723982,
-   "occ_model": 0.996013122744693,
+   "occ_model": 0.9855137469033484,
    "wait12_obs": 0.02810609148195755,
-   "wait12_model": 0.9208402266004913,
-   "los_scale": 0.7113281249999999,
-   "wait12_model_matched": 0.11618423691423223,
-   "occ_model_matched": 0.9239667275755067
+   "wait12_model": 0.895041443915837,
+   "los_scale": 0.7535156249999999,
+   "wait12_model_matched": 0.13581058862216377,
+   "occ_model_matched": 0.932416732745954
   },
   {
    "org": "RPA",
@@ -1331,12 +1331,12 @@
    "admissions": 27324,
    "bedsPerAdm": 1.278973068094671,
    "occ_obs": 0.9430229098482595,
-   "occ_model": 0.7144404392685229,
+   "occ_model": 0.7101099995133259,
    "wait12_obs": 0.2816205533596838,
-   "wait12_model": 0.0011655011655011655,
-   "los_scale": 1.5550781249999999,
-   "wait12_model_matched": 0.21711397280057768,
-   "occ_model_matched": 0.9394950518397206
+   "wait12_model": 0,
+   "los_scale": 1.597265625,
+   "wait12_model_matched": 0.23574586921107749,
+   "occ_model_matched": 0.943007862000059
   },
   {
    "org": "RQ3",
@@ -1345,12 +1345,12 @@
    "admissions": 10297,
    "bedsPerAdm": 1.8049804458665435,
    "occ_obs": 0.7048951048951049,
-   "occ_model": 0.5006470051743586,
+   "occ_model": 0.5079844873197246,
    "wait12_obs": 0.002233660289404681,
    "wait12_model": 0,
-   "los_scale": 1.533984375,
-   "wait12_model_matched": 0,
-   "occ_model_matched": 0.7124797525762548
+   "los_scale": 1.512890625,
+   "wait12_model_matched": 0.0004864601913410086,
+   "occ_model_matched": 0.6967526445810203
   },
   {
    "org": "RQM",
@@ -1359,12 +1359,12 @@
    "admissions": 37938,
    "bedsPerAdm": 1.2745661496196599,
    "occ_obs": 0.9350607461563273,
-   "occ_model": 0.716373621337853,
+   "occ_model": 0.7120356593777085,
    "wait12_obs": 0.01599978912963256,
-   "wait12_model": 0.0011619592420450482,
-   "los_scale": 1.533984375,
-   "wait12_model_matched": 0.2278177458033573,
-   "occ_model_matched": 0.941381083126872
+   "wait12_model": 0,
+   "los_scale": 1.5550781249999999,
+   "wait12_model_matched": 0.18246143138847,
+   "occ_model_matched": 0.9340520153291997
   },
   {
    "org": "RQW",
@@ -1373,12 +1373,12 @@
    "admissions": 26211,
    "bedsPerAdm": 1.0966553647002357,
    "occ_obs": 0.9725085910652921,
-   "occ_model": 0.8320580654135066,
+   "occ_model": 0.8206291210155774,
    "wait12_obs": 0.09335775056274083,
-   "wait12_model": 0.013251627728839525,
-   "los_scale": 1.407421875,
-   "wait12_model_matched": 0.5094784301670253,
-   "occ_model_matched": 0.976115492665245
+   "wait12_model": 0.0037230081906180195,
+   "los_scale": 1.512890625,
+   "wait12_model_matched": 0.5044982007197121,
+   "occ_model_matched": 0.9716635147438496
   },
   {
    "org": "RQX",
@@ -1387,12 +1387,12 @@
    "admissions": 25824,
    "bedsPerAdm": 0.6236846685803199,
    "occ_obs": 0.9163976759199484,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.011423482032218091,
-   "wait12_model": 0.9975751277388066,
-   "los_scale": 0.563671875,
-   "wait12_model_matched": 0.0996133202516304,
-   "occ_model_matched": 0.9221749978527128
+   "wait12_model": 0.99813725075145,
+   "los_scale": 0.584765625,
+   "wait12_model_matched": 0.07404255319148936,
+   "occ_model_matched": 0.9131754171169235
   },
   {
    "org": "RR7",
@@ -1401,12 +1401,12 @@
    "admissions": 21135,
    "bedsPerAdm": 1.3273237238633395,
    "occ_obs": 0.9494069681245367,
-   "occ_model": 0.6931047103326217,
+   "occ_model": 0.6843657610883043,
    "wait12_obs": 0.0023657440264963333,
-   "wait12_model": 0.0007415647015202076,
-   "los_scale": 1.639453125,
-   "wait12_model_matched": 0.26326276463262765,
-   "occ_model_matched": 0.9485322850906548
+   "wait12_model": 0,
+   "los_scale": 1.723828125,
+   "wait12_model_matched": 0.2686279238003376,
+   "occ_model_matched": 0.9493350301258879
   },
   {
    "org": "RR8",
@@ -1415,12 +1415,12 @@
    "admissions": 58378,
    "bedsPerAdm": 1.9018570375928616,
    "occ_obs": 0.9631017044390335,
-   "occ_model": 0.47226223430272896,
+   "occ_model": 0.4845212388531088,
    "wait12_obs": 0.10839699886943711,
    "wait12_model": 0,
    "los_scale": 2.7152343750000005,
-   "wait12_model_matched": 0.3373687021541748,
-   "occ_model_matched": 0.964154910919226
+   "wait12_model_matched": 0.43167436292115613,
+   "occ_model_matched": 0.9642818185970491
   },
   {
    "org": "RRF",
@@ -1429,12 +1429,12 @@
    "admissions": 33517,
    "bedsPerAdm": 0.8155725691642098,
    "occ_obs": 0.9128946367440091,
-   "occ_model": 0.979463198199939,
+   "occ_model": 0.9712661563591357,
    "wait12_obs": 0.1523704388817615,
-   "wait12_model": 0.5292753295242405,
-   "los_scale": 0.795703125,
-   "wait12_model_matched": 0.07614443269376038,
-   "occ_model_matched": 0.9052478670505284
+   "wait12_model": 0.4600707886295764,
+   "los_scale": 0.837890625,
+   "wait12_model_matched": 0.06513011152416356,
+   "occ_model_matched": 0.9101340971723824
   },
   {
    "org": "RRK",
@@ -1443,12 +1443,12 @@
    "admissions": 214477,
    "bedsPerAdm": 0.7235779536940542,
    "occ_obs": 0.9700847542795885,
-   "occ_model": 0.9956830672694416,
+   "occ_model": 0.9852042658537155,
    "wait12_obs": 0.09801983429458637,
-   "wait12_model": 0.9122152791775852,
-   "los_scale": 0.8167968749999999,
-   "wait12_model_matched": 0.4425105839661313,
-   "occ_model_matched": 0.9735693504275905
+   "wait12_model": 0.8859817689085981,
+   "los_scale": 0.8589843749999999,
+   "wait12_model_matched": 0.43533998546223485,
+   "occ_model_matched": 0.9720914391581569
   },
   {
    "org": "RRV",
@@ -1457,12 +1457,12 @@
    "admissions": 20742,
    "bedsPerAdm": 2.224962818870349,
    "occ_obs": 0.8778866734257068,
-   "occ_model": 0.4039171755345774,
+   "occ_model": 0.4148192291191125,
    "wait12_obs": 0.09381930382798187,
    "wait12_model": 0,
-   "los_scale": 2.6097656249999996,
-   "wait12_model_matched": 0.065698041692988,
-   "occ_model_matched": 0.8741912185221009
+   "los_scale": 2.567578125,
+   "wait12_model_matched": 0.05014095851792187,
+   "occ_model_matched": 0.8775201435962496
   },
   {
    "org": "RTD",
@@ -1471,12 +1471,12 @@
    "admissions": 79456,
    "bedsPerAdm": 1.1283495727696906,
    "occ_obs": 0.8861119164975356,
-   "occ_model": 0.8105337333488905,
+   "occ_model": 0.7990571456300517,
    "wait12_obs": 0.006229863068868305,
-   "wait12_model": 0.00741968584734391,
-   "los_scale": 1.133203125,
-   "wait12_model_matched": 0.055250369744348195,
-   "occ_model_matched": 0.8772560193637219
+   "wait12_model": 0.00237275162648297,
+   "los_scale": 1.196484375,
+   "wait12_model_matched": 0.06280838815789473,
+   "occ_model_matched": 0.892742026333751
   },
   {
    "org": "RTE",
@@ -1485,12 +1485,12 @@
    "admissions": 67568,
    "bedsPerAdm": 0.7744259249141757,
    "occ_obs": 0.896274217585693,
-   "occ_model": 0.9906850843584901,
+   "occ_model": 0.9797138427880051,
    "wait12_obs": 0.06624437603599337,
-   "wait12_model": 0.7157996664694174,
-   "los_scale": 0.7113281249999999,
-   "wait12_model_matched": 0.043911889215756617,
-   "occ_model_matched": 0.8877392099348057
+   "wait12_model": 0.6766624579124579,
+   "los_scale": 0.7535156249999999,
+   "wait12_model_matched": 0.06686908628724757,
+   "occ_model_matched": 0.8952637237752047
   },
   {
    "org": "RTF",
@@ -1499,12 +1499,12 @@
    "admissions": 56315,
    "bedsPerAdm": 0.9483755908361368,
    "occ_obs": 0.9120023362211622,
-   "occ_model": 0.9228822595853946,
+   "occ_model": 0.9133244265111911,
    "wait12_obs": 0,
-   "wait12_model": 0.10297029702970296,
-   "los_scale": 0.985546875,
-   "wait12_model_matched": 0.11496784424279799,
-   "occ_model_matched": 0.9203518342751331
+   "wait12_model": 0.05406793809799011,
+   "los_scale": 1.006640625,
+   "wait12_model_matched": 0.05322080606269376,
+   "occ_model_matched": 0.9038069290465535
   },
   {
    "org": "RTG",
@@ -1513,12 +1513,12 @@
    "admissions": 72107,
    "bedsPerAdm": 1.2706021386947008,
    "occ_obs": 0.9568177949270841,
-   "occ_model": 0.7181771387561916,
+   "occ_model": 0.7135257533203857,
    "wait12_obs": 0.133537659311856,
-   "wait12_model": 0.0011585420194278584,
-   "los_scale": 1.6183593749999998,
-   "wait12_model_matched": 0.337037037037037,
-   "occ_model_matched": 0.9590154756617384
+   "wait12_model": 0.00017190991920233798,
+   "los_scale": 1.6605468749999999,
+   "wait12_model_matched": 0.32643625014449196,
+   "occ_model_matched": 0.9575420090717096
   },
   {
    "org": "RTH",
@@ -1527,12 +1527,12 @@
    "admissions": 116414,
    "bedsPerAdm": 0.5511724457280583,
    "occ_obs": 0.9302382109868741,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.00039514147782912707,
-   "wait12_model": 0.9976287003748183,
-   "los_scale": 0.479296875,
-   "wait12_model_matched": 0.1299158377964805,
-   "occ_model_matched": 0.9341827303809106
+   "wait12_model": 0.9981323771104139,
+   "los_scale": 0.5003906250000001,
+   "wait12_model_matched": 0.0843609022556391,
+   "occ_model_matched": 0.9219020185658325
   },
   {
    "org": "RTK",
@@ -1541,12 +1541,12 @@
    "admissions": 41877,
    "bedsPerAdm": 0.6870221841828816,
    "occ_obs": 0.9298879653053849,
-   "occ_model": 0.9978520032496657,
+   "occ_model": 0.987038227629318,
    "wait12_obs": 0.07863505026625595,
-   "wait12_model": 0.9612551420644792,
-   "los_scale": 0.669140625,
-   "wait12_model_matched": 0.10178035862421032,
-   "occ_model_matched": 0.9251926479121552
+   "wait12_model": 0.9664006719865603,
+   "los_scale": 0.690234375,
+   "wait12_model_matched": 0.1475040660578006,
+   "occ_model_matched": 0.9354580526904949
   },
   {
    "org": "RTP",
@@ -1555,12 +1555,12 @@
    "admissions": 48174,
    "bedsPerAdm": 0.8685252069868787,
    "occ_obs": 0.9525347912524852,
-   "occ_model": 0.9607207622838712,
+   "occ_model": 0.9536715855744484,
    "wait12_obs": 0.16083364470461245,
-   "wait12_model": 0.286643381910153,
-   "los_scale": 0.9644531249999999,
-   "wait12_model_matched": 0.217915728530074,
-   "occ_model_matched": 0.9469763092787549
+   "wait12_model": 0.21376790239877408,
+   "los_scale": 1.0277343749999999,
+   "wait12_model_matched": 0.2594586037676112,
+   "occ_model_matched": 0.9569612545094355
   },
   {
    "org": "RTR",
@@ -1569,12 +1569,12 @@
    "admissions": 60802,
    "bedsPerAdm": 0.970904337928256,
    "occ_obs": 0.8990752972258916,
-   "occ_model": 0.9109295363030723,
+   "occ_model": 0.903019853784524,
    "wait12_obs": 0.0038156639584224204,
-   "wait12_model": 0.07583833749409621,
-   "los_scale": 0.985546875,
-   "wait12_model_matched": 0.08475186886427091,
-   "occ_model_matched": 0.9094600035918333
+   "wait12_model": 0.04089414858645628,
+   "los_scale": 1.006640625,
+   "wait12_model_matched": 0.034385469934755775,
+   "occ_model_matched": 0.8931393847184651
   },
   {
    "org": "RTX",
@@ -1583,12 +1583,12 @@
    "admissions": 49043,
    "bedsPerAdm": 0.7486138414796663,
    "occ_obs": 0.9267912772585669,
-   "occ_model": 0.9931958635095106,
+   "occ_model": 0.9839892661773787,
    "wait12_obs": 0.12758191790877393,
-   "wait12_model": 0.8347296664411719,
-   "los_scale": 0.732421875,
-   "wait12_model_matched": 0.12872797891524485,
-   "occ_model_matched": 0.9291690305425663
+   "wait12_model": 0.8177646338976137,
+   "los_scale": 0.7746093749999998,
+   "wait12_model_matched": 0.15250991656408153,
+   "occ_model_matched": 0.9352288074685448
   },
   {
    "org": "RVJ",
@@ -1597,12 +1597,12 @@
    "admissions": 62233,
    "bedsPerAdm": 0.9527560616296878,
    "occ_obs": 0.9802718106093818,
-   "occ_model": 0.9201593019145697,
+   "occ_model": 0.9129461718949731,
    "wait12_obs": 0.0680989185801745,
-   "wait12_model": 0.09801842401749619,
-   "los_scale": 1.217578125,
-   "wait12_model_matched": 0.4879192848924684,
-   "occ_model_matched": 0.9789288226685793
+   "wait12_model": 0.05278762487914921,
+   "los_scale": 1.344140625,
+   "wait12_model_matched": 0.6354598893499308,
+   "occ_model_matched": 0.9791216259646335
   },
   {
    "org": "RVR",
@@ -1611,12 +1611,12 @@
    "admissions": 27638,
    "bedsPerAdm": 1.3848296982345514,
    "occ_obs": 0.8950013583265417,
-   "occ_model": 0.6704605471912594,
+   "occ_model": 0.6635732194574099,
    "wait12_obs": 0.3597944858528114,
-   "wait12_model": 0.0005793742757821553,
-   "los_scale": 1.512890625,
-   "wait12_model_matched": 0.07847969905305487,
-   "occ_model_matched": 0.8946703749150872
+   "wait12_model": 0,
+   "los_scale": 1.5550781249999999,
+   "wait12_model_matched": 0.07139278557114229,
+   "occ_model_matched": 0.8938576864139094
   },
   {
    "org": "RVV",
@@ -1625,12 +1625,12 @@
    "admissions": 47721,
    "bedsPerAdm": 1.3734390303854664,
    "occ_obs": 0.9213135559609741,
-   "occ_model": 0.6743740621120987,
+   "occ_model": 0.6671609071809325,
    "wait12_obs": 0.29657802644538045,
-   "wait12_model": 0.0005760921747479598,
-   "los_scale": 1.5761718749999998,
-   "wait12_model_matched": 0.14375966993295514,
-   "occ_model_matched": 0.9231808812058603
+   "wait12_model": 0,
+   "los_scale": 1.6183593749999998,
+   "wait12_model_matched": 0.15702376508647506,
+   "occ_model_matched": 0.9225897542316833
   },
   {
    "org": "RVW",
@@ -1639,12 +1639,12 @@
    "admissions": 54182,
    "bedsPerAdm": 0.5988338184019463,
    "occ_obs": 0.9254927095016823,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.005020117382156436,
-   "wait12_model": 0.9975516640385094,
-   "los_scale": 0.5425781249999999,
-   "wait12_model_matched": 0.08172304966502408,
-   "occ_model_matched": 0.9167526579021524
+   "wait12_model": 0.9980900520156046,
+   "los_scale": 0.563671875,
+   "wait12_model_matched": 0.11704446381865737,
+   "occ_model_matched": 0.9309648463402685
   },
   {
    "org": "RWA",
@@ -1653,12 +1653,12 @@
    "admissions": 72216,
    "bedsPerAdm": 0.9922417454820582,
    "occ_obs": 0.9211347311905972,
-   "occ_model": 0.8992243546271884,
+   "occ_model": 0.8923943377471264,
    "wait12_obs": 0.08561814556331007,
-   "wait12_model": 0.06933701657458563,
-   "los_scale": 1.048828125,
-   "wait12_model_matched": 0.11269035532994924,
-   "occ_model_matched": 0.9158567930407555
+   "wait12_model": 0.03295668549905838,
+   "los_scale": 1.091015625,
+   "wait12_model_matched": 0.0821905449296283,
+   "occ_model_matched": 0.9160639069134975
   },
   {
    "org": "RWD",
@@ -1667,12 +1667,12 @@
    "admissions": 71889,
    "bedsPerAdm": 0.882927043590535,
    "occ_obs": 0.91801130313703,
-   "occ_model": 0.9546972498605311,
+   "occ_model": 0.947115172226669,
    "wait12_obs": 0.18436756666527562,
-   "wait12_model": 0.24695513801334232,
-   "los_scale": 0.901171875,
-   "wait12_model_matched": 0.131621975147155,
-   "occ_model_matched": 0.9222692994170704
+   "wait12_model": 0.1799976087996174,
+   "los_scale": 0.943359375,
+   "wait12_model_matched": 0.10290576336490609,
+   "occ_model_matched": 0.9249280554955767
   },
   {
    "org": "RWE",
@@ -1681,12 +1681,12 @@
    "admissions": 125138,
    "bedsPerAdm": 0.8941713776183822,
    "occ_obs": 0.886911675881615,
-   "occ_model": 0.9497817808183926,
+   "occ_model": 0.9418539943829091,
    "wait12_obs": 0.06816474612028321,
-   "wait12_model": 0.21200273071433004,
-   "los_scale": 0.8589843749999999,
-   "wait12_model_matched": 0.06484783149514885,
-   "occ_model_matched": 0.8935701899975822
+   "wait12_model": 0.15035134480252,
+   "los_scale": 0.880078125,
+   "wait12_model_matched": 0.03025128080019517,
+   "occ_model_matched": 0.8758695779982073
   },
   {
    "org": "RWF",
@@ -1695,12 +1695,12 @@
    "admissions": 54628,
    "bedsPerAdm": 0.8066456855631307,
    "occ_obs": 0.8725814063237376,
-   "occ_model": 0.9816557095712525,
+   "occ_model": 0.9733064388344936,
    "wait12_obs": 0.051914768982939154,
-   "wait12_model": 0.5536704182764992,
-   "los_scale": 0.732421875,
-   "wait12_model_matched": 0.04143605086013463,
-   "occ_model_matched": 0.8857274432285106
+   "wait12_model": 0.49096088528541687,
+   "los_scale": 0.7535156249999999,
+   "wait12_model_matched": 0.02150220913107511,
+   "occ_model_matched": 0.8664246748538539
   },
   {
    "org": "RWG",
@@ -1709,12 +1709,12 @@
    "admissions": 60358,
    "bedsPerAdm": 0.6429007878711535,
    "occ_obs": 0.897240085744909,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.0049040723682030555,
-   "wait12_model": 0.9976792966483689,
-   "los_scale": 0.563671875,
-   "wait12_model_matched": 0.06344392912355809,
-   "occ_model_matched": 0.9060808642023536
+   "wait12_model": 0.984061135371179,
+   "los_scale": 0.584765625,
+   "wait12_model_matched": 0.055071106689295955,
+   "occ_model_matched": 0.8925280641265975
   },
   {
    "org": "RWH",
@@ -1723,12 +1723,12 @@
    "admissions": 32814,
    "bedsPerAdm": 1.1044424150508247,
    "occ_obs": 0.8908334528762014,
-   "occ_model": 0.8272133225446362,
+   "occ_model": 0.8157003487436454,
    "wait12_obs": 0.04879015054549887,
-   "wait12_model": 0.010882148645519797,
-   "los_scale": 1.133203125,
-   "wait12_model_matched": 0.06984192581878293,
-   "occ_model_matched": 0.8896095242945642
+   "wait12_model": 0.003448792922477133,
+   "los_scale": 1.1753906250000001,
+   "wait12_model_matched": 0.05056406124093473,
+   "occ_model_matched": 0.8861703299711752
   },
   {
    "org": "RWJ",
@@ -1737,12 +1737,12 @@
    "admissions": 43602,
    "bedsPerAdm": 0.907491319083196,
    "occ_obs": 0.9420575482853765,
-   "occ_model": 0.9443594408678322,
+   "occ_model": 0.9360999393119559,
    "wait12_obs": 0.0917618457868905,
-   "wait12_model": 0.17750882501260717,
-   "los_scale": 1.006640625,
-   "wait12_model_matched": 0.18839969694418723,
-   "occ_model_matched": 0.9417111386021234
+   "wait12_model": 0.13530421982335622,
+   "los_scale": 1.048828125,
+   "wait12_model_matched": 0.19076239091058786,
+   "occ_model_matched": 0.9413725794168134
   },
   {
    "org": "RWP",
@@ -1751,12 +1751,12 @@
    "admissions": 45762,
    "bedsPerAdm": 1.192638265963605,
    "occ_obs": 0.9346542198514002,
-   "occ_model": 0.7675440076973815,
+   "occ_model": 0.7589048450054524,
    "wait12_obs": 0.26583191294086794,
-   "wait12_model": 0.004340567612687813,
-   "los_scale": 1.3863281250000001,
-   "wait12_model_matched": 0.18206217848356074,
-   "occ_model_matched": 0.9295148029452106
+   "wait12_model": 0.000323075680478152,
+   "los_scale": 1.428515625,
+   "wait12_model_matched": 0.17607468519322622,
+   "occ_model_matched": 0.9319888083316467
   },
   {
    "org": "RWW",
@@ -1765,12 +1765,12 @@
    "admissions": 23627,
    "bedsPerAdm": 1.511884223562225,
    "occ_obs": 0.9365448988502401,
-   "occ_model": 0.6090584410989341,
+   "occ_model": 0.6077405456514083,
    "wait12_obs": 0.4262919541202861,
    "wait12_model": 0,
-   "los_scale": 1.829296875,
-   "wait12_model_matched": 0.20056899004267426,
-   "occ_model_matched": 0.9376718882621408
+   "los_scale": 1.8925781250000002,
+   "wait12_model_matched": 0.2069154024873582,
+   "occ_model_matched": 0.9362527694599226
   },
   {
    "org": "RWY",
@@ -1779,12 +1779,12 @@
    "admissions": 36974,
    "bedsPerAdm": 1.2261037367591558,
    "occ_obs": 0.9493119266055047,
-   "occ_model": 0.7432849302663956,
+   "occ_model": 0.7354301342777392,
    "wait12_obs": 0.013090279655974469,
-   "wait12_model": 0.001635393355138578,
-   "los_scale": 1.512890625,
-   "wait12_model_matched": 0.2251732101616628,
-   "occ_model_matched": 0.9469920262061476
+   "wait12_model": 0.000166514028806927,
+   "los_scale": 1.5550781249999999,
+   "wait12_model_matched": 0.252491322360318,
+   "occ_model_matched": 0.9466910685660609
   },
   {
    "org": "RX1",
@@ -1793,12 +1793,12 @@
    "admissions": 107731,
    "bedsPerAdm": 0.9874004758807302,
    "occ_obs": 0.9262010654415718,
-   "occ_model": 0.902194853904452,
+   "occ_model": 0.8953630633713833,
    "wait12_obs": 0.07844538712162702,
-   "wait12_model": 0.07326460481099656,
-   "los_scale": 1.048828125,
-   "wait12_model_matched": 0.1177010650018362,
-   "occ_model_matched": 0.9195974217602725
+   "wait12_model": 0.034660421545667446,
+   "los_scale": 1.112109375,
+   "wait12_model_matched": 0.14152382661760746,
+   "occ_model_matched": 0.9332267325301785
   },
   {
    "org": "RXC",
@@ -1807,12 +1807,12 @@
    "admissions": 41543,
    "bedsPerAdm": 1.083870387239316,
    "occ_obs": 0.9681330100450295,
-   "occ_model": 0.8400383352972662,
+   "occ_model": 0.8313807219250475,
    "wait12_obs": 0.017909154370170665,
-   "wait12_model": 0.01739788199697428,
-   "los_scale": 1.344140625,
-   "wait12_model_matched": 0.35563202105050096,
-   "occ_model_matched": 0.9649564742162654
+   "wait12_model": 0.004934452791280012,
+   "los_scale": 1.428515625,
+   "wait12_model_matched": 0.397845211030938,
+   "occ_model_matched": 0.9658865351507013
   },
   {
    "org": "RXF",
@@ -1821,12 +1821,12 @@
    "admissions": 54345,
    "bedsPerAdm": 1.2091902837787831,
    "occ_obs": 0.9304588607594938,
-   "occ_model": 0.7556266475016931,
+   "occ_model": 0.7464682917146472,
    "wait12_obs": 0.06180881405833103,
-   "wait12_model": 0.001610715496778569,
-   "los_scale": 1.407421875,
-   "wait12_model_matched": 0.20506415351425003,
-   "occ_model_matched": 0.9358015739023822
+   "wait12_model": 0.0001640823693494134,
+   "los_scale": 1.4496093749999999,
+   "wait12_model_matched": 0.2009479717813051,
+   "occ_model_matched": 0.9340214492996063
   },
   {
    "org": "RXK",
@@ -1835,12 +1835,12 @@
    "admissions": 35384,
    "bedsPerAdm": 0.999982008614407,
    "occ_obs": 0.9244784014105203,
-   "occ_model": 0.8951222365776339,
+   "occ_model": 0.8886232538460437,
    "wait12_obs": 0.10883450146959077,
-   "wait12_model": 0.0633307815436008,
-   "los_scale": 1.069921875,
-   "wait12_model_matched": 0.14187366266629453,
-   "occ_model_matched": 0.9286975227207783
+   "wait12_model": 0.028831151210908353,
+   "los_scale": 1.112109375,
+   "wait12_model_matched": 0.1314951314951315,
+   "occ_model_matched": 0.9272969227890634
   },
   {
    "org": "RXL",
@@ -1849,12 +1849,12 @@
    "admissions": 50563,
    "bedsPerAdm": 0.9425438537149836,
    "occ_obs": 0.9290934875095451,
-   "occ_model": 0.9255109156918621,
+   "occ_model": 0.9166714067516659,
    "wait12_obs": 0.10248600755493147,
-   "wait12_model": 0.11099442074171316,
-   "los_scale": 1.006640625,
-   "wait12_model_matched": 0.12597459483136225,
-   "occ_model_matched": 0.922363600981428
+   "wait12_model": 0.0604977664326739,
+   "los_scale": 1.048828125,
+   "wait12_model_matched": 0.10252460419341035,
+   "occ_model_matched": 0.9234150370307046
   },
   {
    "org": "RXN",
@@ -1863,12 +1863,12 @@
    "admissions": 52889,
    "bedsPerAdm": 0.9558434368386396,
    "occ_obs": 0.9344919786096256,
-   "occ_model": 0.9178135505011751,
+   "occ_model": 0.9109402762029077,
    "wait12_obs": 0.1011363421505417,
-   "wait12_model": 0.09270334928229665,
-   "los_scale": 1.048828125,
-   "wait12_model_matched": 0.15414634146341463,
-   "occ_model_matched": 0.9344342012191974
+   "wait12_model": 0.05044951814242287,
+   "los_scale": 1.091015625,
+   "wait12_model_matched": 0.1369233437391606,
+   "occ_model_matched": 0.9324931478199375
   },
   {
    "org": "RXP",
@@ -1877,12 +1877,12 @@
    "admissions": 62265,
    "bedsPerAdm": 0.8703573039841066,
    "occ_obs": 0.8915003837298542,
-   "occ_model": 0.9598956235957423,
+   "occ_model": 0.9525138972035991,
    "wait12_obs": 0.0041275194732193045,
-   "wait12_model": 0.2829471397538016,
-   "los_scale": 0.837890625,
-   "wait12_model_matched": 0.06382464340398099,
-   "occ_model_matched": 0.8891380164727763
+   "wait12_model": 0.20892878233140427,
+   "los_scale": 0.8589843749999999,
+   "wait12_model_matched": 0.04576459390862944,
+   "occ_model_matched": 0.8928642904521246
   },
   {
    "org": "RXQ",
@@ -1891,12 +1891,12 @@
    "admissions": 73169,
    "bedsPerAdm": 0.358744638422926,
    "occ_obs": 0.916419092889681,
-   "occ_model": 0.9981820587249173,
+   "occ_model": 0.9873591709400485,
    "wait12_obs": 0.0470281129986743,
-   "wait12_model": 0.9978602174616208,
+   "wait12_model": 0.9978487866189694,
    "los_scale": 0.310546875,
-   "wait12_model_matched": 0.4669767748746371,
-   "occ_model_matched": 0.9834867316125285
+   "wait12_model_matched": 0.6500288887462284,
+   "occ_model_matched": 0.9791216259646335
   },
   {
    "org": "RXR",
@@ -1905,12 +1905,12 @@
    "admissions": 68894,
    "bedsPerAdm": 0.6982457957548056,
    "occ_obs": 0.9446665946179617,
-   "occ_model": 0.9973451323412438,
+   "occ_model": 0.9867402088407826,
    "wait12_obs": 0.18502336923389556,
-   "wait12_model": 0.9462558919286651,
-   "los_scale": 0.7113281249999999,
-   "wait12_model_matched": 0.159525507227588,
-   "occ_model_matched": 0.9391807132918619
+   "wait12_model": 0.9447844030169347,
+   "los_scale": 0.732421875,
+   "wait12_model_matched": 0.19589267548321465,
+   "occ_model_matched": 0.944918238849645
   },
   {
    "org": "RXW",
@@ -1919,12 +1919,12 @@
    "admissions": 66159,
    "bedsPerAdm": 0.7808606278384419,
    "occ_obs": 0.9433430612861023,
-   "occ_model": 0.9893530747619395,
+   "occ_model": 0.9791865787775195,
    "wait12_obs": 0.2556719418370894,
-   "wait12_model": 0.6834680700992892,
-   "los_scale": 0.8167968749999999,
-   "wait12_model_matched": 0.2446454413892909,
-   "occ_model_matched": 0.9515342182227041
+   "wait12_model": 0.6612911781868336,
+   "los_scale": 0.8589843749999999,
+   "wait12_model_matched": 0.2157100128186868,
+   "occ_model_matched": 0.9478067286462192
   },
   {
    "org": "RYJ",
@@ -1933,12 +1933,12 @@
    "admissions": 57122,
    "bedsPerAdm": 1.1330217060742862,
    "occ_obs": 0.9416017350791228,
-   "occ_model": 0.8067734584701322,
+   "occ_model": 0.7952975239900664,
    "wait12_obs": 0.013234830713210322,
-   "wait12_model": 0.007461501825686617,
-   "los_scale": 1.301953125,
-   "wait12_model_matched": 0.17929936305732483,
-   "occ_model_matched": 0.9378762083182489
+   "wait12_model": 0.0023829656391728803,
+   "los_scale": 1.365234375,
+   "wait12_model_matched": 0.2203757225433526,
+   "occ_model_matched": 0.9423048433194113
   },
   {
    "org": "RYR",
@@ -1947,12 +1947,12 @@
    "admissions": 125821,
    "bedsPerAdm": 0.9086549859317217,
    "occ_obs": 0.9420217361647947,
-   "occ_model": 0.9444183793455555,
+   "occ_model": 0.9355841375625678,
    "wait12_obs": 0.07033007208653563,
-   "wait12_model": 0.1779516627752887,
-   "los_scale": 1.006640625,
-   "wait12_model_matched": 0.18823727671048196,
-   "occ_model_matched": 0.9416639878199448
+   "wait12_model": 0.13502394694829914,
+   "los_scale": 1.048828125,
+   "wait12_model_matched": 0.1924503420423638,
+   "occ_model_matched": 0.9410363530912861
   }
  ],
  "winter": {
@@ -1975,144 +1975,144 @@
    "end": "2026-03-29"
   },
   "model": {
-   "occ_mean": 0.9365445402298841,
-   "occ_sd": 0.01763359850516175,
+   "occ_mean": 0.9424350282485872,
+   "occ_sd": 0.016215339117669047,
    "weekday": [
-    0.9118574393358875,
-    0.93662196679438,
-    0.9502314814814807,
-    0.9521771232439329,
-    0.9468191251596418,
-    0.9354446040868449,
-    0.921843306288032
+    0.919108992467043,
+    0.9380688951663524,
+    0.950555163214061,
+    0.9538802573760194,
+    0.9529288292529812,
+    0.9494958411801626,
+    0.9324526420737782
    ]
   },
   "series": [
-   0.8981681034482755,
-   0.9252873563218389,
-   0.9405531609195397,
-   0.9414511494252866,
-   0.94037356321839,
-   0.9236709770114935,
-   0.9091235632183908,
-   0.8961925287356316,
-   0.9191810344827582,
-   0.9378591954022982,
-   0.9507902298850569,
-   0.9480962643678157,
-   0.9437859195402292,
-   0.938577586206896,
-   0.9249281609195397,
-   0.9498922413793095,
-   0.9635416666666657,
-   0.9662356321839073,
-   0.9630028735632176,
-   0.958872126436781,
-   0.9400143678160914,
-   0.9324712643678156,
-   0.9554597701149417,
-   0.9594109195402288,
-   0.9615660919540223,
-   0.9594109195402293,
-   0.9486350574712635,
-   0.9260057471264364,
-   0.9222341954022987,
-   0.9457614942528729,
-   0.9529454022988498,
-   0.9536637931034473,
-   0.9511494252873555,
-   0.9425287356321834,
-   0.9290589080459765,
-   0.9249281609195399,
-   0.9439655172413786,
-   0.9570761494252864,
-   0.957255747126436,
-   0.9542025862068958,
-   0.9475574712643672,
-   0.9391163793103443,
-   0.9243893678160915,
-   0.9436063218390794,
-   0.9551005747126433,
-   0.954561781609195,
-   0.9525862068965512,
-   0.9446839080459766,
-   0.933548850574712,
-   0.9263649425287351,
-   0.9488146551724131,
-   0.9612068965517235,
-   0.9615660919540222,
-   0.9543821839080453,
-   0.9378591954022989,
-   0.9218749999999994,
-   0.9148706896551718,
-   0.93732040229885,
-   0.9556393678160914,
-   0.9579741379310337,
-   0.9543821839080452,
-   0.9450431034482756,
-   0.9313936781609193,
-   0.9213362068965515,
-   0.9385775862068958,
-   0.95599856321839,
-   0.9565373563218386,
-   0.9538433908045967,
-   0.9324712643678156,
-   0.9225933908045975,
-   0.9163074712643675,
-   0.9419899425287354,
-   0.9563577586206888,
-   0.9556393678160912,
-   0.9506106321839074,
-   0.939655172413793,
-   0.9278017241379307,
-   0.9204382183908041,
-   0.9443247126436777,
-   0.9563577586206892,
-   0.9525862068965512,
-   0.9446839080459765,
-   0.9313936781609191,
-   0.912715517241379,
-   0.8978089080459768,
-   0.9267241379310339,
-   0.93426724137931,
-   0.9396551724137925,
-   0.9355244252873559,
-   0.916846264367816,
-   0.9094827586206891,
-   0.900323275862069,
-   0.9313936781609194,
-   0.9484554597701141,
-   0.9479166666666663,
-   0.9313936781609192,
-   0.9227729885057467,
-   0.8997844827586206,
-   0.8846982758620686,
-   0.9181034482758614,
-   0.9353448275862064,
-   0.9497126436781603,
-   0.9419899425287349,
-   0.9353448275862064,
-   0.9146910919540228,
-   0.9066091954022983,
-   0.9358836206896547,
-   0.9525862068965513,
-   0.9524066091954015,
-   0.9400143678160915,
-   0.9285201149425278,
-   0.9103807471264364,
-   0.9062499999999996,
-   0.9292385057471256,
-   0.9414511494252866,
-   0.9407327586206893,
-   0.9328304597701145,
-   0.9224137931034475,
-   0.905172413793103,
-   0.8951149425287351,
-   0.923670977011494,
-   0.9400143678160914,
-   0.9389367816091947,
-   0.9342672413793099,
-   0.9159482758620687
+   0.8986581920903953,
+   0.9173728813559316,
+   0.9295550847457623,
+   0.9383827683615812,
+   0.9376765536723156,
+   0.9435028248587565,
+   0.9194915254237283,
+   0.9081920903954801,
+   0.9247881355932197,
+   0.9507415254237283,
+   0.9542725988700559,
+   0.9535663841807904,
+   0.9530367231638416,
+   0.9300847457627112,
+   0.927612994350282,
+   0.9426200564971746,
+   0.9484463276836147,
+   0.9578036723163834,
+   0.9500353107344625,
+   0.9484463276836154,
+   0.9366172316384178,
+   0.9226694915254233,
+   0.9382062146892648,
+   0.9602754237288129,
+   0.9602754237288124,
+   0.9602754237288129,
+   0.9622175141242928,
+   0.9461511299435021,
+   0.9304378531073443,
+   0.9479166666666659,
+   0.9623940677966095,
+   0.9706920903954794,
+   0.9705155367231629,
+   0.9616878531073438,
+   0.9429731638418072,
+   0.9269067796610168,
+   0.9385593220338976,
+   0.9495056497175138,
+   0.959569209039547,
+   0.9645127118644059,
+   0.9576271186440674,
+   0.9454449152542369,
+   0.9392655367231634,
+   0.9539194915254232,
+   0.9574505649717506,
+   0.9579802259886999,
+   0.9643361581920896,
+   0.964159604519773,
+   0.9472104519774008,
+   0.9405014124293782,
+   0.9648658192090386,
+   0.9701624293785304,
+   0.9680437853107334,
+   0.962570621468926,
+   0.963983050847457,
+   0.9447387005649711,
+   0.9420903954802258,
+   0.9586864406779656,
+   0.9622175141242932,
+   0.9676906779661008,
+   0.9593926553672313,
+   0.9570974576271178,
+   0.9427966101694908,
+   0.9196680790960444,
+   0.9461511299435024,
+   0.9563912429378528,
+   0.9581567796610161,
+   0.9558615819209035,
+   0.9433262711864404,
+   0.9288488700564973,
+   0.924964689265537,
+   0.93944209039548,
+   0.9447387005649708,
+   0.9484463276836154,
+   0.9461511299435024,
+   0.9452683615819207,
+   0.9228460451977398,
+   0.916313559322034,
+   0.9373234463276833,
+   0.9553319209039541,
+   0.9551553672316377,
+   0.9565677966101688,
+   0.9514477401129936,
+   0.9307909604519768,
+   0.9166666666666667,
+   0.9390889830508471,
+   0.9479166666666661,
+   0.9477401129943496,
+   0.9510946327683609,
+   0.9426200564971747,
+   0.9314971751412423,
+   0.9096045197740109,
+   0.929378531073446,
+   0.9445621468926548,
+   0.9470338983050842,
+   0.942266949152542,
+   0.9311440677966096,
+   0.9161370056497172,
+   0.9046610169491519,
+   0.9314971751412424,
+   0.9463276836158186,
+   0.9489759887005642,
+   0.9505649717514117,
+   0.9465042372881348,
+   0.9263771186440671,
+   0.9118997175141239,
+   0.9343220338983045,
+   0.9489759887005641,
+   0.9426200564971743,
+   0.9463276836158181,
+   0.9382062146892644,
+   0.9223163841807903,
+   0.9060734463276832,
+   0.9231991525423725,
+   0.9374999999999996,
+   0.9413841807909598,
+   0.9360875706214684,
+   0.9355579096045192,
+   0.9173728813559315,
+   0.8977754237288129,
+   0.9179025423728808,
+   0.9374999999999998,
+   0.9456214689265532,
+   0.9449152542372877,
+   0.9450918079096037
   ]
  },
  "corridor": {
@@ -2128,8 +2128,8 @@
   ],
   "ward": {
    "obs": 714.1633986928105,
-   "modelA": 727.0951588990322,
-   "modelB": 357.32058858272063,
+   "modelA": 719.3923462547765,
+   "modelB": 488.10106503670613,
    "weekdayObs": [
     731.4090909090909,
     810.7727272727273,
@@ -2140,13 +2140,13 @@
     606.9090909090909
    ],
    "weekdayModel": [
-    386.7666883095417,
-    712.382589920905,
-    979.1348405570535,
-    987.561130062708,
-    857.7962716756288,
-    685.0573368097113,
-    480.2985018223068
+    415.4183939145496,
+    657.5214402411935,
+    893.9279443013282,
+    907.8571606653272,
+    870.1663399156837,
+    798.0621610902788,
+    489.9806697453662
    ],
    "monthlyObs": [
     658.3870967741935,
@@ -2156,17 +2156,17 @@
     760.5
    ],
    "monthlyModel": [
-    879.0522664931184,
-    621.017536566737,
-    572.8789600683043,
-    818.6547978429109,
-    740.895548600515
+    907.6985737617526,
+    660.3541044093347,
+    578.5778865425647,
+    740.8122888997258,
+    707.2218206458477
    ]
   },
   "ed": {
    "obs": 2363.751633986928,
-   "admittedWaiting45A": 2458.989543385414,
-   "admittedWaiting45B": 1050.4981399493333,
+   "admittedWaiting45A": 2194.9360318910058,
+   "admittedWaiting45B": 1348.1565183203627,
    "weekdayObs": [
     2367.9545454545455,
     2684.181818181818,
@@ -2177,17 +2177,17 @@
     2025.1363636363637
    ],
    "weekdayModel": [
-    1995.3453549389867,
-    2868.9509507347484,
-    3282.0397624524294,
-    3146.376501411392,
-    2775.619763162594,
-    1841.1442569855096,
-    1322.0848234371913
+    1722.306635125016,
+    2468.7097416888673,
+    2728.487676006804,
+    2605.5828257362277,
+    2708.0035342950414,
+    1846.8502167325337,
+    1297.0558531888203
    ]
   },
-  "corridorPct": 4.3,
-  "spaces": 4446
+  "corridorPct": 4.4,
+  "spaces": 4550
  },
  "effects": [
   {
