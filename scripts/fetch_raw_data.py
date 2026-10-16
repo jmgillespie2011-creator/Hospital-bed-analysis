@@ -161,6 +161,11 @@ SOURCES = [
            depth=0, files=r"(?i)(diag|summ|sum-rep)",
            notes="HES admitted patient care primary-diagnosis and summary tables for every year 2009/10-2024/25 "
                  "(total admissions, emergency admissions, mean and median length of stay) via the public mirror"),
+    Source("hes_apc_diag_old_mirror",
+           [f"https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/"
+            f"hospital-episode-statistics-admitted-patient-care-england-20{a:02d}-{a + 1:02d}" for a in range(8, 15)],
+           depth=0, files=r"(?i)diag",
+           notes="HES admitted patient care primary-diagnosis tables 2008/09-2014/15 (older page addresses) via the public mirror"),
     Source("eric_mirror",
            [f"https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/estates-returns-information-collection/{p}"
             for p in ("summary-page-and-dataset-for-eric-2024-25", "summary-page-and-dataset-for-eric-2023-24",
