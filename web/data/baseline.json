@@ -952,9 +952,9 @@
  "generated": "2026-10-15",
  "calibration": {
   "A": {
-   "poolSize": 79.6875,
-   "losMedianDays": 3.591796875,
-   "losSigma": 1.252734375,
+   "poolSize": 84.0625,
+   "losMedianDays": 3.654296875,
+   "losSigma": 1.2480468749999998,
    "sameDayFrac": 0.525341796875,
    "delayProb": 0.194140625,
    "delayMeanDays": 5.146633900506387,
@@ -964,14 +964,14 @@
    "electiveLosSigma": 1.2,
    "electiveLosMedianDays": 2.2101073382681045,
    "seasonAmp": 0.04,
-   "fluAdmissions": 42524.4140625
+   "fluAdmissions": 41391.6015625
   },
   "B": {
    "poolSize": 1000,
    "losMedianDays": 3.474609375,
-   "losSigma": 1.2457031249999997,
+   "losSigma": 1.2410156249999997,
    "sameDayFrac": 0.5994628906249999,
-   "delayProb": 0.205859375,
+   "delayProb": 0.20820312500000002,
    "delayMeanDays": 5.146633900506387,
    "delayShape": 0.48248522160587276,
    "weekendDischargePct": 92.48046875,
@@ -979,7 +979,7 @@
    "electiveLosSigma": 1.2,
    "electiveLosMedianDays": 2.2101073382681045,
    "seasonAmp": 0.04,
-   "fluAdmissions": 45922.8515625
+   "fluAdmissions": 43374.0234375
   },
   "targets": {
    "occupancy": 0.9158285358490685,

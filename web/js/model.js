@@ -134,7 +134,14 @@ export const DEFAULTS = {
 
 // ---------------------------------------------------------------- one replication
 export function simulate(p, seed = 1, wantDaily = true) {
-  const R = rng(seed);
+  // Common random numbers. Arrivals are drawn as candidates at a fixed reference rate and each is kept
+  // with probability (actual rate / reference rate); every candidate carries its own random seed for
+  // everything that happens to that patient. A scenario with less demand therefore removes some
+  // patients and leaves all the others exactly as they were, and a scenario with fewer beds faces the
+  // same patients. This makes scenario-minus-baseline differences far more precise.
+  const RA = rng(seed);                                  // emergency arrivals
+  const RF = rng((seed * 0x9e3779b1) ^ 0x2545f491);      // influenza arrivals
+  const RE = rng((seed * 0x85ebca6b) ^ 0x68e31da4);      // planned arrivals
   const nDays = p.warmupDays + p.days;
   const warmH = p.warmupDays * 24, endH = nDays * 24;
   const availableBeds = p.beds * Math.min(1, p.staffingPct / 100);
@@ -164,73 +171,98 @@ export function simulate(p, seed = 1, wantDaily = true) {
   const gTot = g.reduce((s, x) => s + x.share, 0);
   const gCum = []; let acc = 0;
   for (const x of g) { acc += x.share / gTot; gCum.push(acc); }
-  const pickGroup = () => { const u = R.next(); for (let i = 0; i < gCum.length; i++) if (u < gCum[i]) return i; return gCum.length - 1; };
+  const pickGroup = (u) => { for (let i = 0; i < gCum.length; i++) if (u < gCum[i]) return i; return gCum.length - 1; };
 
   // Discharge process. A patient who becomes medically fit is confirmed ready at the next morning
   // ward round (09:00-12:00; anyone fit after 12:00 waits for the next day's round): that date is
   // their Discharge Ready Date. They leave after the preparation time (medicines, transport,
   // paperwork), never after the end of the discharge window. At weekends only the chosen share of
   // ready patients are discharged; the rest leave on Monday.
-  const wardRound = (fit) => {
+  const wardRound = (fit, P) => {
     let day = Math.floor(fit / 24);
     if (fit - day * 24 > 12) day += 1;
-    return day * 24 + 9 + 3 * R.next();
+    return day * 24 + 9 + 3 * P.next();
   };
   const prep = p.prepHours;
-  const leaveAfter = (ready) => {
-    let t = ready + prep * (0.4 + 1.2 * R.next());
+  const leaveAfter = (ready, P) => {
+    // the same draws are used whatever the branch, so a patient's randomness does not depend on settings
+    const u1 = P.next(), u2 = P.next(), u3 = P.next(), u4 = P.next(), u5 = P.next(), u6 = P.next();
+    let t = ready + prep * (0.4 + 1.2 * u1);
     let day = Math.floor(t / 24);
-    if (t - day * 24 >= dStart + dLen) { day += 1; t = day * 24 + 9 + 3 * R.next() + prep * (0.4 + 1.2 * R.next()); }
+    if (t - day * 24 >= dStart + dLen) { day += 1; t = day * 24 + 9 + 3 * u2 + prep * (0.4 + 1.2 * u3); }
     const dow = (day + dow0) % 7;
-    if (dow >= 5 && R.next() < weekendDefer) { day += 7 - dow; t = day * 24 + 9 + 3 * R.next() + prep * (0.4 + 1.2 * R.next()); }
+    if (dow >= 5 && u4 < weekendDefer) { day += 7 - dow; t = day * 24 + 9 + 3 * u5 + prep * (0.4 + 1.2 * u6); }
     return t;
   };
+  // reference (candidate) rates per pool; see the note at the top of this function
+  const ref = p.crnRef || {};
+  const headroom = (actual, reference) => {
+    if (!(reference > 0)) return Math.max(actual, 1e-9) * 2.5;
+    let h = 2.5;
+    while (actual > reference * h) h *= 2; // extreme scenarios: still correct, but no longer paired with the baseline
+    return reference * h;
+  };
 
+  const seedOf = (S) => (S.next() * 4294967296) >>> 0;
   // emergency arrivals, generated hour by hour
   const lamDay = p.emergPerYear / 365 / nPools;
-  const arr = [];
+  const candDay = headroom(lamDay, ref.emergPerBedDay * p.poolSize);
+  const keepE = lamDay / candDay;
+  const raw = []; // [time, seed, flu]
   for (let d = 0; d < nDays; d++) {
     const season = 1 + p.seasonAmp * Math.cos(2 * Math.PI * (d + doy0 - 15) / 365);
     const wk = WEEKDAY[(d + dow0) % 7];
     for (let h = 0; h < 24; h++) {
-      const n = R.poisson(lamDay / 24 * season * wk * HOURLY[h]);
-      for (let i = 0; i < n; i++) arr.push(d * 24 + h + R.next());
+      const n = RA.poisson(candDay / 24 * season * wk * HOURLY[h]);
+      for (let i = 0; i < n; i++) {
+        const t = d * 24 + h + RA.next(), u = RA.next(), sd = seedOf(RA);
+        if (u < keepE) raw.push([t, sd, 0]);
+      }
     }
   }
   // influenza wave: Gaussian in time around the peak day
-  const flu = [];
   if (p.fluPerYear > 0) {
     const perPool = p.fluPerYear / nPools, norm = 1 / (p.fluSdDays * Math.sqrt(2 * Math.PI));
+    const candPool = headroom(perPool, ref.fluPerBedYear * p.poolSize);
+    const keepF = perPool / candPool;
     for (let d = 0; d < nDays; d++) {
       const doy = d + doy0;
       // distance to the nearest peak (peak each January)
       let dist = ((doy - p.fluPeakDoy) % 365 + 365) % 365;
       if (dist > 182.5) dist -= 365;
-      const lam = perPool * norm * Math.exp(-0.5 * (dist / p.fluSdDays) ** 2);
+      const lam = candPool * norm * Math.exp(-0.5 * (dist / p.fluSdDays) ** 2);
       for (let h = 0; h < 24; h++) {
-        const n = R.poisson(lam / 24 * HOURLY[h]);
-        for (let i = 0; i < n; i++) flu.push(d * 24 + h + R.next());
+        const n = RF.poisson(lam / 24 * HOURLY[h]);
+        for (let i = 0; i < n; i++) {
+          const t = d * 24 + h + RF.next(), u = RF.next(), sd = seedOf(RF);
+          if (u < keepF) raw.push([t, sd, 1]);
+        }
       }
     }
   }
-  // merge: emergency arrivals carry a flag for flu patients
-  const nFluOffset = arr.length;
-  for (const t of flu) arr.push(t);
-  const order = Array.from(arr.keys()).sort((a, b) => arr[a] - arr[b]);
-  const isFlu = new Uint8Array(arr.length);
-  { const sorted = order.map((i) => arr[i]); order.forEach((i, j) => { if (i >= nFluOffset) isFlu[j] = 1; }); arr.length = 0; for (const t of sorted) arr.push(t); }
+  raw.sort((a, b) => a[0] - b[0]);
+  const arr = raw.map((x) => x[0]);
+  const arrSeed = new Uint32Array(raw.map((x) => x[1]));
+  const isFlu = new Uint8Array(raw.map((x) => x[2]));
   // elective arrivals: weekdays 11:00-15:00
   const lamEl = p.electivePerYear / 365 / nPools * 7 / 5;
+  const candEl = headroom(lamEl, ref.electivePerBedDay * p.poolSize * 7 / 5);
+  const keepL = lamEl / candEl;
   const elW = p.electiveWeekday || [1, 1, 1, 1, 1];
   const elWm = elW.reduce((a, b) => a + b, 0) / 5;
-  const el = [];
+  const elRaw = [];
   for (let d = 0; d < nDays; d++) {
     if ((d + dow0) % 7 < 5) {
-      const n = R.poisson(lamEl * elW[(d + dow0) % 7] / elWm);
-      for (let i = 0; i < n; i++) el.push(d * 24 + 11 + 4 * R.next());
+      const n = RE.poisson(candEl * elW[(d + dow0) % 7] / elWm);
+      for (let i = 0; i < n; i++) {
+        const t = d * 24 + 11 + 4 * RE.next(), u = RE.next(), sd = seedOf(RE);
+        if (u < keepL) elRaw.push([t, sd]);
+      }
     }
   }
-  el.sort((a, b) => a - b);
+  elRaw.sort((a, b) => a[0] - b[0]);
+  const el = elRaw.map((x) => x[0]);
+  const elSeed = new Uint32Array(elRaw.map((x) => x[1]));
 
   const heap = new MinHeap();
   const readyOf = new Map(); // in-bed key -> time medically fit
@@ -259,17 +291,21 @@ export function simulate(p, seed = 1, wantDaily = true) {
   const FLU_GROUP = { losMult: p.fluLosMult, delayMult: 1 };
   const admitEmergency = (t, i) => {
     key++;
-    const grp = isFlu[i] ? FLU_GROUP : g[pickGroup()];
+    const P = rng(arrSeed[i]);
+    // fixed order of draws for every patient
+    const uGroup = P.next(), uSame = P.next(), uSameT = P.next(), z = P.normal(), uDelay = P.next();
+    const delayDays = P.gamma(p.delayShape, p.delayMeanDays / p.delayShape);
+    const grp = isFlu[i] ? FLU_GROUP : g[pickGroup(uGroup)];
     let ready, dis, overnight = false;
-    if (R.next() < p.sameDayFrac) {
-      ready = dis = t + 3 + 7 * R.next();
+    if (uSame < p.sameDayFrac) {
+      ready = dis = t + 3 + 7 * uSameT;
     } else {
       overnight = true;
-      const los = 24 * p.losMedianDays * losScale * grp.losMult * Math.exp(p.losSigma * R.normal());
-      ready = wardRound(t + los);
-      dis = leaveAfter(ready);
-      if (R.next() < Math.min(1, p.delayProb * grp.delayMult)) {
-        dis = leaveAfter(ready + 24 * R.gamma(p.delayShape, p.delayMeanDays / p.delayShape));
+      const los = 24 * p.losMedianDays * losScale * grp.losMult * Math.exp(p.losSigma * z);
+      ready = wardRound(t + los, P);
+      dis = leaveAfter(ready, P);
+      if (uDelay < Math.min(1, p.delayProb * grp.delayMult)) {
+        dis = leaveAfter(ready + 24 * delayDays, P);
       }
     }
     heap.push(dis, key); readyOf.set(key, ready); occupied++;
@@ -282,10 +318,11 @@ export function simulate(p, seed = 1, wantDaily = true) {
       if (overnight) { emOvernight++; if (Math.floor(dis / 24) > Math.floor(ready / 24)) emDelayed++; }
     }
   };
-  const admitElective = (t) => {
+  const admitElective = (t, j) => {
     key++;
-    const ready = wardRound(t + 24 * p.electiveLosMedianDays * losScale * Math.exp(p.electiveLosSigma * R.normal()));
-    const dis = leaveAfter(ready);
+    const P = rng(elSeed[j]);
+    const ready = wardRound(t + 24 * p.electiveLosMedianDays * losScale * Math.exp(p.electiveLosSigma * P.normal()), P);
+    const dis = leaveAfter(ready, P);
     heap.push(dis, key); readyOf.set(key, ready); occupied++;
     admitOf.set(key, t);
     if (t >= warmH) { elOvernight++; if (Math.floor(dis / 24) > Math.floor(ready / 24)) elDelayed++; }
@@ -299,7 +336,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
         admitEmergency(t, i);
       } else if (eHead < elQueue.length) {
         const j = elQueue[eHead++];
-        if (t <= deadline(j)) admitElective(t);
+        if (t <= deadline(j)) admitElective(t, j);
         else if (el[j] >= warmH) elecCancelled++;
       } else break;
     }
@@ -342,7 +379,7 @@ export function simulate(p, seed = 1, wantDaily = true) {
       ia++;
     } else {
       if (te >= warmH) elecOffered++;
-      if (occupied < cap(t) && qHead >= queue.length) admitElective(t); // planned patients never go to a corridor
+      if (occupied < cap(t) && qHead >= queue.length) admitElective(t, ie); // planned patients never go to a corridor
       else elQueue.push(ie);
       ie++;
     }

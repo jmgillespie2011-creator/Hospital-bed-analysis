@@ -160,5 +160,11 @@ export function buildParams(base, s) {
     fluPeakDoy: base.flu ? base.flu.peakDoy : DEFAULTS.fluPeakDoy,
     prepHours: s.prepHours,
     weekendDischargePct: s.weekendDischargePct,
+    // fixed reference rates (today's demand per bed) so every scenario draws the same candidate patients
+    crnRef: {
+      emergPerBedDay: total0 * nonFlu / 365 / base.national.beds,
+      fluPerBedYear: flu0 / base.national.beds,
+      electivePerBedDay: base.national.electivePerYear / 365 / base.national.beds,
+    },
   };
 }
