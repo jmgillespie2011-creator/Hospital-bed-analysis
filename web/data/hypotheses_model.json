@@ -1,0 +1,293 @@
+{
+ "generated": "2026-10-16",
+ "reps": 120,
+ "from": "2018/19",
+ "to": "2025/26",
+ "poolA": 59.7553572564957,
+ "poolB": 101.62513437786383,
+ "settings": {
+  "past": {
+   "beds": 101352.12940622178,
+   "popYear": 2018,
+   "otherGrowthPct": 7.022873561914245,
+   "losChangePct": -10.712205024535603,
+   "sameDayPct": 45.828346075447016
+  },
+  "today": {
+   "beds": 103406.66316955994,
+   "popYear": 2025,
+   "otherGrowthPct": 0,
+   "losChangePct": 0,
+   "sameDayPct": 50.493164062499986
+  }
+ },
+ "start": {
+  "occupancy": 0.9111585285482049,
+  "occupiedBeds": 91779.79073478776,
+  "wait12": 0.02119118087486567,
+  "wait12PerYear": 134163.13603497337,
+  "wait4": 0.05309356446981308,
+  "zeroNight": 0.3332569767508612,
+  "losOvernight": 6.838896360425832
+ },
+ "end": {
+  "occupancy": 0.9127223125145114,
+  "occupiedBeds": 93188.50746070873,
+  "wait12": 0.07608452393740825,
+  "wait12PerYear": 487898.6617947819,
+  "wait4": 0.1360712751101085,
+  "zeroNight": 0.36904920014731446,
+  "losOvernight": 7.372805175756017
+ },
+ "shapley": [
+  {
+   "id": "demand",
+   "label": "More patients (emergency admissions and an older population)",
+   "occupancy": 0.013436458983033814,
+   "wait12": 0.018309668602618474,
+   "wait12PerYear": 121390.86802730554,
+   "occupiedBeds": 1363.0537727332053
+  },
+  {
+   "id": "beds",
+   "label": "Change in bed numbers",
+   "occupancy": -0.012285190170864484,
+   "wait12": -0.015112013336714109,
+   "wait12PerYear": -96444.41862746673,
+   "occupiedBeds": 605.0147330203937
+  },
+  {
+   "id": "stays",
+   "label": "Longer stays for patients admitted overnight",
+   "occupancy": 0.05325909448427099,
+   "wait12": 0.06805189204450672,
+   "wait12PerYear": 433753.2683051998,
+   "occupiedBeds": 5403.902614372182
+  },
+  {
+   "id": "sameDay",
+   "label": "More patients sent home the same day",
+   "occupancy": -0.04444044517435196,
+   "wait12": -0.0634872002149138,
+   "wait12PerYear": -405446.2123134723,
+   "occupiedBeds": -4506.449162850148
+  },
+  {
+   "id": "flex",
+   "label": "Less flexible use of beds",
+   "occupancy": -0.008406134155781828,
+   "wait12": 0.04713099596704529,
+   "wait12PerYear": 300482.02036824217,
+   "occupiedBeds": -1456.805231354666
+  }
+ ],
+ "base": {
+  "occupancy": 0.9127223125145114,
+  "occupiedBeds": 93188.50746070873,
+  "wait12": 0.07608452393740825,
+  "wait12PerYear": 487898.6617947819,
+  "wait4": 0.1360712751101085,
+  "zeroNight": 0.36904920014731446,
+  "losOvernight": 7.372805175756017
+ },
+ "baseFlexible": {
+  "occupancy": 0.9220429316711337,
+  "occupiedBeds": 94758.877595933,
+  "wait12": 0.027368463068540905,
+  "wait12PerYear": 175502.66224319203,
+  "wait4": 0.06961195856811181,
+  "zeroNight": 0.36643825660762164,
+  "losOvernight": 7.323779976951962
+ },
+ "scenarios": [
+  {
+   "id": "socialCare",
+   "hyp": "Social care",
+   "label": "Delays waiting for social care removed",
+   "note": "23% of delayed bed days",
+   "s": {
+    "delayChangePct": -22.797818835124545
+   },
+   "occupancy": 0.9000619147124839,
+   "occupiedBeds": 91895.88695734936,
+   "wait12": 0.056609642997815734,
+   "wait12PerYear": 363014.2850868902,
+   "wait4": 0.10474182690586172,
+   "zeroNight": 0.36793393324399887,
+   "losOvernight": 7.177468854314798,
+   "dOcc": -0.012660397802027545,
+   "dBeds": -1292.6205033593724,
+   "dWait12PerYear": -124884.3767078917
+  },
+  {
+   "id": "socialJoint",
+   "hyp": "Social care",
+   "label": "Social care and joint (care transfer hub) delays removed",
+   "note": "39% of delayed bed days",
+   "s": {
+    "delayChangePct": -38.69769688917741
+   },
+   "occupancy": 0.8904585558393314,
+   "occupiedBeds": 90915.38865274117,
+   "wait12": 0.04662602499373366,
+   "wait12PerYear": 298993.4617711117,
+   "wait4": 0.08799280266408852,
+   "zeroNight": 0.36716818868808776,
+   "losOvernight": 7.0411647975080465,
+   "dOcc": -0.02226375667517999,
+   "dBeds": -2273.118807967563,
+   "dWait12PerYear": -188905.20002367022
+  },
+  {
+   "id": "community",
+   "hyp": "Community health services",
+   "label": "Delays waiting for NHS community services removed",
+   "note": "32% of delayed bed days",
+   "s": {
+    "delayChangePct": -32.25494320283446
+   },
+   "occupancy": 0.8943228078322112,
+   "occupiedBeds": 91309.92691561807,
+   "wait12": 0.04975695563433237,
+   "wait12PerYear": 319070.8282402384,
+   "wait4": 0.09438670462276649,
+   "zeroNight": 0.36742095340061603,
+   "losOvernight": 7.09595754848778,
+   "dOcc": -0.018399504682300227,
+   "dBeds": -1878.5805450906628,
+   "dWait12PerYear": -168827.8335545435
+  },
+  {
+   "id": "allDelays",
+   "hyp": "All discharge delays",
+   "label": "Every discharge delay removed",
+   "note": "upper bound",
+   "s": {
+    "delayChangePct": -100
+   },
+   "occupancy": 0.8466840801795529,
+   "occupiedBeds": 86446.0358214603,
+   "wait12": 0.018129856411358183,
+   "wait12PerYear": 116259.28932551484,
+   "wait4": 0.038844576932717444,
+   "zeroNight": 0.3654536018565888,
+   "losOvernight": 6.5048842850317214,
+   "dOcc": -0.06603823233495854,
+   "dBeds": -6742.471639248426,
+   "dWait12PerYear": -371639.3724692671
+  },
+  {
+   "id": "acscAll",
+   "hyp": "General practice",
+   "label": "No emergency admissions for conditions good primary care can manage",
+   "note": "9.2% of emergency admissions (chronic ambulatory care sensitive conditions), upper bound",
+   "s": {
+    "otherGrowthPct": -9.242085514948561
+   },
+   "occupancy": 0.8613083352681685,
+   "occupiedBeds": 87939.16520566291,
+   "wait12": 0.0257314698415046,
+   "wait12PerYear": 149755.36911791828,
+   "wait4": 0.05099953166210654,
+   "zeroNight": 0.3661250137974777,
+   "losOvernight": 7.344158473797846,
+   "dOcc": -0.05141397724634289,
+   "dBeds": -5249.34225504582,
+   "dWait12PerYear": -338143.2926768636
+  },
+  {
+   "id": "acscQuarter",
+   "hyp": "General practice",
+   "label": "A quarter of those admissions avoided",
+   "note": "2.3% of emergency admissions",
+   "s": {
+    "otherGrowthPct": -2.3105213787371404
+   },
+   "occupancy": 0.9012661558702888,
+   "occupiedBeds": 92018.8393981738,
+   "wait12": 0.059237472168009016,
+   "wait12PerYear": 371088.59651031764,
+   "wait4": 0.10939919550656514,
+   "zeroNight": 0.3680390806099034,
+   "losOvernight": 7.363784767923329,
+   "dOcc": -0.011456156644222615,
+   "dBeds": -1169.6680625349254,
+   "dWait12PerYear": -116810.06528446428
+  },
+  {
+   "id": "hospitalProcess",
+   "hyp": "Hospital flow and management",
+   "label": "Delays from hospital processes removed",
+   "note": "21% of delayed bed days",
+   "s": {
+    "delayChangePct": -20.809832260844917
+   },
+   "occupancy": 0.9011806361736707,
+   "occupiedBeds": 92010.10787843663,
+   "wait12": 0.05792557381745264,
+   "wait12PerYear": 371452.8065192322,
+   "wait4": 0.1075034912450317,
+   "zeroNight": 0.3678994220734479,
+   "losOvernight": 7.19392953224395,
+   "dOcc": -0.01154167634084069,
+   "dBeds": -1178.3995822721045,
+   "dWait12PerYear": -116445.8552755497
+  },
+  {
+   "id": "sevenDay",
+   "hyp": "Hospital flow and management",
+   "label": "Full 7-day discharging",
+   "note": "weekend discharge rate 92% to 100% of weekdays",
+   "s": {
+    "weekendDischargePct": 100
+   },
+   "occupancy": 0.9095522792353533,
+   "occupiedBeds": 92864.84859334555,
+   "wait12": 0.07202930855444552,
+   "wait12PerYear": 461894.2386053197,
+   "wait4": 0.13011601675797616,
+   "zeroNight": 0.3690436766335903,
+   "losOvernight": 7.345526073706207,
+   "dOcc": -0.003170033279158102,
+   "dBeds": -323.6588673631777,
+   "dWait12PerYear": -26004.42318946222
+  },
+  {
+   "id": "flex",
+   "hyp": "Hospital flow and management",
+   "label": "Pre-pandemic flexibility in using beds",
+   "note": "bed pools of 102 instead of 60",
+   "s": {},
+   "pool": 101.62513437786383,
+   "occupancy": 0.9220429316711337,
+   "occupiedBeds": 94758.877595933,
+   "wait12": 0.027368463068540905,
+   "wait12PerYear": 175502.66224319203,
+   "wait4": 0.06961195856811181,
+   "zeroNight": 0.36643825660762164,
+   "losOvernight": 7.323779976951962,
+   "dOcc": 0.0093206191566223,
+   "dBeds": 1570.3701352242642,
+   "dWait12PerYear": -312395.9995515899
+  },
+  {
+   "id": "beds5k",
+   "hyp": "Beds",
+   "label": "5,000 more beds",
+   "note": "for scale",
+   "s": {
+    "beds": 108406.66316955994
+   },
+   "occupancy": 0.8832551660088226,
+   "occupiedBeds": 94540.37647091692,
+   "wait12": 0.04282714035972827,
+   "wait12PerYear": 274632.78192025574,
+   "wait4": 0.07994039727329258,
+   "zeroNight": 0.36694901627580184,
+   "losOvernight": 7.351732334465183,
+   "dOcc": -0.029467146505688824,
+   "dBeds": 1351.8690102081891,
+   "dWait12PerYear": -213265.87987452617
+  }
+ ]
+}

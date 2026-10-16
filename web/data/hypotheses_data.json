@@ -1,0 +1,2139 @@
+{
+ "delays": {
+  "groups": [
+   "Housing",
+   "Patient, family and legal",
+   "Social care",
+   "Community health services",
+   "Hospital processes",
+   "Care transfer hubs and other joint processes"
+  ],
+  "series": {
+   "all": [
+    {
+     "month": "2024-06",
+     "total": 7981.0,
+     "Care transfer hubs and other joint processes": 0.13945620849517604,
+     "Community health services": 0.3299085327653176,
+     "Hospital processes": 0.17742137576744768,
+     "Housing": 0.03658689387294825,
+     "Patient, family and legal": 0.057762185189825836,
+     "Social care": 0.25886480390928457
+    },
+    {
+     "month": "2024-07",
+     "total": 8350.0,
+     "Care transfer hubs and other joint processes": 0.14119760479041915,
+     "Community health services": 0.3291017964071856,
+     "Hospital processes": 0.1852694610778443,
+     "Housing": 0.03688622754491018,
+     "Patient, family and legal": 0.0525748502994012,
+     "Social care": 0.2549700598802395
+    },
+    {
+     "month": "2024-08",
+     "total": 8389.0,
+     "Care transfer hubs and other joint processes": 0.1516271307664799,
+     "Community health services": 0.31863154130408866,
+     "Hospital processes": 0.1801168196447729,
+     "Housing": 0.025390392180236022,
+     "Patient, family and legal": 0.056025748003337705,
+     "Social care": 0.2682083681010847
+    },
+    {
+     "month": "2024-09",
+     "total": 8788.25,
+     "Care transfer hubs and other joint processes": 0.16408272409182714,
+     "Community health services": 0.3048388473245527,
+     "Hospital processes": 0.19366768127898046,
+     "Housing": 0.02597217876141439,
+     "Patient, family and legal": 0.05894233778055927,
+     "Social care": 0.2524962307626661
+    },
+    {
+     "month": "2024-10",
+     "total": 8617.0,
+     "Care transfer hubs and other joint processes": 0.16838807009400023,
+     "Community health services": 0.3128699083207613,
+     "Hospital processes": 0.19368689799234073,
+     "Housing": 0.026111175583149588,
+     "Patient, family and legal": 0.05837298363699663,
+     "Social care": 0.24057096437275155
+    },
+    {
+     "month": "2024-11",
+     "total": 8519.5,
+     "Care transfer hubs and other joint processes": 0.15106520335700452,
+     "Community health services": 0.3136627736369505,
+     "Hospital processes": 0.19669581548212922,
+     "Housing": 0.024238511649744703,
+     "Patient, family and legal": 0.061417923587064965,
+     "Social care": 0.25291977228710605
+    },
+    {
+     "month": "2024-12",
+     "total": 8203.25,
+     "Care transfer hubs and other joint processes": 0.15396336817724682,
+     "Community health services": 0.305183921006918,
+     "Hospital processes": 0.2046749763813123,
+     "Housing": 0.02389296924999238,
+     "Patient, family and legal": 0.05784292810776217,
+     "Social care": 0.2544418370767684
+    },
+    {
+     "month": "2025-01",
+     "total": 9244.599999999999,
+     "Care transfer hubs and other joint processes": 0.1584276226121195,
+     "Community health services": 0.32206909979880155,
+     "Hospital processes": 0.20372974493217666,
+     "Housing": 0.020271293511888024,
+     "Patient, family and legal": 0.05962399671159381,
+     "Social care": 0.23587824243342062
+    },
+    {
+     "month": "2025-02",
+     "total": 9497.0,
+     "Care transfer hubs and other joint processes": 0.1495209013372644,
+     "Community health services": 0.33231546804253975,
+     "Hospital processes": 0.2014846793724334,
+     "Housing": 0.020822364957354955,
+     "Patient, family and legal": 0.06170369590396967,
+     "Social care": 0.23415289038643783
+    },
+    {
+     "month": "2025-03",
+     "total": 9308.75,
+     "Care transfer hubs and other joint processes": 0.15195380690210822,
+     "Community health services": 0.3319994628709547,
+     "Hospital processes": 0.18842486907479522,
+     "Housing": 0.021807439237276755,
+     "Patient, family and legal": 0.06262924667651404,
+     "Social care": 0.243185175238351
+    },
+    {
+     "month": "2025-04",
+     "total": 8649.6,
+     "Care transfer hubs and other joint processes": 0.1531169071402146,
+     "Community health services": 0.3237375138734739,
+     "Hospital processes": 0.18981224565297816,
+     "Housing": 0.024417314095449498,
+     "Patient, family and legal": 0.06293932667406585,
+     "Social care": 0.24597669256381796
+    },
+    {
+     "month": "2025-05",
+     "total": 8570.25,
+     "Care transfer hubs and other joint processes": 0.15372947113561447,
+     "Community health services": 0.3253697383390216,
+     "Hospital processes": 0.19491846795601062,
+     "Housing": 0.02164464280505236,
+     "Patient, family and legal": 0.064029637408477,
+     "Social care": 0.24030804235582393
+    },
+    {
+     "month": "2025-06",
+     "total": 8061.0,
+     "Care transfer hubs and other joint processes": 0.1584170698424513,
+     "Community health services": 0.3248976553777447,
+     "Hospital processes": 0.1795062647314229,
+     "Housing": 0.025927304304676838,
+     "Patient, family and legal": 0.06785758590745565,
+     "Social care": 0.24339411983624862
+    },
+    {
+     "month": "2025-07",
+     "total": 8142.8,
+     "Care transfer hubs and other joint processes": 0.1596502431596011,
+     "Community health services": 0.3228373532445842,
+     "Hospital processes": 0.17153804588102373,
+     "Housing": 0.02220366458711991,
+     "Patient, family and legal": 0.06879697401385274,
+     "Social care": 0.25497371911381833
+    }
+   ],
+   "7+": [
+    {
+     "month": "2025-04",
+     "total": 11831.97,
+     "Care transfer hubs and other joint processes": 0.15669157376159676,
+     "Community health services": 0.32124912419487206,
+     "Hospital processes": 0.22197486978077194,
+     "Housing": 0.021643902072097886,
+     "Patient, family and legal": 0.05959785225959836,
+     "Social care": 0.21884267793106307
+    },
+    {
+     "month": "2025-05",
+     "total": 11741.9166663,
+     "Care transfer hubs and other joint processes": 0.15580221852114953,
+     "Community health services": 0.3202415846402778,
+     "Hospital processes": 0.2280292115923957,
+     "Housing": 0.018899526625573322,
+     "Patient, family and legal": 0.060346479500546654,
+     "Social care": 0.21668097912005704
+    },
+    {
+     "month": "2025-07",
+     "total": 11213.050000129999,
+     "Care transfer hubs and other joint processes": 0.16411235123170465,
+     "Community health services": 0.3202057721394601,
+     "Hospital processes": 0.20341328481310225,
+     "Housing": 0.019700259964723153,
+     "Patient, family and legal": 0.06522162421388661,
+     "Social care": 0.22734670763712328
+    },
+    {
+     "month": "2025-08",
+     "total": 11181.50000009,
+     "Care transfer hubs and other joint processes": 0.1562700293713666,
+     "Community health services": 0.3147013668328647,
+     "Hospital processes": 0.2084469883299414,
+     "Housing": 0.022589396174749986,
+     "Patient, family and legal": 0.06330396935333388,
+     "Social care": 0.23468824993774343
+    },
+    {
+     "month": "2025-09",
+     "total": 11520.25,
+     "Care transfer hubs and other joint processes": 0.16510058375469283,
+     "Community health services": 0.31765803693496236,
+     "Hospital processes": 0.20225255528308847,
+     "Housing": 0.02178772162062455,
+     "Patient, family and legal": 0.05961242160543391,
+     "Social care": 0.23358868080119788
+    },
+    {
+     "month": "2025-10",
+     "total": 11789.4,
+     "Care transfer hubs and other joint processes": 0.14989736542996254,
+     "Community health services": 0.32130557958844386,
+     "Hospital processes": 0.2156513478209239,
+     "Housing": 0.022206388789929938,
+     "Patient, family and legal": 0.058052148540214094,
+     "Social care": 0.23288716983052574
+    },
+    {
+     "month": "2025-11",
+     "total": 11722.0,
+     "Care transfer hubs and other joint processes": 0.15338679406244668,
+     "Community health services": 0.31562446681453676,
+     "Hospital processes": 0.22039754308138543,
+     "Housing": 0.02085821532161747,
+     "Patient, family and legal": 0.060335267019279985,
+     "Social care": 0.22939771370073367
+    },
+    {
+     "month": "2025-12",
+     "total": 11349.0,
+     "Care transfer hubs and other joint processes": 0.16563133315710635,
+     "Community health services": 0.3064146620847652,
+     "Hospital processes": 0.22006344171292624,
+     "Housing": 0.02004581901489118,
+     "Patient, family and legal": 0.06046788263283109,
+     "Social care": 0.22737686139747995
+    },
+    {
+     "month": "2026-01",
+     "total": 12340.5,
+     "Care transfer hubs and other joint processes": 0.1661196872087841,
+     "Community health services": 0.3195575543940683,
+     "Hospital processes": 0.21437543049309185,
+     "Housing": 0.019103764029010168,
+     "Patient, family and legal": 0.06229488270329403,
+     "Social care": 0.21854868117175155
+    },
+    {
+     "month": "2026-02",
+     "total": 12660.0,
+     "Care transfer hubs and other joint processes": 0.15201421800947867,
+     "Community health services": 0.328021327014218,
+     "Hospital processes": 0.2164691943127962,
+     "Housing": 0.01796998420221169,
+     "Patient, family and legal": 0.0629739336492891,
+     "Social care": 0.2225513428120063
+    },
+    {
+     "month": "2026-03",
+     "total": 12515.0,
+     "Care transfer hubs and other joint processes": 0.15307630842988415,
+     "Community health services": 0.32586895725129844,
+     "Hospital processes": 0.21004794246903716,
+     "Housing": 0.01807830603276069,
+     "Patient, family and legal": 0.06314422692768677,
+     "Social care": 0.2297842588893328
+    },
+    {
+     "month": "2026-04",
+     "total": 12243.800000000001,
+     "Care transfer hubs and other joint processes": 0.15914993711102762,
+     "Community health services": 0.3246867802479622,
+     "Hospital processes": 0.21000016334798016,
+     "Housing": 0.0204184975252781,
+     "Patient, family and legal": 0.06364037308678679,
+     "Social care": 0.22210424868096504
+    },
+    {
+     "month": "2026-05",
+     "total": 11930.75,
+     "Care transfer hubs and other joint processes": 0.15902185528990215,
+     "Community health services": 0.3268654527167194,
+     "Hospital processes": 0.2022714414433292,
+     "Housing": 0.02068185151813591,
+     "Patient, family and legal": 0.06399430044213482,
+     "Social care": 0.2271650985897785
+    },
+    {
+     "month": "2026-06",
+     "total": 12211.75,
+     "Care transfer hubs and other joint processes": 0.16647900587548878,
+     "Community health services": 0.3272462996703994,
+     "Hospital processes": 0.19337932728724383,
+     "Housing": 0.018936679837042194,
+     "Patient, family and legal": 0.06626814338649252,
+     "Social care": 0.22769054394333327
+    },
+    {
+     "month": "2026-07",
+     "total": 12509.599999999999,
+     "Care transfer hubs and other joint processes": 0.15770288418494596,
+     "Community health services": 0.3271567436208992,
+     "Hospital processes": 0.19927095990279464,
+     "Housing": 0.018369891923003135,
+     "Patient, family and legal": 0.06417471381978641,
+     "Social care": 0.23332480654857074
+    },
+    {
+     "month": "2026-08",
+     "total": 12454.25,
+     "Care transfer hubs and other joint processes": 0.1619728205231146,
+     "Community health services": 0.3247084328642833,
+     "Hospital processes": 0.1938896360680089,
+     "Housing": 0.018166489351024752,
+     "Patient, family and legal": 0.06503803922355822,
+     "Social care": 0.23622458197001023
+    },
+    {
+     "month": "2026-09",
+     "total": 11994.25,
+     "Care transfer hubs and other joint processes": 0.16384934447756216,
+     "Community health services": 0.32134147612397607,
+     "Hospital processes": 0.20280551097400837,
+     "Housing": 0.018092002417825208,
+     "Patient, family and legal": 0.06507284740604873,
+     "Social care": 0.22883881860057945
+    }
+   ],
+   "14+": [
+    {
+     "month": "2025-08",
+     "total": 8226.75,
+     "Care transfer hubs and other joint processes": 0.15245996292582126,
+     "Community health services": 0.3147658552891482,
+     "Hospital processes": 0.17865499741696295,
+     "Housing": 0.025860759109004164,
+     "Patient, family and legal": 0.06642963503206005,
+     "Social care": 0.2618287902270034
+    },
+    {
+     "month": "2025-09",
+     "total": 8536.75,
+     "Care transfer hubs and other joint processes": 0.16068761531027617,
+     "Community health services": 0.31850528596948485,
+     "Hospital processes": 0.1712595542800246,
+     "Housing": 0.024804521627082906,
+     "Patient, family and legal": 0.062289512987963806,
+     "Social care": 0.26245350982516763
+    },
+    {
+     "month": "2025-10",
+     "total": 8665.8,
+     "Care transfer hubs and other joint processes": 0.1465069583881465,
+     "Community health services": 0.3235938978513236,
+     "Hospital processes": 0.18405686722518408,
+     "Housing": 0.02561794641002562,
+     "Patient, family and legal": 0.060306030603060314,
+     "Social care": 0.25991829952226
+    },
+    {
+     "month": "2025-11",
+     "total": 8608.5,
+     "Care transfer hubs and other joint processes": 0.15014230121391647,
+     "Community health services": 0.31660568043213105,
+     "Hospital processes": 0.1908578730324679,
+     "Housing": 0.02410408317360748,
+     "Patient, family and legal": 0.0627867805076378,
+     "Social care": 0.2555032816402393
+    },
+    {
+     "month": "2025-12",
+     "total": 8251.25,
+     "Care transfer hubs and other joint processes": 0.16300560521133162,
+     "Community health services": 0.30922587486744435,
+     "Hospital processes": 0.1883048023026814,
+     "Housing": 0.02320860475685502,
+     "Patient, family and legal": 0.06359642478412361,
+     "Social care": 0.25265868807756403
+    },
+    {
+     "month": "2026-01",
+     "total": 9080.6,
+     "Care transfer hubs and other joint processes": 0.16232407550161884,
+     "Community health services": 0.32041935554919276,
+     "Hospital processes": 0.1900755456687884,
+     "Housing": 0.022024976323150453,
+     "Patient, family and legal": 0.06391648128978261,
+     "Social care": 0.24123956566746688
+    },
+    {
+     "month": "2026-02",
+     "total": 9383.75,
+     "Care transfer hubs and other joint processes": 0.1461835620087918,
+     "Community health services": 0.3305714666311443,
+     "Hospital processes": 0.19224723591314774,
+     "Housing": 0.020700679365925137,
+     "Patient, family and legal": 0.06577860663380844,
+     "Social care": 0.24451844944718262
+    },
+    {
+     "month": "2026-03",
+     "total": 9314.5,
+     "Care transfer hubs and other joint processes": 0.14963229373557357,
+     "Community health services": 0.32540662408073434,
+     "Hospital processes": 0.18425573031295292,
+     "Housing": 0.020478823339953836,
+     "Patient, family and legal": 0.0666434054431263,
+     "Social care": 0.253583123087659
+    },
+    {
+     "month": "2026-04",
+     "total": 9214.2,
+     "Care transfer hubs and other joint processes": 0.1555642378068633,
+     "Community health services": 0.3274945193288619,
+     "Hospital processes": 0.18295674068285905,
+     "Housing": 0.02292114345249723,
+     "Patient, family and legal": 0.06672310130016713,
+     "Social care": 0.24434025742875126
+    },
+    {
+     "month": "2026-05",
+     "total": 8888.75,
+     "Care transfer hubs and other joint processes": 0.15421178455913373,
+     "Community health services": 0.32951764871326117,
+     "Hospital processes": 0.17423709745464772,
+     "Housing": 0.023681620025312895,
+     "Patient, family and legal": 0.06789481085641963,
+     "Social care": 0.25045703839122485
+    },
+    {
+     "month": "2026-06",
+     "total": 9047.25,
+     "Care transfer hubs and other joint processes": 0.16131973804194644,
+     "Community health services": 0.3310674514355191,
+     "Hospital processes": 0.16587913454364586,
+     "Housing": 0.02185747050208627,
+     "Patient, family and legal": 0.07049103318687999,
+     "Social care": 0.24938517228992235
+    },
+    {
+     "month": "2026-07",
+     "total": 9171.8,
+     "Care transfer hubs and other joint processes": 0.15279443511633486,
+     "Community health services": 0.3328681392965394,
+     "Hospital processes": 0.169519614470442,
+     "Housing": 0.02051941821670774,
+     "Patient, family and legal": 0.06683529950500447,
+     "Social care": 0.2574630933949716
+    },
+    {
+     "month": "2026-08",
+     "total": 9371.0,
+     "Care transfer hubs and other joint processes": 0.15830754455234233,
+     "Community health services": 0.3278999039590225,
+     "Hospital processes": 0.16433678369437626,
+     "Housing": 0.02072884430690428,
+     "Patient, family and legal": 0.06789563547113435,
+     "Social care": 0.26083128801622024
+    },
+    {
+     "month": "2026-09",
+     "total": 9079.0,
+     "Care transfer hubs and other joint processes": 0.1613338473400154,
+     "Community health services": 0.3245952197378566,
+     "Hospital processes": 0.17435840951646658,
+     "Housing": 0.020652054190990195,
+     "Patient, family and legal": 0.0677662738187025,
+     "Social care": 0.2512941953959687
+    }
+   ]
+  },
+  "reasons": {
+   "all": {
+    "months": [
+     "2024-08",
+     "2025-07"
+    ],
+    "rows": [
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Bed-based rehabilitation, reablement or recovery services not yet available (Pathway 2)",
+      "value": 860.7041666666668,
+      "share": 0.09932061428392841,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Care transfer hub process - Waiting for confirmation of immediate care needs and pathway",
+      "value": 740.1,
+      "share": 0.08540354453750805,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Social care",
+      "metric": "Capacity - Residential/nursing home care not yet available (Pathway 3)",
+      "value": 726.7624999999999,
+      "share": 0.08386446904059003,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Social care",
+      "metric": "Interface process - Residential/nursing home care arrangements still underway (Pathway 3)",
+      "value": 608.6958333333333,
+      "share": 0.07024021309536402,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - Bed-based rehabilitation, reablement or recovery service arrangements still underway (Pathway 2)",
+      "value": 521.8375,
+      "share": 0.06021723033724071,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting therapy review of need for supported discharge",
+      "value": 461.70416666666665,
+      "share": 0.053278168303026216,
+      "kind": "Other"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Home-based rehabilitation, reablement or recovery services not yet available (Pathway 1)",
+      "value": 429.9875,
+      "share": 0.04961823619351674,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Social care",
+      "metric": "Interface process - Other home-based social care service arrangements still underway (Pathway 1)",
+      "value": 425.81666666666666,
+      "share": 0.04913694454327778,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting referral to care transfer hub for supported discharge",
+      "value": 330.8208333333333,
+      "share": 0.03817493821580713,
+      "kind": "Other"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - Home based rehabilitation, reablement or recovery service arrangements still underway (Pathway 1)",
+      "value": 327.2375,
+      "share": 0.03776144089392351,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Care transfer hub process- Awaiting necessary referrals by care transfer hub",
+      "value": 305.0416666666667,
+      "share": 0.03520016155244204,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting medical review of need for supported discharge",
+      "value": 297.85833333333335,
+      "share": 0.034371243665317186,
+      "kind": "Other"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting formal decision to discharge (inc diagnostic test results)",
+      "value": 263.28749999999997,
+      "share": 0.030381956130819007,
+      "kind": "Other"
+     },
+     {
+      "group": "Social care",
+      "metric": "Capacity - Other home-based social care service not yet available (Pathway 1)",
+      "value": 234.0375,
+      "share": 0.027006664038234072,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Interface process - Out of area discharge arrangements requested but not completed",
+      "value": 179.125,
+      "share": 0.020670057985787228,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Equipment and associated training not yet delivered (Pathway 1-3)",
+      "value": 167.74166666666667,
+      "share": 0.01935648277254762,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting medicines to take home, discharge letter or other discharge documentation",
+      "value": 166.79583333333332,
+      "share": 0.01924733871200392,
+      "kind": "Other"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Other home-based community health services not yet available (Pathway 1)",
+      "value": 140.01250000000002,
+      "share": 0.01615668663634353,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Issues with discharge destination readiness",
+      "value": 139.15416666666667,
+      "share": 0.016057639603427216,
+      "kind": "Other"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - End of life care inc Fast-Track CHC not yet available (Pathway 1 or 3)",
+      "value": 127.51666666666667,
+      "share": 0.014714734928984237,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Awaiting determination of mental capacity",
+      "value": 121.25416666666666,
+      "share": 0.013992076237366693,
+      "kind": "Other"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting patient transport services",
+      "value": 111.925,
+      "share": 0.01291554076795107,
+      "kind": "Other"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - End of life care inc Fast-Track CHC arrangement still underway (Pathway 1 or 3)",
+      "value": 111.375,
+      "share": 0.012852073737150329,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Ongoing safeguarding concern",
+      "value": 109.26666666666667,
+      "share": 0.01260878345241415,
+      "kind": "Other"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Patient /family/carer concerns over discharge readiness",
+      "value": 91.44583333333333,
+      "share": 0.010552355492302216,
+      "kind": "Other"
+     },
+     {
+      "group": "Social care",
+      "metric": "Interface process - Self-funded care package arrangements still underway",
+      "value": 80.12916666666666,
+      "share": 0.009246473252493002,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Care transfer hub process - Awaiting confirmation of funding eligibility",
+      "value": 74.47083333333333,
+      "share": 0.008593532132588396,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Interface process - Patient/family/carer choice discussions on package still underway",
+      "value": 72.9875,
+      "share": 0.008422363473762151,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Housing",
+      "metric": "Interface process - Housing provision arrangement for homelessness still underway (Pathway 0 or 1)",
+      "value": 71.72083333333333,
+      "share": 0.008276196978584683,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Social care",
+      "metric": "Capacity - Awaiting restart of existing social care arrangements (Pathway 0)",
+      "value": 64.34166666666667,
+      "share": 0.007424680982008058,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Interface process - Further action requested by agreed provider",
+      "value": 54.012499999999996,
+      "share": 0.006232750911136539,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Housing",
+      "metric": "Capacity - Housing provision not yet available (Pathway 0 or 1)",
+      "value": 53.762499999999996,
+      "share": 0.006203902260772566,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Housing",
+      "metric": "Capacity - Housing adaptations not yet completed (Pathway 1 or 3)",
+      "value": 52.79583333333333,
+      "share": 0.006092354146031867,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Mental health admitted patient care not yet available (Pathway 2)",
+      "value": 50.675000000000004,
+      "share": 0.00584762142877749,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - Other home-based community health service arrangements still underway (Pathway 1)",
+      "value": 36.59166666666667,
+      "share": 0.0042224807916069656,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Remaining in hospital due to infection prevention and control restrictions",
+      "value": 29.587500000000002,
+      "share": 0.0034142377705762995,
+      "kind": "Other"
+     },
+     {
+      "group": "Housing",
+      "metric": "Interface process - Homeless with no recourse to public funds",
+      "value": 25.337500000000002,
+      "share": 0.002923810714388745,
+      "kind": "Arrangements under way"
+     }
+    ],
+    "byGroup": {
+     "Community health services": 0.32006760200401957,
+     "Social care": 0.24691944495196697,
+     "Hospital processes": 0.19178342356550082,
+     "Care transfer hubs and other joint processes": 0.15610004711946227,
+     "Patient, family and legal": 0.061633218259272426,
+     "Housing": 0.023496264099777862
+    },
+    "byGroupKind": {
+     "Care transfer hubs and other joint processes": {
+      "Arrangements under way": 0.15610004711946227,
+      "Other": 0.0,
+      "Service not available": 0.0
+     },
+     "Community health services": {
+      "Arrangements under way": 0.11505322575992151,
+      "Other": 0.0,
+      "Service not available": 0.20501437624409802
+     },
+     "Hospital processes": {
+      "Arrangements under way": 0.0,
+      "Other": 0.19178342356550082,
+      "Service not available": 0.0
+     },
+     "Housing": {
+      "Arrangements under way": 0.011200007692973428,
+      "Other": 0.0,
+      "Service not available": 0.012296256406804432
+     },
+     "Patient, family and legal": {
+      "Arrangements under way": 0.008422363473762151,
+      "Other": 0.05321085478551028,
+      "Service not available": 0.0
+     },
+     "Social care": {
+      "Arrangements under way": 0.1286236308911348,
+      "Other": 0.0,
+      "Service not available": 0.11829581406083216
+     }
+    }
+   },
+   "7+": {
+    "months": [
+     "2025-10",
+     "2026-09"
+    ],
+    "rows": [
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Care transfer hub process - Waiting for confirmation of immediate care needs and pathway",
+      "value": 1106.7416666666666,
+      "share": 0.09113966962736143,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Bed-based rehabilitation, reablement or recovery services not yet available (Pathway 2)",
+      "value": 1006.8041666666667,
+      "share": 0.0829098622498032,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Social care",
+      "metric": "Interface process - Residential/nursing home care arrangements still underway (Pathway 3)",
+      "value": 824.3874999999999,
+      "share": 0.06788793325295102,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - Bed-based rehabilitation, reablement or recovery service arrangements still underway (Pathway 2)",
+      "value": 815.775,
+      "share": 0.06717869782041348,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting therapy review of need for supported discharge",
+      "value": 787.3291666666668,
+      "share": 0.06483619646679288,
+      "kind": "Other"
+     },
+     {
+      "group": "Social care",
+      "metric": "Capacity - Residential/nursing home care not yet available (Pathway 3)",
+      "value": 757.8916666666668,
+      "share": 0.06241203181711814,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Home-based rehabilitation, reablement or recovery services not yet available (Pathway 1)",
+      "value": 735.6958333333333,
+      "share": 0.06058421510249429,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Social care",
+      "metric": "Interface process - Other home-based social care service arrangements still underway (Pathway 1)",
+      "value": 595.1416666666667,
+      "share": 0.04900964381764242,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting referral to care transfer hub for supported discharge",
+      "value": 498.68333333333334,
+      "share": 0.04106634422245905,
+      "kind": "Other"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - Home based rehabilitation, reablement or recovery service arrangements still underway (Pathway 1)",
+      "value": 490.66249999999997,
+      "share": 0.040405832269079865,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Care transfer hub process- Awaiting necessary referrals by care transfer hub",
+      "value": 398.08750000000003,
+      "share": 0.03278232339625982,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting medicines to take home, discharge letter or other discharge documentation",
+      "value": 391.6375,
+      "share": 0.032251168848815154,
+      "kind": "Other"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting medical review of need for supported discharge",
+      "value": 365.1125,
+      "share": 0.030066847240912895,
+      "kind": "Other"
+     },
+     {
+      "group": "Social care",
+      "metric": "Capacity - Other home-based social care service not yet available (Pathway 1)",
+      "value": 336.15416666666664,
+      "share": 0.027682141746894557,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting formal decision to discharge (inc diagnostic test results)",
+      "value": 273.8125,
+      "share": 0.022548334034448184,
+      "kind": "Other"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Equipment and associated training not yet delivered (Pathway 1-3)",
+      "value": 253.32083333333333,
+      "share": 0.020860854664724128,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Interface process - Out of area discharge arrangements requested but not completed",
+      "value": 251.1208333333333,
+      "share": 0.020679685671797267,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Issues with discharge destination readiness",
+      "value": 218.32500000000002,
+      "share": 0.017978963809434922,
+      "kind": "Other"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - End of life care inc Fast-Track CHC not yet available (Pathway 1 or 3)",
+      "value": 201.72083333333333,
+      "share": 0.016611618285166854,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - End of life care inc Fast-Track CHC arrangement still underway (Pathway 1 or 3)",
+      "value": 179.89166666666665,
+      "share": 0.014813996402697493,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Awaiting determination of mental capacity",
+      "value": 174.0875,
+      "share": 0.014336025934615833,
+      "kind": "Other"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting patient transport services",
+      "value": 174.025,
+      "share": 0.014330879088225867,
+      "kind": "Other"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Ongoing safeguarding concern",
+      "value": 158.26666666666668,
+      "share": 0.013033187551768695,
+      "kind": "Other"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Patient /family/carer concerns over discharge readiness",
+      "value": 128.79166666666666,
+      "share": 0.010605934794259959,
+      "kind": "Other"
+     },
+     {
+      "group": "Social care",
+      "metric": "Interface process - Self-funded care package arrangements still underway",
+      "value": 127.97916666666667,
+      "share": 0.010539025791190381,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Social care",
+      "metric": "Capacity - Awaiting restart of existing social care arrangements (Pathway 0)",
+      "value": 126.86666666666667,
+      "share": 0.010447411925448959,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Care transfer hub process - Awaiting confirmation of funding eligibility",
+      "value": 92.60416666666667,
+      "share": 0.007625910734468704,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Housing",
+      "metric": "Interface process - Housing provision arrangement for homelessness still underway (Pathway 0 or 1)",
+      "value": 85.99166666666667,
+      "share": 0.007081374386410129,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Interface process - Patient/family/carer choice discussions on package still underway",
+      "value": 85.47916666666667,
+      "share": 0.0070391702460123945,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Mental health admitted patient care not yet available (Pathway 2)",
+      "value": 83.21666666666667,
+      "share": 0.0068528544066955655,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Interface process - Further action requested by agreed provider",
+      "value": 82.22500000000001,
+      "share": 0.006771191110641413,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Other home-based community health services not yet available (Pathway 1)",
+      "value": 81.36666666666666,
+      "share": 0.006700507753552523,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - Other home-based community health service arrangements still underway (Pathway 1)",
+      "value": 68.37916666666666,
+      "share": 0.00563099307371725,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Housing",
+      "metric": "Capacity - Housing adaptations not yet completed (Pathway 1 or 3)",
+      "value": 62.50833333333333,
+      "share": 0.005147532636152958,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Housing",
+      "metric": "Capacity - Housing provision not yet available (Pathway 0 or 1)",
+      "value": 61.25416666666666,
+      "share": 0.00504425258526094,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Remaining in hospital due to infection prevention and control restrictions",
+      "value": 36.4125,
+      "share": 0.002998552706795141,
+      "kind": "Other"
+     },
+     {
+      "group": "Housing",
+      "metric": "Interface process - Homeless with no recourse to public funds",
+      "value": 25.608333333333334,
+      "share": 0.00210883452751607,
+      "kind": "Arrangements under way"
+     }
+    ],
+    "byGroup": {
+     "Community health services": 0.32254943202834463,
+     "Social care": 0.22797818835124545,
+     "Hospital processes": 0.20809832260844918,
+     "Care transfer hubs and other joint processes": 0.15899878054052863,
+     "Patient, family and legal": 0.0629932823360918,
+     "Housing": 0.0193819941353401
+    },
+    "byGroupKind": {
+     "Care transfer hubs and other joint processes": {
+      "Arrangements under way": 0.15899878054052863,
+      "Other": 0.0,
+      "Service not available": 0.0
+     },
+     "Community health services": {
+      "Arrangements under way": 0.12802951956590808,
+      "Other": 0.0,
+      "Service not available": 0.19451991246243655
+     },
+     "Hospital processes": {
+      "Arrangements under way": 0.0,
+      "Other": 0.20809832260844918,
+      "Service not available": 0.0
+     },
+     "Housing": {
+      "Arrangements under way": 0.009190208913926199,
+      "Other": 0.0,
+      "Service not available": 0.0101917852214139
+     },
+     "Patient, family and legal": {
+      "Arrangements under way": 0.0070391702460123945,
+      "Other": 0.05595411209007941,
+      "Service not available": 0.0
+     },
+     "Social care": {
+      "Arrangements under way": 0.12743660286178382,
+      "Other": 0.0,
+      "Service not available": 0.10054158548946165
+     }
+    }
+   },
+   "14+": {
+    "months": [
+     "2025-10",
+     "2026-09"
+    ],
+    "rows": [
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Bed-based rehabilitation, reablement or recovery services not yet available (Pathway 2)",
+      "value": 800.1333333333333,
+      "share": 0.08884085702336494,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Care transfer hub process - Waiting for confirmation of immediate care needs and pathway",
+      "value": 763.5375,
+      "share": 0.08477752774888875,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Social care",
+      "metric": "Interface process - Residential/nursing home care arrangements still underway (Pathway 3)",
+      "value": 725.1958333333333,
+      "share": 0.08052035411986336,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Social care",
+      "metric": "Capacity - Residential/nursing home care not yet available (Pathway 3)",
+      "value": 680.3125,
+      "share": 0.07553684245589232,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - Bed-based rehabilitation, reablement or recovery service arrangements still underway (Pathway 2)",
+      "value": 633.4666666666667,
+      "share": 0.07033542938143758,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Home-based rehabilitation, reablement or recovery services not yet available (Pathway 1)",
+      "value": 499.7916666666667,
+      "share": 0.05549315114122973,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting therapy review of need for supported discharge",
+      "value": 486.0208333333333,
+      "share": 0.05396414018231547,
+      "kind": "Other"
+     },
+     {
+      "group": "Social care",
+      "metric": "Interface process - Other home-based social care service arrangements still underway (Pathway 1)",
+      "value": 441.9875,
+      "share": 0.04907500619931826,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting referral to care transfer hub for supported discharge",
+      "value": 332.96666666666664,
+      "share": 0.03697014334304251,
+      "kind": "Other"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - Home based rehabilitation, reablement or recovery service arrangements still underway (Pathway 1)",
+      "value": 329.7916666666667,
+      "share": 0.0366176149464638,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Care transfer hub process- Awaiting necessary referrals by care transfer hub",
+      "value": 285.53749999999997,
+      "share": 0.031703961271841025,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Social care",
+      "metric": "Capacity - Other home-based social care service not yet available (Pathway 1)",
+      "value": 255.3083333333333,
+      "share": 0.02834753933328645,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting medical review of need for supported discharge",
+      "value": 246.17916666666667,
+      "share": 0.02733390453419988,
+      "kind": "Other"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting medicines to take home, discharge letter or other discharge documentation",
+      "value": 234.0,
+      "share": 0.025981620409266038,
+      "kind": "Other"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Interface process - Out of area discharge arrangements requested but not completed",
+      "value": 201.725,
+      "share": 0.0223980443464068,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Equipment and associated training not yet delivered (Pathway 1-3)",
+      "value": 196.34583333333333,
+      "share": 0.021800781669263594,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting formal decision to discharge (inc diagnostic test results)",
+      "value": 181.78333333333333,
+      "share": 0.02018386992905019,
+      "kind": "Other"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Issues with discharge destination readiness",
+      "value": 177.00833333333333,
+      "share": 0.01965368942710897,
+      "kind": "Other"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - End of life care inc Fast-Track CHC not yet available (Pathway 1 or 3)",
+      "value": 156.73749999999998,
+      "share": 0.01740296679015955,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - End of life care inc Fast-Track CHC arrangement still underway (Pathway 1 or 3)",
+      "value": 135.85416666666666,
+      "share": 0.015084236706626052,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Awaiting determination of mental capacity",
+      "value": 129.65416666666667,
+      "share": 0.014395834798346356,
+      "kind": "Other"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Ongoing safeguarding concern",
+      "value": 114.97500000000001,
+      "share": 0.012765969258783602,
+      "kind": "Other"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Awaiting patient transport services",
+      "value": 111.625,
+      "share": 0.012394010163180862,
+      "kind": "Other"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Wellbeing concerns - Patient /family/carer concerns over discharge readiness",
+      "value": 102.72916666666667,
+      "share": 0.011406282962792988,
+      "kind": "Other"
+     },
+     {
+      "group": "Social care",
+      "metric": "Interface process - Self-funded care package arrangements still underway",
+      "value": 97.425,
+      "share": 0.010817347728088648,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Care transfer hub process - Awaiting confirmation of funding eligibility",
+      "value": 79.03333333333333,
+      "share": 0.008775273787801963,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Housing",
+      "metric": "Interface process - Housing provision arrangement for homelessness still underway (Pathway 0 or 1)",
+      "value": 75.60000000000001,
+      "share": 0.00839406197837826,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Patient, family and legal",
+      "metric": "Interface process - Patient/family/carer choice discussions on package still underway",
+      "value": 69.53333333333333,
+      "share": 0.007720464412212102,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Social care",
+      "metric": "Capacity - Awaiting restart of existing social care arrangements (Pathway 0)",
+      "value": 66.83749999999999,
+      "share": 0.007421139120103925,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Care transfer hubs and other joint processes",
+      "metric": "Interface process - Further action requested by agreed provider",
+      "value": 66.825,
+      "share": 0.007419751213030782,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Mental health admitted patient care not yet available (Pathway 2)",
+      "value": 62.25416666666666,
+      "share": 0.006912239859950923,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Capacity - Other home-based community health services not yet available (Pathway 1)",
+      "value": 60.99166666666667,
+      "share": 0.006772061245563323,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Housing",
+      "metric": "Capacity - Housing provision not yet available (Pathway 0 or 1)",
+      "value": 53.416666666666664,
+      "share": 0.005930989559237724,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Community health services",
+      "metric": "Interface process - Other home-based community health service arrangements still underway (Pathway 1)",
+      "value": 52.833333333333336,
+      "share": 0.005866220562490978,
+      "kind": "Arrangements under way"
+     },
+     {
+      "group": "Housing",
+      "metric": "Capacity - Housing adaptations not yet completed (Pathway 1 or 3)",
+      "value": 49.17083333333333,
+      "share": 0.005459563790059623,
+      "kind": "Service not available"
+     },
+     {
+      "group": "Hospital processes",
+      "metric": "Hospital process - Remaining in hospital due to infection prevention and control restrictions",
+      "value": 28.349999999999998,
+      "share": 0.003147773241891847,
+      "kind": "Other"
+     },
+     {
+      "group": "Housing",
+      "metric": "Interface process - Homeless with no recourse to public funds",
+      "value": 21.429166666666664,
+      "share": 0.002379335359060812,
+      "kind": "Arrangements under way"
+     }
+    ],
+    "byGroup": {
+     "Community health services": 0.32512555932655046,
+     "Social care": 0.25171822895655294,
+     "Hospital processes": 0.1799754618029468,
+     "Care transfer hubs and other joint processes": 0.15507455836796932,
+     "Patient, family and legal": 0.06594224085924402,
+     "Housing": 0.02216395068673642
+    },
+    "byGroupKind": {
+     "Care transfer hubs and other joint processes": {
+      "Arrangements under way": 0.15507455836796932,
+      "Other": 0.0,
+      "Service not available": 0.0
+     },
+     "Community health services": {
+      "Arrangements under way": 0.1279035015970184,
+      "Other": 0.0,
+      "Service not available": 0.19722205772953205
+     },
+     "Hospital processes": {
+      "Arrangements under way": 0.0,
+      "Other": 0.1799754618029468,
+      "Service not available": 0.0
+     },
+     "Housing": {
+      "Arrangements under way": 0.010773397337439072,
+      "Other": 0.0,
+      "Service not available": 0.011390553349297347
+     },
+     "Patient, family and legal": {
+      "Arrangements under way": 0.007720464412212102,
+      "Other": 0.05822177644703192,
+      "Service not available": 0.0
+     },
+     "Social care": {
+      "Arrangements under way": 0.14041270804727027,
+      "Other": 0.0,
+      "Service not available": 0.1113055209092827
+     }
+    }
+   }
+  },
+  "nctrMonthly": [
+   {
+    "month": "2024-06",
+    "value": 12178.666666666666
+   },
+   {
+    "month": "2024-07",
+    "value": 12325.935483870968
+   },
+   {
+    "month": "2024-08",
+    "value": 12097.09677419355
+   },
+   {
+    "month": "2024-09",
+    "value": 12516.533333333333
+   },
+   {
+    "month": "2024-10",
+    "value": 12340.0
+   },
+   {
+    "month": "2024-11",
+    "value": 12430.0
+   },
+   {
+    "month": "2024-12",
+    "value": 11991.387096774193
+   },
+   {
+    "month": "2025-01",
+    "value": 13688.064516129032
+   },
+   {
+    "month": "2025-02",
+    "value": 13717.285714285714
+   },
+   {
+    "month": "2025-03",
+    "value": 13580.677419354839
+   },
+   {
+    "month": "2025-04",
+    "value": 12740.2
+   },
+   {
+    "month": "2025-05",
+    "value": 12672.193548387097
+   },
+   {
+    "month": "2025-06",
+    "value": 12071.266666666666
+   },
+   {
+    "month": "2025-07",
+    "value": 12552.451612903225
+   },
+   {
+    "month": "2025-08",
+    "value": 12535.225806451614
+   },
+   {
+    "month": "2025-09",
+    "value": 12814.733333333334
+   },
+   {
+    "month": "2025-10",
+    "value": 13116.935483870968
+   },
+   {
+    "month": "2025-11",
+    "value": 13179.333333333334
+   },
+   {
+    "month": "2025-12",
+    "value": 12838.290322580646
+   },
+   {
+    "month": "2026-01",
+    "value": 13822.870967741936
+   },
+   {
+    "month": "2026-02",
+    "value": 13888.0
+   },
+   {
+    "month": "2026-03",
+    "value": 13553.806451612903
+   },
+   {
+    "month": "2026-04",
+    "value": 13611.666666666666
+   },
+   {
+    "month": "2026-05",
+    "value": 13291.161290322581
+   },
+   {
+    "month": "2026-06",
+    "value": 13617.766666666666
+   },
+   {
+    "month": "2026-07",
+    "value": 14054.451612903225
+   },
+   {
+    "month": "2026-08",
+    "value": 13832.741935483871
+   },
+   {
+    "month": "2026-09",
+    "value": 13646.633333333333
+   }
+  ]
+ },
+ "dtocResp": [
+  {
+   "fy": "2011/12",
+   "nhs": 2511.5,
+   "social_care": 1247.9166666666667,
+   "both": 299.0,
+   "total": 4058.4166666666665,
+   "months": 12
+  },
+  {
+   "fy": "2012/13",
+   "nhs": 2605.25,
+   "social_care": 1106.5833333333333,
+   "both": 262.8333333333333,
+   "total": 3974.6666666666665,
+   "months": 12
+  },
+  {
+   "fy": "2013/14",
+   "nhs": 2786.75,
+   "social_care": 1065.25,
+   "both": 249.16666666666666,
+   "total": 4101.166666666667,
+   "months": 12
+  },
+  {
+   "fy": "2014/15",
+   "nhs": 3177.5,
+   "social_care": 1242.5,
+   "both": 325.0833333333333,
+   "total": 4745.083333333333,
+   "months": 12
+  },
+  {
+   "fy": "2015/16",
+   "nhs": 3222.8333333333335,
+   "social_care": 1654.0,
+   "both": 369.4166666666667,
+   "total": 5246.25,
+   "months": 12
+  },
+  {
+   "fy": "2016/17",
+   "nhs": 3724.0,
+   "social_care": 2253.3333333333335,
+   "both": 509.5833333333333,
+   "total": 6486.916666666667,
+   "months": 12
+  }
+ ],
+ "acsc": [
+  {
+   "fy": "2008/09",
+   "emergency": 4640064.0,
+   "emergency_bed_days": 24362087.695886455,
+   "adm_Angina": 67998.0,
+   "adm_Asthma": 66864.0,
+   "adm_Atrial fibrillation": 55522.0,
+   "adm_Heart failure": 56626.0,
+   "adm_Epilepsy and convulsions": 77773.0,
+   "adm_COPD": 114527.0,
+   "adm_Dementia": 9618.0,
+   "adm_Diabetes": 38002.0,
+   "adm_Hypertension": 5797.0,
+   "adm_Iron deficiency and nutritional anaemia": 13293.0,
+   "acsc_emergency": 506020.0,
+   "acsc_bed_days": 3265034.3194581657,
+   "acsc_share_adm": 0.10905453028234094,
+   "acsc_share_bd": 0.13402112167954586
+  },
+  {
+   "fy": "2009/10",
+   "emergency": 4777416.0,
+   "emergency_bed_days": 24441783.273610517,
+   "adm_Angina": 63082.0,
+   "adm_Asthma": 62498.0,
+   "adm_Atrial fibrillation": 57047.0,
+   "adm_Heart failure": 56391.0,
+   "adm_Epilepsy and convulsions": 77812.0,
+   "adm_COPD": 108084.0,
+   "adm_Dementia": 9780.0,
+   "adm_Diabetes": 38965.0,
+   "adm_Hypertension": 6196.0,
+   "adm_Iron deficiency and nutritional anaemia": 14362.0,
+   "acsc_emergency": 494217.0,
+   "acsc_bed_days": 3131557.9544762247,
+   "acsc_share_adm": 0.10344860066613416,
+   "acsc_share_bd": 0.1281231373104158
+  },
+  {
+   "fy": "2010/11",
+   "emergency": 4900575.0,
+   "emergency_bed_days": 24136319.46090544,
+   "adm_Angina": 59452.0,
+   "adm_Asthma": 62238.0,
+   "adm_Atrial fibrillation": 57898.0,
+   "adm_Heart failure": 56108.0,
+   "adm_Epilepsy and convulsions": 79408.0,
+   "adm_COPD": 117573.0,
+   "adm_Dementia": 9889.0,
+   "adm_Diabetes": 39948.0,
+   "adm_Hypertension": 6335.0,
+   "adm_Iron deficiency and nutritional anaemia": 13841.0,
+   "acsc_emergency": 502690.0,
+   "acsc_bed_days": 3014297.043693141,
+   "acsc_share_adm": 0.10257775873239365,
+   "acsc_share_bd": 0.12488635844315528
+  },
+  {
+   "fy": "2011/12",
+   "emergency": 4859601.0,
+   "emergency_bed_days": 23347961.231932014,
+   "adm_Angina": 59706.0,
+   "adm_Asthma": 55259.0,
+   "adm_Atrial fibrillation": 58169.0,
+   "adm_Heart failure": 56953.0,
+   "adm_Epilepsy and convulsions": 79334.0,
+   "adm_COPD": 113508.0,
+   "adm_Dementia": 9505.0,
+   "adm_Diabetes": 39589.0,
+   "adm_Hypertension": 6629.0,
+   "adm_Iron deficiency and nutritional anaemia": 14489.0,
+   "acsc_emergency": 493141.0,
+   "acsc_bed_days": 2883261.032878384,
+   "acsc_share_adm": 0.10147767275543815,
+   "acsc_share_bd": 0.12349091230008856
+  },
+  {
+   "fy": "2012/13",
+   "emergency": 4979774.0,
+   "emergency_bed_days": 23569660.87797615,
+   "adm_Angina": 57831.0,
+   "adm_Asthma": 62840.0,
+   "adm_Atrial fibrillation": 58757.0,
+   "adm_Heart failure": 59151.0,
+   "adm_Epilepsy and convulsions": 78400.0,
+   "adm_COPD": 122635.0,
+   "adm_Dementia": 10429.0,
+   "adm_Diabetes": 39467.0,
+   "adm_Hypertension": 7543.0,
+   "adm_Iron deficiency and nutritional anaemia": 15136.0,
+   "acsc_emergency": 512189.0,
+   "acsc_bed_days": 2999485.3860258334,
+   "acsc_share_adm": 0.10285386445248318,
+   "acsc_share_bd": 0.12726043881389054
+  },
+  {
+   "fy": "2013/14",
+   "emergency": 5053610.0,
+   "emergency_bed_days": 23547942.324877057,
+   "adm_Angina": 57554.0,
+   "adm_Asthma": 58087.0,
+   "adm_Atrial fibrillation": 59651.0,
+   "adm_Heart failure": 60338.0,
+   "adm_Epilepsy and convulsions": 78013.0,
+   "adm_COPD": 118986.0,
+   "adm_Dementia": 9454.0,
+   "adm_Diabetes": 39434.0,
+   "adm_Hypertension": 8910.0,
+   "adm_Iron deficiency and nutritional anaemia": 15802.0,
+   "acsc_emergency": 506229.0,
+   "acsc_bed_days": 2848844.9070268758,
+   "acsc_share_adm": 0.10017175840636694,
+   "acsc_share_bd": 0.12098063039746933
+  },
+  {
+   "fy": "2014/15",
+   "emergency": 5245872.0,
+   "emergency_bed_days": 24328705.748671398,
+   "adm_Angina": 39929.0,
+   "adm_Asthma": 66318.0,
+   "adm_Atrial fibrillation": 60953.0,
+   "adm_Heart failure": 65316.0,
+   "adm_Epilepsy and convulsions": 77759.0,
+   "adm_COPD": 129542.0,
+   "adm_Dementia": 9935.0,
+   "adm_Diabetes": 40861.0,
+   "adm_Hypertension": 9862.0,
+   "adm_Iron deficiency and nutritional anaemia": 16869.0,
+   "acsc_emergency": 517344.0,
+   "acsc_bed_days": 2830780.7442519884,
+   "acsc_share_adm": 0.09861925719880317,
+   "acsc_share_bd": 0.1163555831327599
+  },
+  {
+   "fy": "2015/16",
+   "emergency": 5385059.0,
+   "emergency_bed_days": 24203052.917801037,
+   "adm_Angina": 38789.0,
+   "adm_Asthma": 64017.0,
+   "adm_Atrial fibrillation": 62660.0,
+   "adm_Heart failure": 70308.0,
+   "adm_Epilepsy and convulsions": 77135.0,
+   "adm_COPD": 130816.0,
+   "adm_Dementia": 9350.0,
+   "adm_Diabetes": 43766.0,
+   "adm_Hypertension": 11893.0,
+   "adm_Iron deficiency and nutritional anaemia": 18800.0,
+   "acsc_emergency": 527534.0,
+   "acsc_bed_days": 2767930.858083805,
+   "acsc_share_adm": 0.09796252928705144,
+   "acsc_share_bd": 0.11436288089293178
+  },
+  {
+   "fy": "2016/17",
+   "emergency": 5496784.0,
+   "emergency_bed_days": 24780731.289904386,
+   "adm_Angina": 37649.0,
+   "adm_Asthma": 66443.0,
+   "adm_Atrial fibrillation": 62903.0,
+   "adm_Heart failure": 71923.0,
+   "adm_Epilepsy and convulsions": 73731.0,
+   "adm_COPD": 135529.0,
+   "adm_Dementia": 8985.0,
+   "adm_Diabetes": 45663.0,
+   "adm_Hypertension": 13696.0,
+   "adm_Iron deficiency and nutritional anaemia": 20658.0,
+   "acsc_emergency": 537180.0,
+   "acsc_bed_days": 2735330.885983101,
+   "acsc_share_adm": 0.09772623410343212,
+   "acsc_share_bd": 0.11038136259915254
+  },
+  {
+   "fy": "2017/18",
+   "emergency": 5606696.0,
+   "emergency_bed_days": 24179806.95494284,
+   "adm_Angina": 37028.0,
+   "adm_Asthma": 65353.0,
+   "adm_Atrial fibrillation": 63592.0,
+   "adm_Heart failure": 75091.0,
+   "adm_Epilepsy and convulsions": 74571.0,
+   "adm_COPD": 138047.0,
+   "adm_Dementia": 8734.0,
+   "adm_Diabetes": 47283.0,
+   "adm_Hypertension": 15794.0,
+   "adm_Iron deficiency and nutritional anaemia": 22743.0,
+   "acsc_emergency": 548236.0,
+   "acsc_bed_days": 2638220.5126874573,
+   "acsc_share_adm": 0.0977823659424374,
+   "acsc_share_bd": 0.10910841916991201
+  },
+  {
+   "fy": "2018/19",
+   "emergency": 6031656.0,
+   "emergency_bed_days": 24595480.331820346,
+   "adm_Angina": 39224.0,
+   "adm_Asthma": 66996.0,
+   "adm_Atrial fibrillation": 67286.0,
+   "adm_Heart failure": 77202.0,
+   "adm_Epilepsy and convulsions": 77333.0,
+   "adm_COPD": 139853.0,
+   "adm_Dementia": 8958.0,
+   "adm_Diabetes": 49360.0,
+   "adm_Hypertension": 19424.0,
+   "adm_Iron deficiency and nutritional anaemia": 26800.0,
+   "acsc_emergency": 572436.0,
+   "acsc_bed_days": 2616632.518990887,
+   "acsc_share_adm": 0.09490527974407029,
+   "acsc_share_bd": 0.10638672161265436
+  },
+  {
+   "fy": "2019/20",
+   "emergency": 6107622.0,
+   "emergency_bed_days": 24938890.29926415,
+   "adm_Angina": 38463.0,
+   "adm_Asthma": 66096.0,
+   "adm_Atrial fibrillation": 68784.0,
+   "adm_Heart failure": 84110.0,
+   "adm_Epilepsy and convulsions": 75124.0,
+   "adm_COPD": 142980.0,
+   "adm_Dementia": 8786.0,
+   "adm_Diabetes": 51708.0,
+   "adm_Hypertension": 22293.0,
+   "adm_Iron deficiency and nutritional anaemia": 29640.0,
+   "acsc_emergency": 587984.0,
+   "acsc_bed_days": 2689424.1291625826,
+   "acsc_share_adm": 0.09627052885722136,
+   "acsc_share_bd": 0.1078405693633424
+  },
+  {
+   "fy": "2020/21",
+   "emergency": 5076356.0,
+   "emergency_bed_days": 20978498.215858407,
+   "adm_Angina": 35809.0,
+   "adm_Asthma": 30944.0,
+   "adm_Atrial fibrillation": 61808.0,
+   "adm_Heart failure": 74341.0,
+   "adm_Epilepsy and convulsions": 64602.0,
+   "adm_COPD": 79362.0,
+   "adm_Dementia": 7687.0,
+   "adm_Diabetes": 49071.0,
+   "adm_Hypertension": 22593.0,
+   "adm_Iron deficiency and nutritional anaemia": 31172.0,
+   "acsc_emergency": 457389.0,
+   "acsc_bed_days": 1898035.9239303137,
+   "acsc_share_adm": 0.0901018368294107,
+   "acsc_share_bd": 0.09047530020502229
+  },
+  {
+   "fy": "2021/22",
+   "emergency": 5921048.0,
+   "emergency_bed_days": 23947582.987453252,
+   "adm_Angina": 36526.0,
+   "adm_Asthma": 48777.0,
+   "adm_Atrial fibrillation": 68393.0,
+   "adm_Heart failure": 88812.0,
+   "adm_Epilepsy and convulsions": 70287.0,
+   "adm_COPD": 110161.0,
+   "adm_Dementia": 7477.0,
+   "adm_Diabetes": 54215.0,
+   "adm_Hypertension": 30321.0,
+   "adm_Iron deficiency and nutritional anaemia": 40905.0,
+   "acsc_emergency": 555874.0,
+   "acsc_bed_days": 2502253.7720769583,
+   "acsc_share_adm": 0.09388101565803891,
+   "acsc_share_bd": 0.10448878174419325
+  },
+  {
+   "fy": "2022/23",
+   "emergency": 5783467.0,
+   "emergency_bed_days": 26188278.70484964,
+   "adm_Angina": 31135.0,
+   "adm_Asthma": 50961.0,
+   "adm_Atrial fibrillation": 62118.0,
+   "adm_Heart failure": 85033.0,
+   "adm_Epilepsy and convulsions": 65059.0,
+   "adm_COPD": 116595.0,
+   "adm_Dementia": 6020.0,
+   "adm_Diabetes": 52975.0,
+   "adm_Hypertension": 31946.0,
+   "adm_Iron deficiency and nutritional anaemia": 41882.0,
+   "acsc_emergency": 543724.0,
+   "acsc_bed_days": 2651067.762009758,
+   "acsc_share_adm": 0.09401350435646992,
+   "acsc_share_bd": 0.10123108096901472
+  },
+  {
+   "fy": "2023/24",
+   "emergency": 6238352.0,
+   "emergency_bed_days": 28227278.875152428,
+   "adm_Angina": 34858.0,
+   "adm_Asthma": 61119.0,
+   "adm_Atrial fibrillation": 67843.0,
+   "adm_Heart failure": 90996.0,
+   "adm_Epilepsy and convulsions": 68627.0,
+   "adm_COPD": 129394.0,
+   "adm_Dementia": 6170.0,
+   "adm_Diabetes": 55884.0,
+   "adm_Hypertension": 40441.0,
+   "adm_Iron deficiency and nutritional anaemia": 45302.0,
+   "acsc_emergency": 600634.0,
+   "acsc_bed_days": 2774946.676673961,
+   "acsc_share_adm": 0.09628087674437096,
+   "acsc_share_bd": 0.09830726826157721
+  },
+  {
+   "fy": "2024/25",
+   "emergency": 6333419.0,
+   "emergency_bed_days": 28853865.01658693,
+   "adm_Angina": 33709.0,
+   "adm_Asthma": 58311.0,
+   "adm_Atrial fibrillation": 65095.0,
+   "adm_Heart failure": 88263.0,
+   "adm_Epilepsy and convulsions": 68105.0,
+   "adm_COPD": 127626.0,
+   "adm_Dementia": 5606.0,
+   "adm_Diabetes": 55948.0,
+   "adm_Hypertension": 41045.0,
+   "adm_Iron deficiency and nutritional anaemia": 41632.0,
+   "acsc_emergency": 585340.0,
+   "acsc_bed_days": 2657167.3628576607,
+   "acsc_share_adm": 0.09242085514948561,
+   "acsc_share_bd": 0.09209051755562597
+  }
+ ],
+ "demand": [
+  {
+   "fy": "2011/12",
+   "n": 12,
+   "attend_type1": 14095072.714285715,
+   "attend_all": 21605067.285714284,
+   "adm_via_type1": 3605637.0,
+   "adm_emergency": 5119723.571428572,
+   "adm_not_via_ae": 1435692.0,
+   "population": 53107169,
+   "pop75": 4137496,
+   "attend_type1_per1000": 265.40809799682063,
+   "attend_all_per1000": 406.82016557339523,
+   "adm_via_type1_per1000": 67.89360208600085,
+   "adm_emergency_per1000": 96.4036243662051,
+   "adm_not_via_ae_per1000": 27.033864298057388,
+   "type1_conversion": 0.2558083291294833
+  },
+  {
+   "fy": "2012/13",
+   "n": 12,
+   "attend_type1": 14293618.142857144,
+   "attend_all": 21802377.42857143,
+   "adm_via_type1": 3737532.714285714,
+   "adm_emergency": 5214510.0,
+   "adm_not_via_ae": 1422529.142857143,
+   "population": 53506812,
+   "pop75": 4206039,
+   "attend_type1_per1000": 267.1364188705009,
+   "attend_all_per1000": 407.46919155959864,
+   "adm_via_type1_per1000": 69.85153057307384,
+   "adm_emergency_per1000": 97.45506796405661,
+   "adm_not_via_ae_per1000": 26.58594466172163,
+   "type1_conversion": 0.2614826195111031
+  },
+  {
+   "fy": "2013/14",
+   "n": 12,
+   "attend_type1": 14254974.714285713,
+   "attend_all": 21842944.85714286,
+   "adm_via_type1": 3803930.0,
+   "adm_emergency": 5288080.285714285,
+   "adm_not_via_ae": 1440507.8571428573,
+   "population": 53918686,
+   "pop75": 4268594,
+   "attend_type1_per1000": 264.3791192219653,
+   "attend_all_per1000": 405.1089979667319,
+   "adm_via_type1_per1000": 70.54938245342255,
+   "adm_emergency_per1000": 98.0750956303773,
+   "adm_not_via_ae_per1000": 26.71630123076177,
+   "type1_conversion": 0.2668492983146345
+  },
+  {
+   "fy": "2014/15",
+   "n": 12,
+   "attend_type1": 14623471.857142856,
+   "attend_all": 22416140.571428567,
+   "adm_via_type1": 3979079.2857142854,
+   "adm_emergency": 5497522.714285714,
+   "adm_not_via_ae": 1466061.4285714284,
+   "population": 54370319,
+   "pop75": 4354960,
+   "attend_type1_per1000": 268.96056756891306,
+   "attend_all_per1000": 412.2863537259836,
+   "adm_via_type1_per1000": 73.18476990569589,
+   "adm_emergency_per1000": 101.11257052373949,
+   "adm_not_via_ae_per1000": 26.96437055245948,
+   "type1_conversion": 0.2721022288404582
+  },
+  {
+   "fy": "2015/16",
+   "n": 12,
+   "attend_type1": 14968636.42857143,
+   "attend_all": 22930103.000000004,
+   "adm_via_type1": 4082613.7142857146,
+   "adm_emergency": 5656122.0,
+   "adm_not_via_ae": 1510296.7142857143,
+   "population": 54808676,
+   "pop75": 4397753,
+   "attend_type1_per1000": 273.10706116256904,
+   "attend_all_per1000": 418.36630025509106,
+   "adm_via_type1_per1000": 74.48845716115665,
+   "adm_emergency_per1000": 103.19756675019845,
+   "adm_not_via_ae_per1000": 27.555796353951596,
+   "type1_conversion": 0.2727445304565627
+  },
+  {
+   "fy": "2016/17",
+   "n": 12,
+   "attend_type1": 15262758.0,
+   "attend_all": 23362301.0,
+   "adm_via_type1": 4204184.0,
+   "adm_emergency": 5800183.0,
+   "adm_not_via_ae": 1536907.0,
+   "population": 55289034,
+   "pop75": 4433241,
+   "attend_type1_per1000": 276.05398206089114,
+   "attend_all_per1000": 422.5485473303802,
+   "adm_via_type1_per1000": 76.04010589152271,
+   "adm_emergency_per1000": 104.90657152736652,
+   "adm_not_via_ae_per1000": 27.797682267337137,
+   "type1_conversion": 0.27545375481941076
+  },
+  {
+   "fy": "2017/18",
+   "n": 12,
+   "attend_type1": 15372467.0,
+   "attend_all": 23830120.0,
+   "adm_via_type1": 4402439.0,
+   "adm_emergency": 6016526.0,
+   "adm_not_via_ae": 1552360.0,
+   "population": 55619548,
+   "pop75": 4492265,
+   "attend_type1_per1000": 276.38604686251676,
+   "attend_all_per1000": 428.448645429481,
+   "adm_via_type1_per1000": 79.15272882116913,
+   "adm_emergency_per1000": 108.17286756807157,
+   "adm_not_via_ae_per1000": 27.910331094384297,
+   "type1_conversion": 0.28638467722845007
+  },
+  {
+   "fy": "2018/19",
+   "n": 12,
+   "attend_type1": 15679999.0,
+   "attend_all": 24826982.0,
+   "adm_via_type1": 4690148.0,
+   "adm_emergency": 6369153.0,
+   "adm_not_via_ae": 1602711.0,
+   "population": 55924528,
+   "pop75": 4580642,
+   "attend_type1_per1000": 280.3778513785579,
+   "attend_all_per1000": 443.93726487955337,
+   "adm_via_type1_per1000": 83.86566981843816,
+   "adm_emergency_per1000": 113.88836397510588,
+   "adm_not_via_ae_per1000": 28.65846270530884,
+   "type1_conversion": 0.2991166007089669
+  },
+  {
+   "fy": "2019/20",
+   "n": 12,
+   "attend_type1": 15810686.0,
+   "attend_all": 25017116.0,
+   "adm_via_type1": 4730290.0,
+   "adm_emergency": 6405933.0,
+   "adm_not_via_ae": 1586763.0,
+   "population": 56230056,
+   "pop75": 4719178,
+   "attend_type1_per1000": 281.1785568913536,
+   "attend_all_per1000": 444.90647492863957,
+   "adm_via_type1_per1000": 84.12387140428955,
+   "adm_emergency_per1000": 113.923646101295,
+   "adm_not_via_ae_per1000": 28.219125373092282,
+   "type1_conversion": 0.2991830967992154
+  },
+  {
+   "fy": "2020/21",
+   "n": 12,
+   "attend_type1": 12287284.0,
+   "attend_all": 17429559.0,
+   "adm_via_type1": 4085175.0,
+   "adm_emergency": 5357866.0,
+   "adm_not_via_ae": 1214170.0,
+   "population": 56325961,
+   "pop75": 4795524,
+   "attend_type1_per1000": 218.1460161860354,
+   "attend_all_per1000": 309.44095210377327,
+   "adm_via_type1_per1000": 72.52739105507672,
+   "adm_emergency_per1000": 95.12249600144416,
+   "adm_not_via_ae_per1000": 21.55613465698348,
+   "type1_conversion": 0.3324717651191264
+  },
+  {
+   "fy": "2021/22",
+   "n": 12,
+   "attend_type1": 16137559.0,
+   "attend_all": 24374967.0,
+   "adm_via_type1": 4564832.0,
+   "adm_emergency": 6114952.0,
+   "adm_not_via_ae": 1465792.0,
+   "population": 56554891,
+   "pop75": 4901431,
+   "attend_type1_per1000": 285.34329594941664,
+   "attend_all_per1000": 430.99662237877885,
+   "adm_via_type1_per1000": 80.71507024918499,
+   "adm_emergency_per1000": 108.12419389155926,
+   "adm_not_via_ae_per1000": 25.91804128841836,
+   "type1_conversion": 0.2828700424890778
+  },
+  {
+   "fy": "2022/23",
+   "n": 12,
+   "attend_type1": 16202978.0,
+   "attend_all": 25348842.0,
+   "adm_via_type1": 4363544.0,
+   "adm_emergency": 6020665.0,
+   "adm_not_via_ae": 1571814.0,
+   "population": 57189701,
+   "pop75": 5149469,
+   "attend_type1_per1000": 283.3198585878251,
+   "attend_all_per1000": 443.2413801219209,
+   "adm_via_type1_per1000": 76.29947217244587,
+   "adm_emergency_per1000": 105.27533620083099,
+   "adm_not_via_ae_per1000": 27.484214334325685,
+   "type1_conversion": 0.26930506231632234
+  },
+  {
+   "fy": "2023/24",
+   "n": 12,
+   "attend_type1": 16525835.0,
+   "attend_all": 26321069.0,
+   "adm_via_type1": 4702898.0,
+   "adm_emergency": 6410632.0,
+   "adm_not_via_ae": 1632929.0,
+   "population": 57990791,
+   "pop75": 5319034,
+   "attend_type1_per1000": 284.9734365582287,
+   "attend_all_per1000": 453.8836002426661,
+   "adm_via_type1_per1000": 81.09732457348271,
+   "adm_emergency_per1000": 110.54568991824927,
+   "adm_not_via_ae_per1000": 28.158419153137608,
+   "type1_conversion": 0.2845785402068942
+  },
+  {
+   "fy": "2024/25",
+   "n": 12,
+   "attend_type1": 16763266.0,
+   "attend_all": 27367598.0,
+   "adm_via_type1": 4800540.0,
+   "adm_emergency": 6522815.0,
+   "adm_not_via_ae": 1651600.0,
+   "population": 58607170,
+   "pop75": 5473319,
+   "attend_type1_per1000": 286.0275628391543,
+   "attend_all_per1000": 466.96672096605243,
+   "adm_via_type1_per1000": 81.91045566609,
+   "adm_emergency_per1000": 111.29721841201341,
+   "adm_not_via_ae_per1000": 28.18085227455958,
+   "type1_conversion": 0.28637259588913044
+  },
+  {
+   "fy": "2025/26",
+   "n": 12,
+   "attend_type1": 17121495.0,
+   "attend_all": 27976025.0,
+   "adm_via_type1": 4741001.0,
+   "adm_emergency": 6451147.0,
+   "adm_not_via_ae": 1632324.0,
+   "population": 58834812,
+   "pop75": 5605761,
+   "attend_type1_per1000": 291.0095981950278,
+   "attend_all_per1000": 475.50122196362247,
+   "adm_via_type1_per1000": 80.5815611342482,
+   "adm_emergency_per1000": 109.64846798524655,
+   "adm_not_via_ae_per1000": 27.744186554042187,
+   "type1_conversion": 0.2769034479757755
+  }
+ ]
+}

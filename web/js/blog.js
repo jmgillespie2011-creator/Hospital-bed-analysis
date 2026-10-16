@@ -430,6 +430,163 @@ async function main() {
     stat("Beds to stand still by 2035", int(F.noChange), `${signed(F.noChange - sc.baseBeds, int)}, occupancy held at ${pct(F.target)}`) +
     stat("…with both policy packages", int(F.withPackages), `${signed(F.withPackages - sc.baseBeds, int)} on ${BY}`) +
     stat("Beds for 85% occupancy in 2035", int(F.at85in2035), `${signed(F.at85in2035 - sc.baseBeds, int)} on ${BY}`);
+
+  // ---------------------------------------------------------------- 3. who is to blame (scripts/hypotheses_*.{py,mjs})
+  const [HM, HD, HT] = await Promise.all(["data/hypotheses_model.json", "data/hypotheses_data.json", "data/hypotheses_tests.json"]
+    .map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  if (HM && HD) renderBlame(HM, HD, HT, { BLUE, ORANGE, GREY, TEAL: css("--series-c"), PURPLE: css("--series-d"), BY });
+}
+
+function renderBlame(HM, HD, HT, C) {
+  const pp = (x, d = 1) => signed(100 * x, (v) => v.toFixed(d)) + " pts";
+  const ap = (x, d = 1) => Math.abs(100 * x).toFixed(d) + " points";             // unsigned, for sentences
+  const r1k = (x) => int(1000 * Math.round(Math.abs(x) / 1000));
+  const kk = (x) => signed(x / 1000, (v) => v.toFixed(0) + "k");
+  const HYP = { "Social care": C.ORANGE, "Community health services": C.TEAL, "General practice": C.PURPLE, "Hospital flow and management": C.BLUE,
+    "All discharge delays": C.GREY, Beds: C.GREY };
+  const hbar = (xTitle, fmt, extra = {}) => ({ indexAxis: "y", responsive: true, maintainAspectRatio: false, animation: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { title: (c) => c[0].label.replaceAll(",", " "), label: (c) => fmt(c.parsed.x, c) } } },
+    scales: { x: { title: { display: true, text: xTitle }, ticks: { maxRotation: 0, maxTicksLimit: 7 }, grid: { color: (c) => (c.tick.value === 0 ? css("--text-3") : css("--grid")) } },
+      y: { grid: { display: false }, ticks: { autoSkip: false } } }, ...extra });
+  fill("hmFrom", HM.from);
+
+  // what changed
+  const S = HM.shapley, tot = HM.end.wait12 - HM.start.wait12, sh = (id) => S.find((x) => x.id === id);
+  new Chart($("cDecomp"), { type: "bar", data: { labels: S.map((x) => wrap(x.label, 30)), datasets: [{ data: S.map((x) => 100 * x.wait12),
+    backgroundColor: S.map((x) => (x.id === "flex" ? C.BLUE : x.wait12 > 0 ? C.ORANGE : C.GREY)), borderRadius: 4, borderSkipped: false, barPercentage: 0.8 }] },
+    options: hbar("Change in share waiting over 12 hours, percentage points", (v) => signed(v, (z) => z.toFixed(2)) + " pts") });
+  $("tDecomp").innerHTML = table(["Change", "Occupancy", "12-hour waits (share)", "12-hour waits a year"],
+    [...S.map((x) => [esc(x.label), pp(x.occupancy), pp(x.wait12, 2), kk(x.wait12PerYear)]),
+      ["<b>Total</b>", pp(HM.end.occupancy - HM.start.occupancy), pp(tot, 2), kk(HM.end.wait12PerYear - HM.start.wait12PerYear)]], [1, 2, 3]);
+  const flowNet = ["demand", "beds", "stays", "sameDay"].reduce((a, id) => a + sh(id).wait12, 0);
+  $("decompText").innerHTML = `In the simulator, 12-hour waits rose from ${pct(HM.start.wait12)} of emergency admissions in ${HM.from} to
+    ${pct(HM.end.wait12)} today. Longer stays for patients admitted overnight pushed them up by ${ap(sh("stays").wait12)}, but more patients going home the
+    same day pulled them down by almost as much (${ap(sh("sameDay").wait12)}). More patients added ${ap(sh("demand").wait12)}; slightly more beds took off
+    ${ap(sh("beds").wait12)}. Together, the four changes in patients and beds add only ${ap(flowNet)}. The rest, <b>${ap(sh("flex").wait12)}, or
+    ${pct(sh("flex").wait12 / tot, 0)} of the rise</b>, comes from beds being used less flexibly: the same occupancy now produces far longer waits.
+    Flexibility is not measured directly. It is what the simulator needs, once patients and beds are accounted for, to match each year's waits,
+    so it stands for everything else that changed. That is where the three explanations have to be tested.`;
+
+  // social care
+  const R = HD.delays.reasons["7+"], G = R.byGroup, gk = R.byGroupKind;
+  fill("drMonths", `${R.months[0]} to ${R.months[1]}`);
+  const nctr = HD.delays.nctrMonthly.slice(-12), nctrMean = nctr.reduce((a, r) => a + r.value, 0) / nctr.length;
+  const dtoc = HD.dtocResp, d0 = dtoc[dtoc.length - 1];
+  $("scText1").innerHTML = `On an average day, about ${int(nctrMean)} patients in England's acute hospitals no longer need to be there but have not
+    left (acute discharge sitrep, last 12 months). That is about one bed in seven. The common story is that they are waiting for social care. Since
+    2024 NHS England has published the reason for every patient delayed a week or more. Social care, meaning a care home place, home care or
+    restarting a care package, accounts for <b>${pct(G["Social care"], 0)}</b> of them. NHS community services (rehabilitation, reablement,
+    community beds, end-of-life care) account for <b>${pct(G["Community health services"], 0)}</b>, and the hospital's own processes for
+    <b>${pct(G["Hospital processes"], 0)}</b>.`;
+  const order = Object.keys(gk).sort((a, b) => (G[b] || 0) - (G[a] || 0));
+  const kinds = [["Service not available", C.ORANGE], ["Arrangements under way", C.BLUE], ["Other", C.GREY]];
+  legend("lDelay", kinds.map(([k2, c]) => [k2 === "Other" ? "Hospital, family or legal reasons" : k2, c]));
+  new Chart($("cDelay"), { type: "bar", data: { labels: order.map((g) => wrap(g, 28)), datasets: kinds.map(([k2, c]) => ({ label: k2, data: order.map((g) => 100 * (gk[g][k2] || 0)),
+    backgroundColor: c, borderRadius: 4, borderSkipped: false, barPercentage: 0.8 })) },
+    options: { ...hbar("% of patients delayed 7+ days", (v, c) => `${c.dataset.label}: ${v.toFixed(1)}%`),
+      scales: { x: { stacked: true, title: { display: true, text: "% of patients delayed 7+ days" }, grid: { color: css("--grid") } }, y: { stacked: true, grid: { display: false }, ticks: { autoSkip: false } } } } });
+  $("tDelay").innerHTML = table(["Reason", "Who has to act", "Patients (average)", "Share"], R.rows.map((r) => [esc(r.metric), esc(r.group), int(r.value), pct(r.share)]), [2, 3]);
+  $("scText2").innerHTML = `So social care is a real part of the problem but not most of it: the NHS's own community services hold up more patients,
+    and hospitals' internal processes (waiting for a discharge decision, medicines, letters, a therapy review or transport) almost as many.
+    ${dtoc.length ? `The older measure, delayed transfers of care (${dtoc[0].fy} to ${d0.fy}), told a similar story: delays attributed to the NHS were
+    ${pct(d0.nhs / d0.total, 0)} of the total in ${d0.fy}, social care ${pct(d0.social_care / d0.total, 0)} and both ${pct(d0.both / d0.total, 0)}.` : ""}`;
+  const sc1 = HM.scenarios.find((x) => x.id === "socialCare"), sc2 = HM.scenarios.find((x) => x.id === "socialJoint");
+  const T = HT && HT.trustDelays;
+  if (T) {
+    fill("tdN", `${T.trusts} acute trusts, ${T.months[0]} to ${T.months[1]}`);
+    const lab = { sc: "Social care", ch: "Community health services", hp: "Hospital processes", jt: "Care transfer hubs and other joint processes" };
+    const ks = ["sc", "ch", "hp", "jt"], col = { sc: C.ORANGE, ch: C.TEAL, hp: C.BLUE, jt: C.GREY };
+    legend("lTd", [["Estimate", C.GREY], ["95% confidence interval", C.GREY, true]]);
+    const W = T.withinBeyondOcc;
+    new Chart($("cTd"), { type: "bar", data: { labels: ks.map((x2) => wrap(lab[x2], 28)), datasets: [
+      { label: "95% interval", data: ks.map((x2) => [W[x2].lo, W[x2].hi]), backgroundColor: ks.map((x2) => col[x2] + "55"), borderColor: ks.map((x2) => col[x2]), borderWidth: 1, borderSkipped: false, barPercentage: 0.5, grouped: false },
+      { label: "Estimate", data: ks.map((x2) => W[x2].est), type: "scatter", pointStyle: "rectRot", pointRadius: 7, backgroundColor: ks.map((x2) => col[x2]), borderColor: css("--surface"), borderWidth: 2 }] },
+      options: hbar("% change in 12-hour waits per extra delayed patient per 100 beds", (v, c) => (Array.isArray(c.raw) ? `95% interval ${c.raw[0].toFixed(1)}% to ${c.raw[1].toFixed(1)}%` : `${v.toFixed(1)}%`)) });
+    $("tTd").innerHTML = table(["Delays for", "Within trusts, beyond occupancy", "Within trusts, total", "Between trusts, beyond occupancy", "Average per 100 beds"],
+      ks.map((x2) => { const f = (o) => (o && o[x2] ? `${signed(o[x2].est, (v) => v.toFixed(1))}% (${o[x2].lo.toFixed(1)} to ${o[x2].hi.toFixed(1)}), p=${o[x2].p.toFixed(3)}` : ""); return [lab[x2], f(T.withinBeyondOcc), f(T.withinTotal), f(T.betweenBeyondOcc), T.meanPer100[x2].toFixed(2)]; }), [1, 2, 3, 4]);
+    const sig = (o) => o.p < 0.05;
+    $("scText3").innerHTML = `If social care delays drove long waits, months in which a hospital had more patients stuck waiting for social care should
+      also be months with more 12-hour waits. They are not: ${signed(W.sc.est, (v) => v.toFixed(1))}% per extra delayed patient per 100 beds (95% interval
+      ${signed(W.sc.lo, (v) => v.toFixed(1))}% to ${signed(W.sc.hi, (v) => v.toFixed(1))}%). Delays from <b>hospital processes</b> do track waits: ${W.hp.est.toFixed(1)}% more per extra patient
+      per 100 beds${sig(W.hp) ? " (statistically clear)" : ""}, and delays for NHS community services ${W.ch.est.toFixed(1)}%${sig(W.ch) ? " (just significant)" : ""}. Between trusts
+      the pattern is similar: hospitals with more process delays have ${T.betweenBeyondOcc.hp.est.toFixed(0)}% more 12-hour waits per extra patient per 100 beds
+      at the same occupancy (p ${T.betweenBeyondOcc.hp.p < 0.001 ? "< 0.001" : "= " + T.betweenBeyondOcc.hp.p.toFixed(3)}), against ${T.betweenBeyondOcc.sc.est.toFixed(0)}% for social care delays
+      (p = ${T.betweenBeyondOcc.sc.p.toFixed(2)}). This is an association: a hospital under
+      pressure may also be slower to process discharges. In the simulator, removing every delay caused by social care would free about
+      ${r1k(sc1.dBeds)} beds and cut 12-hour waits by about ${r1k(sc1.dWait12PerYear)} a year; adding the joint care-transfer-hub delays, about ${r1k(sc2.dBeds)} beds
+      and ${r1k(sc2.dWait12PerYear)}. That is worth having, but it would not undo the rise since ${HM.from}.`;
+  }
+
+  // general practice
+  const D = HD.demand, dmB = D.find((r) => r.fy === "2011/12") || D[0], d19 = D.find((r) => r.fy === "2019/20"), dN = D[D.length - 1];
+  fill("dmBase", dmB.fy);
+  const idx = (r, k2) => 100 * r[k2] / dmB[k2];
+  legend("lDemand", [["All A&E attendances", C.PURPLE], ["Major (type 1) A&E attendances", C.PURPLE, true], ["Emergency admissions", C.BLUE]]);
+  new Chart($("cDemand"), { type: "line", data: { labels: D.map((r) => r.fy), datasets: [
+    { label: "All A&E attendances", data: D.map((r) => idx(r, "attend_all_per1000")), borderColor: C.PURPLE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: C.PURPLE },
+    { label: "Major A&E attendances", data: D.map((r) => idx(r, "attend_type1_per1000")), borderColor: C.PURPLE, borderDash: [5, 4], borderWidth: 2, pointRadius: 2, pointBackgroundColor: C.PURPLE },
+    { label: "Emergency admissions", data: D.map((r) => idx(r, "adm_emergency_per1000")), borderColor: C.BLUE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: C.BLUE }] },
+    options: lineOpts("Index", { scales: { x: { grid: { display: false } }, y: { title: { display: true, text: `Per person, ${dmB.fy} = 100` } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}` } } } }) });
+  $("tDemand").innerHTML = table(["Year", "A&E attendances per 1,000", "Major A&E per 1,000", "Emergency admissions per 1,000", "Major A&E attendances admitted"],
+    D.map((r) => [r.fy, r.attend_all_per1000.toFixed(0), r.attend_type1_per1000.toFixed(0), r.adm_emergency_per1000.toFixed(1), pct(r.type1_conversion)]), [1, 2, 3, 4]);
+  const AC = HD.acsc, a0 = AC[0], aN = AC[AC.length - 1];
+  legend("lAcsc", [["Share of emergency admissions", C.PURPLE], ["Share of emergency bed days", C.PURPLE, true]]);
+  new Chart($("cAcsc"), { type: "line", data: { labels: AC.map((r) => r.fy), datasets: [
+    { label: "Admissions", data: AC.map((r) => 100 * r.acsc_share_adm), borderColor: C.PURPLE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: C.PURPLE },
+    { label: "Bed days", data: AC.map((r) => 100 * r.acsc_share_bd), borderColor: C.PURPLE, borderDash: [5, 4], borderWidth: 2, pointRadius: 2, pointBackgroundColor: C.PURPLE }] },
+    options: lineOpts("%", { scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: "% of emergency admissions / bed days" } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}%` } } } }) });
+  $("tAcsc").innerHTML = table(["Year", "Emergency admissions for these conditions", "Share of emergency admissions", "Share of emergency bed days"],
+    AC.map((r) => [r.fy, int(r.acsc_emergency), pct(r.acsc_share_adm), pct(r.acsc_share_bd)]), [1, 2, 3]);
+  $("gpText1").innerHTML = `If patients who cannot see a GP were ending up in hospital, emergency admissions per person would be rising. Since
+    ${d19.fy}, A&E attendances per person have risen ${pct(dN.attend_all_per1000 / d19.attend_all_per1000 - 1, 0)}, which fits pressure on general practice,
+    but emergency admissions per person have <i>fallen</i> ${pct(1 - dN.adm_emergency_per1000 / d19.adm_emergency_per1000, 0)}: hospitals now admit
+    ${pct(dN.type1_conversion)} of major A&amp;E attendances, against ${pct(d19.type1_conversion)} in ${d19.fy}. More people turn up at A&amp;E; it is not
+    more of them filling beds. Conditions that good primary care can often keep out of hospital (asthma, COPD, diabetes, heart failure and
+    others) are about ${pct(aN.acsc_share_adm, 0)} of emergency admissions and of emergency bed days, a share that has fallen since ${a0.fy} (${pct(a0.acsc_share_adm, 0)}).`;
+  const ga = HM.scenarios.find((x) => x.id === "acscAll"), gq = HM.scenarios.find((x) => x.id === "acscQuarter");
+  const AG = HT && HT.areaGp;
+  $("gpText2").innerHTML = `Even if general practice prevented every one of those admissions, which no health system manages, the simulator frees about
+    ${r1k(ga.dBeds)} beds and cuts 12-hour waits by about ${r1k(ga.dWait12PerYear)} a year. Preventing a quarter of them, a large improvement, frees about
+    ${r1k(gq.dBeds)} beds and cuts about ${r1k(gq.dWait12PerYear)} long waits. ${AG ? AG.summary : ""} Better general practice would help, and would help
+    patients most of all, but the timing does not fit: the break in long waits came while emergency admissions per person were flat or falling.`;
+
+  // flow
+  const fl = HM.scenarios.find((x) => x.id === "flex"), sd = HM.scenarios.find((x) => x.id === "sevenDay"), hp = HM.scenarios.find((x) => x.id === "hospitalProcess");
+  $("flowText1").innerHTML = `The evidence for flow is the strongest of the three, although it is indirect. Section 2 showed that the same occupancy now
+    produces far longer waits than before the pandemic, that this is not explained by delays, flu, weekend discharging or longer stays, and that a
+    hospital that can no longer place patients flexibly across its wards reproduces the break on its own. The decomposition above puts
+    ${pct(sh("flex").wait12 / tot, 0)} of the simulated rise in long waits there. Delays caused by hospitals' own processes are ${pct(G["Hospital processes"], 0)} of
+    long discharge delays, and they are the delays that track long waits most closely${T ? `, within trusts and between them` : ""}.`;
+  $("flowText2").innerHTML = `What "flexibility" is made of cannot be seen in national data. It covers how easily a patient can be placed on another
+    specialty's ward, how quickly beds are turned round, staffing, infection-control rules and escalation. Some of that is management, some is
+    rules and resources set nationally. In the simulator, restoring pre-pandemic flexibility with today's patients and beds cuts 12-hour waits by about
+    ${r1k(fl.dWait12PerYear)} a year; removing delays from hospital processes, about ${r1k(hp.dWait12PerYear)}; full 7-day discharging, about ${r1k(sd.dWait12PerYear)}.`;
+
+  // verdict
+  const V = HM.scenarios.slice().sort((a, b) => a.dWait12PerYear - b.dWait12PerYear);
+  legend("lVerdict", [["Hospital flow and management", C.BLUE], ["Social care", C.ORANGE], ["NHS community services", C.TEAL], ["General practice", C.PURPLE], ["All delays / beds (for scale)", C.GREY]]);
+  new Chart($("cVerdict"), { type: "bar", data: { labels: V.map((x) => wrap(x.label, 34)), datasets: [{ data: V.map((x) => x.dWait12PerYear / 1000),
+    backgroundColor: V.map((x) => HYP[x.hyp] || C.GREY), borderRadius: 4, borderSkipped: false, barPercentage: 0.8 }] },
+    options: hbar("Change in waits over 12 hours, thousands a year", (v) => signed(v, (z) => z.toFixed(0) + "k") + " a year") });
+  $("tVerdict").innerHTML = table(["Fix", "Tests", "Size", "Occupancy", "Beds freed", "12-hour waits a year"],
+    V.map((x) => [esc(x.label), esc(x.hyp), esc(x.note), pp(x.dOcc), signed(-x.dBeds, int), signed(x.dWait12PerYear, int)]), [3, 4, 5]);
+  const ad = HM.scenarios.find((x) => x.id === "allDelays");
+  $("verdictText").innerHTML = `<b>Is it social care?</b> Partly. It explains about ${pct(G["Social care"], 0)} of the patients stuck in hospital, more if
+    joint arrangements are counted, and fixing it would free one to two thousand beds. But social care delays do not move with long waits from month to
+    month, and there is no comparable count from before the pandemic to show whether they grew. <b>Is it all the GPs' fault?</b> No. Emergency admissions per person have not risen since ${d19.fy}, and even
+    preventing every admission for conditions GPs can manage would leave most of the rise in waits in place. <b>Is it how hospitals run?</b> The
+    largest single cause in the data is a loss of flexibility in how beds are used, and the delays that track waits most closely are the hospital's own. That
+    points to flow inside hospitals as the predominant cause of the post-pandemic break, though not necessarily to poor management alone: staffing,
+    infection-control rules and specialty ring-fencing sit behind flow too. And the underlying arithmetic still matters. Removing every discharge
+    delay of any kind would cut long waits by about ${r1k(ad.dWait12PerYear)} a year and free ${r1k(ad.dBeds)} beds; 5,000 more beds would cut them by about
+    ${r1k(HM.scenarios.find((x) => x.id === "beds5k").dWait12PerYear)}. Hospitals running above 90% full have no slack, so every one of these causes bites harder than it would
+    in a hospital with room to spare.`;
+  $("blameStats").innerHTML =
+    stat("Rise in long waits from less flexible beds", pct(sh("flex").wait12 / tot, 0), `simulated, ${HM.from} to ${C.BY}`) +
+    stat("Long delays due to social care", pct(G["Social care"], 0), `NHS community services ${pct(G["Community health services"], 0)}, hospital processes ${pct(G["Hospital processes"], 0)}`) +
+    stat("Emergency admissions per person", signed(100 * (dN.adm_emergency_per1000 / d19.adm_emergency_per1000 - 1), (v) => v.toFixed(0) + "%"), `${d19.fy} to ${dN.fy}; A&E attendances ${signed(100 * (dN.attend_all_per1000 / d19.attend_all_per1000 - 1), (v) => v.toFixed(0) + "%")}`);
 }
 
 main().catch((e) => { console.error(e); document.querySelector("article").insertAdjacentHTML("afterbegin", `<p class="callout warn">Could not load data: ${esc(e.message)}</p>`); });
