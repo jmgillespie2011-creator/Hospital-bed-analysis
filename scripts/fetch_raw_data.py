@@ -138,10 +138,6 @@ SOURCES = [
             f"{NHSD}/hospital-accident--emergency-activity/2024-25"],
            depth=0, files=r"(?i)\.(xlsx?|csv|ods)",
            notes="Hospital A&E activity (HES A&E / ECDS): time in department distribution, before and after the pandemic"),
-    Source("ods_sites",
-           ["https://digital.nhs.uk/services/organisation-data-service/export-data-files/csv-downloads/other-nhs-organisations"],
-           depth=0, files=r"(?i)/ets(\.zip|\.csv)",
-           notes="ODS NHS trust sites (ets): number of hospital sites per trust"),
     Source("ons_projections",
            ["https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/tablea14principalprojectionenglandpopulationinagegroups",
             "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/z1zippedpopulationprojectionsdatafilesuk"],
@@ -446,6 +442,63 @@ def fetch_hes_files(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
         w.writerows(inv)
 
 
+# Files found through the data.gov.uk catalogue (its resource links point at files.digital.nhs.uk, which serves
+# files without the bot challenge on the publication pages), or downloaded directly.
+CATALOGUE = {
+    "hes_ae_files": dict(queries=["hospital accident and emergency activity", "accident and emergency activity hes",
+                                  "hospital accident emergency activity"],
+                         want=r"(?i)(hosp|acc|a&e|ae|emer).*(20)?(17|18|19|22|23|24)[-_]?(18|19|20|23|24|25)",
+                         notes="HES A&E / ECDS annual tables: time in department, before and after the pandemic"),
+    "ods_sites": dict(queries=[], direct=["https://files.digital.nhs.uk/assets/ods/current/ets.zip",
+                                          "https://files.digital.nhs.uk/assets/ods/current/etr.zip"],
+                      want=r".", notes="ODS NHS trusts (etr) and NHS trust sites (ets)"),
+}
+
+
+def fetch_catalogue(fx: Fetcher, name: str, manifest: dict, stamp: str, log) -> None:
+    cfg = CATALOGUE[name]
+    out = RAW / name
+    out.mkdir(parents=True, exist_ok=True)
+    urls = {u: "direct" for u in cfg.get("direct", [])}
+    for q in cfg["queries"]:
+        try:
+            r = fx.s.get(f"{CKAN}/package_search", params={"q": q, "rows": 100}, timeout=120)
+        except Exception as e:  # noqa: BLE001
+            log(f"  ! CKAN search failed: {e}")
+            continue
+        if r.status_code != 200:
+            log(f"  ! CKAN search HTTP {r.status_code}")
+            continue
+        for pkg in r.json().get("result", {}).get("results", []):
+            for res in pkg.get("resources", []):
+                u = res.get("url") or ""
+                if DATA_EXT.search(urlparse(u).path):
+                    urls.setdefault(u, f"{pkg.get('title')}: {res.get('name') or ''}")
+    log(f"  {len(urls)} file URLs found")
+    inv = []
+    for u, label in urls.items():
+        wanted = bool(re.search(cfg["want"], u + " " + label))
+        dest = out / safe_name(u)
+        status = "skipped (filter)"
+        if wanted:
+            if u in manifest and dest.exists():
+                status = "already downloaded"
+            else:
+                res = fx.download(u, dest)
+                if isinstance(res, tuple):
+                    status = "downloaded"
+                    manifest[u] = dict(source=name, url=u, page="data.gov.uk catalogue", link_text=label[:200],
+                                       path=str(dest.relative_to(ROOT)), bytes=res[0], sha256=res[1], fetched_at=stamp)
+                else:
+                    status = res
+                log(f"  {status}: {u}")
+        inv.append(dict(source=name, page="data.gov.uk", url=u, link_text=label, wanted=wanted, status=status))
+    with open(out / "_link_inventory.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["source", "page", "url", "link_text", "wanted", "status"])
+        w.writeheader()
+        w.writerows(inv)
+
+
 ERIC_YEARS = r"(20)?(17|18|19|22|23|24)[-_ /]?(18|19|20|23|24|25)"
 
 
@@ -569,6 +622,15 @@ def main() -> int:
         except Exception as e:  # noqa: BLE001
             log(f"  ! eric failed: {e}")
         write_manifest(manifest)
+
+    for name in CATALOGUE:
+        if not args.dry_run and args.only and name in args.only:
+            log(f"[{name}] {CATALOGUE[name]['notes']}")
+            try:
+                fetch_catalogue(s, name, manifest, stamp, log)
+            except Exception as e:  # noqa: BLE001
+                log(f"  ! {name} failed: {e}")
+            write_manifest(manifest)
 
     for src in SOURCES:
         if args.only and src.name not in args.only:
