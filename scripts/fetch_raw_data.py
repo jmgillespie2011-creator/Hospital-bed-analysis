@@ -102,6 +102,11 @@ SOURCES = [
             f"{NHSE}/uec-sitrep/urgent-and-emergency-care-daily-situation-reports-2025-26/"],
            follow=r"(corridor|uec-sitrep/urgent-and-emergency-care-daily-situation-reports-20(2[4-9]))",
            notes="UEC daily sitrep incl. corridor care (from March 2026) and earlier temporary escalation spaces"),
+    Source("corridor_care_stats",
+           [f"{NHSE}/corridor-care-urgent-and-emergency-care-daily-situation-reports/"],
+           follow=r"corridor-care", files=r"(?i)\.(xlsx|xls|csv|zip)",
+           notes="Corridor care (experimental, monthly from May 2026): patients 45+ minutes in a clinically "
+                 "inappropriate area of an emergency department or G&A ward, 08:00 snapshot"),
     Source("ons_projections",
            ["https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/tablea14principalprojectionenglandpopulationinagegroups",
             "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/z1zippedpopulationprojectionsdatafilesuk"],
