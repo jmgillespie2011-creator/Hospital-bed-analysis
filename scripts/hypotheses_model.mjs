@@ -21,9 +21,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const J = (f) => JSON.parse(fs.readFileSync(path.join(ROOT, f), "utf8"));
 const base = J("web/data/baseline.json"), trends = J("web/data/blog_trends.json"), hd = J("web/data/hypotheses_data.json");
 const A = base.calibration.A, POOL_A = A.poolSize, POOL_B = base.calibration.B.poolSize;
-const REPS = +(process.env.REPS || 40);
+const REPS = +(process.env.REPS || 60);   // the same replications as scripts/blog_scenarios.mjs, so baselines match
 const t0 = Date.now(), log = (...a) => console.log(`[${((Date.now() - t0) / 1000).toFixed(0)}s]`, ...a);
 const sim = (s, pool = POOL_A, reps = REPS) => run({ ...buildParams(base, { ...s, flexibility: "A" }), poolSize: pool }, Math.max(4, Math.round(reps * POOL_A / pool)));
+// the website's "pre-pandemic flexibility" system: model B's own calibration, not just its pool size
+const simB = (s, reps = REPS) => run(buildParams(base, { ...s, flexibility: "B" }), Math.max(4, Math.round(reps * POOL_A / POOL_B)));
 const pick = (r) => ({ occupancy: r.occMidnight, occupiedBeds: r.occupiedBedsNational, wait12: r.wait12, wait12PerYear: r.wait12PerYear, wait4: r.wait4,
   zeroNight: r.emZeroNightShare, losOvernight: r.emBedDaysPerOvernight });
 
@@ -31,13 +33,15 @@ const pick = (r) => ({ occupancy: r.occMidnight, occupiedBeds: r.occupiedBedsNat
 const H = Object.fromEntries(trends.years.filter((y) => y.hf_em_los_linked != null).map((y) => [y.fy, y]));
 const ref = Object.keys(H).sort().at(-1);
 const losPct = (fy) => 100 * (H[fy].hf_em_los_linked / H[ref].hf_em_los_linked - 1);
-const sdPct = (fy) => 100 * A.sameDayFrac * (H[fy].em_same_day_share ?? H[ref].em_same_day_share) / H[ref].em_same_day_share;
+const s00 = defaultSettings(base);
+const sdPct = (fy) => s00.sameDayPct * (H[fy].em_same_day_share ?? H[ref].em_same_day_share) / H[ref].em_same_day_share;
 
 // ---------------------------------------------------------------- 1. decomposition
 const FROM = process.env.FROM || "2018/19";
 const bt = base.backtests.find((b) => b.fy === FROM);
 const s0 = defaultSettings(base);
-const today = { beds: s0.beds, popYear: s0.popYear, otherGrowthPct: 0, losChangePct: losPct(ref), sameDayPct: sdPct(ref) };
+// today is exactly the website baseline (stays and same-day share as calibrated)
+const today = { beds: s0.beds, popYear: s0.popYear, otherGrowthPct: 0, losChangePct: 0, sameDayPct: s0.sameDayPct };
 const past = { beds: bt.beds, popYear: parseInt(FROM.slice(0, 4), 10), otherGrowthPct: 0, losChangePct: losPct(FROM), sameDayPct: sdPct(FROM) };
 { const p = buildParams(base, { ...s0, ...past }); past.otherGrowthPct = 100 * (bt.emergency_admissions / (p.emergPerYear + p.fluPerYear) - 1); }
 const FACTORS = [
@@ -79,7 +83,7 @@ log(`${FROM} model: occupancy ${(100 * start.occupancy).toFixed(1)}%, 12h ${(100
 const R7 = hd.delays.reasons["7+"].byGroup;
 const acsc = hd.acsc.at(-1);
 const nowS = { ...s0, ...today };
-const baseA = pick(sim(nowS)), baseB = pick(sim(nowS, POOL_B));
+const baseA = pick(sim(nowS)), baseB = pick(simB(nowS));
 const cf = [
   { id: "socialCare", hyp: "Social care", label: "Delays waiting for social care removed", note: `${(100 * R7["Social care"]).toFixed(0)}% of delayed bed days`, s: { delayChangePct: -100 * R7["Social care"] } },
   { id: "socialJoint", hyp: "Social care", label: "Social care and joint (care transfer hub) delays removed", note: `${(100 * (R7["Social care"] + R7["Care transfer hubs and other joint processes"])).toFixed(0)}% of delayed bed days`,
@@ -92,15 +96,15 @@ const cf = [
   { id: "acscQuarter", hyp: "General practice", label: "A quarter of those admissions avoided", note: `${(25 * acsc.acsc_share_adm).toFixed(1)}% of emergency admissions`, s: { otherGrowthPct: -25 * acsc.acsc_share_adm } },
   { id: "hospitalProcess", hyp: "Hospital flow and management", label: "Delays from hospital processes removed", note: `${(100 * R7["Hospital processes"]).toFixed(0)}% of delayed bed days`, s: { delayChangePct: -100 * R7["Hospital processes"] } },
   { id: "sevenDay", hyp: "Hospital flow and management", label: "Full 7-day discharging", note: `weekend discharge rate ${s0.weekendDischargePct}% to 100% of weekdays`, s: { weekendDischargePct: 100 } },
-  { id: "flex", hyp: "Hospital flow and management", label: "Pre-pandemic flexibility in using beds", note: `bed pools of ${Math.round(POOL_B)} instead of ${Math.round(POOL_A)}`, s: {}, pool: POOL_B },
+  { id: "flex", hyp: "Hospital flow and management", label: "Pre-pandemic flexibility in using beds", note: `the website's pre-pandemic system (bed pools of ${Math.round(POOL_B)} instead of ${Math.round(POOL_A)})`, s: {}, flexible: true },
   { id: "beds5k", hyp: "Beds", label: "5,000 more beds", note: "for scale", s: { beds: s0.beds + 5000 } },
 ];
 const scenarios = cf.map((c) => {
-  const r = pick(sim({ ...nowS, ...c.s }, c.pool || POOL_A));
+  const r = pick(c.flexible ? simB({ ...nowS, ...c.s }) : sim({ ...nowS, ...c.s }, c.pool || POOL_A));
   log(`${c.id}: occupancy ${(100 * (r.occupancy - baseA.occupancy)).toFixed(2)} pts, 12h ${Math.round(r.wait12PerYear - baseA.wait12PerYear)} a year`);
   return { ...c, ...r, dOcc: r.occupancy - baseA.occupancy, dBeds: r.occupiedBeds - baseA.occupiedBeds, dWait12PerYear: r.wait12PerYear - baseA.wait12PerYear };
 });
 const out = { generated: new Date().toISOString().slice(0, 10), reps: REPS, from: FROM, to: base.baseYearLabel, poolA: POOL_A, poolB: POOL_B,
-  settings: { past, today }, start, end, shapley, base: baseA, baseFlexible: baseB, scenarios };
+  settings: { past, today }, observedFrom: { occupancy: bt.occupancy }, flexTarget: base.calibration.flexibleFit?.target ?? null, start, end, shapley, base: baseA, baseFlexible: baseB, scenarios };
 fs.writeFileSync(path.join(ROOT, "web/data/hypotheses_model.json"), JSON.stringify(out, null, 1));
 log("wrote web/data/hypotheses_model.json");

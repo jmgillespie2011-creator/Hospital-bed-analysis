@@ -89,8 +89,9 @@ theirs (<b data-k="hfEl19"></b> against 5.2), so that series is less reliable.</
 
 <h2>2. Full hospitals, and the break after the pandemic</h2>
 <p>A full hospital makes patients wait. When no bed is free, the patient stays in A&amp;E, sometimes on a trolley in a corridor, until one
-is. NHS England publishes the number who wait more than 12 hours from the decision to admit them. Before 2020 that was a rare event. Today
-it happens to about <b data-k="wait12Now"></b> of emergency admissions.</p>
+is. NHS England publishes the number who wait more than 12 hours from the decision to admit them. Before 2020 that was a rare event.
+It happened to <b data-k="wait12Now"></b>. In <span data-k="baseYear"></span>, the year the simulator is set up for,
+it was <b data-k="wait12FY"></b> of emergency admissions.</p>
 <figure class="chart-card"><h3>Emergency admissions waiting over 12 hours for a bed, each month</h3><p class="cap">"Trolley waits": decision to admit to admission, all type 1 A&amp;E departments, England.</p><div class="chart-box tall"><canvas id="cWaits"></canvas></div><details><summary>Show as table</summary><div id="tWaits"></div></details></figure>
 <p>The striking thing is not that waits rise as hospitals fill. It is that the same occupancy now produces far longer waits than it did
 before the pandemic. Each dot below is one quarter. Before 2020, quarters at 90–93% occupancy had almost no 12-hour waits from the
@@ -260,8 +261,9 @@ effectiveness, NHS England's discharge data for delays, and HES readmission coun
 
 <h2>7. Not every hospital is the same</h2>
 <p>England's average hides a wide spread. Across <b data-k="nTrusts"></b> acute trusts in <span data-k="baseYear"></span>, trusts at the same
-occupancy had very different long waits. Occupancy matters, but it is far from the whole story: case mix, local social care, A&amp;E design
-and how wards are run all play a part.</p>
+occupancy had very different long waits. Occupancy explains only part of the difference, and the simulator, which treats every trust
+alike, cannot explain the rest (see the <a href="validation.html">validation page</a>). Section 3 tests which differences between trusts
+go with longer waits: delays from hospitals' own processes do; social care delays and resources do not.</p>
 <figure class="chart-card"><h3>Acute trusts: occupancy and long waits, <span data-k="baseYear"></span></h3><p class="cap">Each dot is a trust. x: average 08:00 G&amp;A occupancy. y: share of emergency admissions waiting over 12 hours.</p><div class="chart-box tall"><canvas id="cTrusts"></canvas></div><details><summary>Show as table</summary><div id="tTrusts"></div></details></figure>
 
 <h2>8. The next ten years</h2>

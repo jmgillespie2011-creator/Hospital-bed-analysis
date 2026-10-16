@@ -12,7 +12,7 @@ import { buildParams, defaultSettings } from "../web/js/demand.js";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const base = JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/baseline.json"), "utf8"));
 const beds = JSON.parse(fs.readFileSync(path.join(ROOT, "web/data/blog_observed.json"), "utf8")).beds;
-const REPS_A = 48, REPS_B = Math.max(4, Math.round(REPS_A * base.calibration.A.poolSize / base.calibration.B.poolSize));
+const REPS_A = 60, REPS_B = Math.max(4, Math.round(REPS_A * base.calibration.A.poolSize / base.calibration.B.poolSize));
 const s0 = defaultSettings(base);
 const sim = (over, sys) => run(buildParams(base, { ...s0, ...over, flexibility: sys }), sys === "A" ? REPS_A : REPS_B);
 const now = beds.find((r) => r.fy === base.baseYearLabel) || beds[beds.length - 1];
