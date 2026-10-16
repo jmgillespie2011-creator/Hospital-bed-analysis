@@ -12,6 +12,7 @@ const fmt = {
 };
 
 let SWEEP_B = 3;
+let trends = null, losChart = null, longChart = null;
 let base, settings, baseline = {}, result = {}, dailyChart, sweepCharts = [];
 
 // Two workers: one for the scenario, one for the bed sweep, so a sweep never delays the next scenario.
@@ -285,7 +286,43 @@ function render(pA) {
   $("mbarItems").innerHTML = head.map((t, i) => `<div><span class="n">${SHORT[i]}</span><b>${t.val}</b>${t.chg.short}</div>`).join("");
   document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.sys === s)));
   renderDaily();
+  renderLos();
   renderInputs(pA);
+}
+
+// Length of stay card: published series (data/blog_trends.json) with this scenario's simulated value at the end
+function renderLos() {
+  if (!trends) return;
+  chartDefaults();
+  const s = sys(), R = result[s], R0 = baseline[s];
+  const H = trends.years.filter((y) => y.mean_los != null), last = H.at(-1);
+  // HES has no length-of-stay output in the model: scale the latest HES mean by the simulated change in nights per emergency admission
+  const losScen = last.mean_los * R.emBedDaysPerAdm / R0.emBedDaysPerAdm;
+  const LS = trends.longStays;
+  const grey = css("--series-base"), blue = css("--series-scn");
+  const mk = (old, canvas, cfg) => { if (old) old.destroy(); return new Chart(canvas, cfg); };
+  const labels1 = [...H.map((y) => y.fy), "This scenario"];
+  losChart = mk(losChart, $("losChart"), { type: "line", data: { labels: labels1, datasets: [
+    { label: "Published (HES)", data: [...H.map((y) => y.mean_los), null], borderColor: grey, borderWidth: 2, pointRadius: 3, pointBackgroundColor: grey },
+    { label: "This scenario", data: [...H.map(() => null), losScen], borderColor: blue, backgroundColor: blue, pointRadius: 6, showLine: false }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)} days` } } },
+      scales: { x: { grid: { display: false }, ticks: { maxRotation: 50, autoSkip: true } }, y: { min: 0, title: { display: true, text: "Days" } } } } });
+  const labels2 = [...LS.map((r) => r.winter), "This scenario"];
+  longChart = mk(longChart, $("longChart"), { type: "bar", data: { labels: labels2, datasets: [{ label: "Over 21 days",
+    data: [...LS.map((r) => 100 * r.share21), 100 * R.long21Share], backgroundColor: [...LS.map(() => grey), blue], borderRadius: 4, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: (c) => `${c.parsed.y.toFixed(1)}% of occupied beds` } } },
+      scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: "% of occupied beds" } } } } });
+  $("losTable").innerHTML = `<table><thead><tr><th>Year</th><th class="num">Average length of stay (HES)</th></tr></thead><tbody>${
+    H.map((y) => `<tr><td>${y.fy}</td><td class="num">${y.mean_los.toFixed(2)} days</td></tr>`).join("")}
+    <tr><td><b>This scenario</b> (${last.fy} scaled)</td><td class="num"><b>${losScen.toFixed(2)} days</b></td></tr></tbody></table>
+    <table><thead><tr><th>Winter</th><th class="num">Beds held over 21 days</th></tr></thead><tbody>${
+    LS.map((r) => `<tr><td>${r.winter}</td><td class="num">${fmt.pct(r.share21)}</td></tr>`).join("")}
+    <tr><td><b>This scenario</b> (simulated, 08:00)</td><td class="num"><b>${fmt.pct(R.long21Share)}</b></td></tr>
+    <tr><td>${BY} baseline (simulated)</td><td class="num">${fmt.pct(R0.long21Share)}</td></tr></tbody></table>
+    <p class="cap">Nights per emergency admission: this scenario ${R.emBedDaysPerAdm.toFixed(2)}, baseline ${R0.emBedDaysPerAdm.toFixed(2)}
+    (HES ${base.hes?.year || ""}: ${base.hes ? base.hes.meanEmergencyBedDays.toFixed(2) : ""}).</p>`;
 }
 
 function peakMonth(daily) {
@@ -471,6 +508,7 @@ function readHash() {
 
 async function main() {
   base = await (await fetch("data/baseline.json")).json();
+  fetch("data/blog_trends.json").then((r) => (r.ok ? r.json() : null)).then((t) => { trends = t; if (!t) $("losCard").hidden = true; else if (result.A) renderLos(); }).catch(() => { $("losCard").hidden = true; });
   const ratioB = base.calibration.A.poolSize / base.calibration.B.poolSize;
   REPS_B = Math.max(4, Math.round(REPS_A * ratioB));
   SWEEP_B = Math.max(2, Math.round(10 * ratioB));
@@ -504,6 +542,6 @@ async function main() {
   ]);
   baseline = { A: bA, B: bB };
   await runScenario();
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { dailyChart && dailyChart.destroy(); dailyChart = null; renderDaily(); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { dailyChart && dailyChart.destroy(); dailyChart = null; renderDaily(); renderLos(); });
 }
 main().catch((e) => { $("status").textContent = "Error: " + e.message; console.error(e); });

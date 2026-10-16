@@ -75,6 +75,23 @@
             <div><div class="legend"><span style="--c:var(--series-scn)">Today's hospitals</span><span class="dash" style="--c:var(--series-b)">Pre-pandemic flexibility</span></div><div class="chart-box"><canvas id="sweepWait"></canvas></div></div>
           </div>
         </div>
+        <div class="chart-card" id="losCard">
+          <h3>Length of stay: history and this scenario</h3>
+          <p class="cap">Published figures for England, with this scenario's simulated value added at the end.</p>
+          <div class="grid2">
+            <div><h4 class="mini-h">Average length of stay (days)</h4>
+              <div class="legend"><span style="--c:var(--series-base)">Published (HES)</span><span style="--c:var(--series-scn)">This scenario</span></div>
+              <div class="chart-box"><canvas id="losChart" aria-label="Average length of stay by year, and this scenario"></canvas></div>
+              <p class="cap" id="losCap">Mean days per consultant episode, all admissions including day cases (HES). The model does not measure that directly:
+              the scenario point is the latest HES value scaled by the simulated change in nights per emergency admission.</p></div>
+            <div><h4 class="mini-h">Beds held by patients in hospital over 21 days</h4>
+              <div class="legend"><span style="--c:var(--series-base)">Published (winter sitrep)</span><span style="--c:var(--series-scn)">This scenario</span></div>
+              <div class="chart-box"><canvas id="longChart" aria-label="Share of beds held by patients in hospital over 21 days, by winter, and this scenario"></canvas></div>
+              <p class="cap" id="longCap">Share of occupied G&amp;A beds, December to February (winter daily sitreps; not collected in 2020/21 and 2021/22).
+              The scenario value is the simulated year-round share at 08:00, the same measure the model is fitted to.</p></div>
+          </div>
+          <details><summary>Show as table</summary><div class="table-scroll" id="losTable"></div></details>
+        </div>
         <div class="chart-card">
           <h3>What the model is running</h3>
           <p class="cap">The inputs your settings produce, next to the baseline. This is exactly what is fed to the simulation.</p>

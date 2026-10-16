@@ -73,6 +73,7 @@ button.primary { background: var(--accent); color: #fff; border-color: var(--acc
 .chart-box { position: relative; height: 280px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+.mini-h { font-size: 14px; margin: 4px 0 6px; font-weight: 600; }
 .status { font-size: 13px; color: var(--text-3); min-height: 20px; }
 table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
