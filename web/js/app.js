@@ -42,6 +42,7 @@ function controlSpec() {
   const years = Object.keys(base.ageBands[0].pop).map(Number);
   const ymin = Math.min(...years), ymax = Math.max(...years);
   const sign = (v, u = "%") => (v > 0 ? "+" : "") + v + u;
+  const fluPrev = (base.flu?.seasons || []).find((x) => x.winter !== BY && x.peak_beds_7day > base.calibration.targets.fluPeakBeds);
   const rf = (base.riskFactors || []).map((r) => ({
     key: "risk:" + r.key, label: r.label, min: r.min, max: r.max, step: r.step,
     fmt: (v) => r.type === "prevalence" ? `${v}%` : sign(v),
@@ -70,10 +71,10 @@ function controlSpec() {
       help: base.deprivation.help }] : []),
     { section: "Hospital flow" },
     { key: "sameDayPct", label: "Same day emergency care", min: 20, max: 80, step: 1, fmt: (v) => v + "% of emergency patients",
-      help: "Emergency patients assessed and treated without an overnight stay (SDEC units, frailty assessment)." },
+      help: `Emergency patients assessed and treated without an overnight stay (SDEC units, frailty assessment). The starting value is fitted so that the share of emergency admissions with no night in hospital matches HES (${(100 * base.calibration.targets.emZeroNightShare).toFixed(1)}%); it is higher than that because patients who arrive late in the evening pass midnight before going home.` },
     { key: "delayChangePct", label: "Delayed discharges", min: -100, max: 50, step: 5, fmt: (v) => sign(v),
-      help: "Change in the time medically fit patients wait to leave hospital for care homes, home care or community beds (social care and community capacity). −100% removes delays entirely." },
-    { key: "weekendDischargePct", label: "7-day discharging", min: 0, max: 100, step: 5, fmt: (v) => v + "% at weekends",
+      help: "Change in the time medically fit patients wait to leave hospital, whatever the reason: social care, NHS community services, or the hospital's own processes. −100% removes delays entirely." },
+    { key: "weekendDischargePct", label: "7-day discharging", min: 0, max: 100, step: 1, fmt: (v) => v + "% at weekends",
       help: "Share of patients ready to leave at the weekend who are discharged then, rather than waiting for Monday." },
     { key: "prepHours", label: "Time from ward round to leaving", min: 0.5, max: 6, step: 0.5, fmt: (v) => v + " h",
       help: "Average time from the morning ward round to the patient leaving (medicines to take home, transport, discharge lounges, criteria-led discharge). Discharge timing within the day is not measured nationally: 3 hours is an assumption, so treat this setting as exploratory." },
@@ -89,7 +90,7 @@ function controlSpec() {
     { key: "popYear", label: "Population of year", min: ymin, max: ymax, step: 1, fmt: (v) => String(v),
       help: `Size and age of England's population (ONS${ymax > base.baseYear ? " estimates and projections" : ""}). Older populations need more beds.` },
     { key: "winterSeverityPct", label: "Severity of the flu season", min: 0, max: 300, step: 25, fmt: (v) => v + "% of " + BY,
-      help: `Size of the winter flu wave before vaccination effects. ${BY} peaked at about ${fmt.int(base.calibration.targets.fluPeakBeds)} flu patients in G&A beds (7-day average); 2024/25 was bigger, about 5,400 at its peak (175%).` },
+      help: `Size of the winter flu wave before vaccination effects. ${BY} peaked at about ${fmt.int(base.calibration.targets.fluPeakBeds)} flu patients in G&A beds (7-day average); ${fluPrev ? `${fluPrev.winter} was bigger, about ${fmt.int(Math.round(fluPrev.peak_beds_7day / 100) * 100)} at its peak (${Math.round(100 * fluPrev.peak_beds_7day / base.calibration.targets.fluPeakBeds / 5) * 5}%).` : ""}` },
     { key: "otherGrowthPct", label: "Other change in emergency demand", min: -30, max: 50, step: 1, fmt: (v) => sign(v),
       help: "Anything not covered above." },
   ];
@@ -260,7 +261,10 @@ function render(pA) {
   const w = R.perRep.wait12, wm = w.reduce((a, b) => a + b, 0) / w.length;
   const wse = Math.sqrt(w.reduce((a, b) => a + (b - wm) ** 2, 0) / Math.max(w.length - 1, 1) / w.length);
   const waitRange = wse > 0 ? ` <span class="range">± ${fmt.k(1.96 * wse * emerg)} simulation noise</span>` : "";
-  const wardCount = base.corridorCare ? ` NHS England counted ${fmt.int(base.corridorCare.wardMean)} a day (May–Sep 2026).` : "";
+  // the ward count is fitted on the calendar days NHS England has published, so compare on those days
+  const ccDays = (base.corridorCare?.daily || []).map((d) => d.day);
+  const wardSame = ccDays.length ? ccDays.reduce((a, d) => a + R.escalationDaily8[d], 0) / ccDays.length : null;
+  const wardCount = base.corridorCare && wardSame != null ? ` On the days NHS England counted (May–Sep 2026): ${fmt.int(wardSame)} in the model, ${fmt.int(base.corridorCare.wardMean)} counted.` : "";
   const head = [
     { name: "Average bed occupancy", val: fmt.pct(R.occMidnight),
       unit: "of beds in use at midnight", chg: change("occ", R.occMidnight, R0.occMidnight, pts) },
@@ -398,7 +402,7 @@ function renderInputs(pA) {
     ["Emergency admissions per year (including flu)", fmt.int(p0.emergPerYear + p0.fluPerYear), fmt.int(pA.emergPerYear + pA.fluPerYear)],
     ["Planned overnight admissions per year", fmt.int(p0.electivePerYear), fmt.int(pA.electivePerYear)],
     ["Emergency patients going home same day", fmt.pct(p0.sameDayFrac, 0), fmt.pct(pA.sameDayFrac, 0)],
-    ["Mean acute stay, overnight emergency patients (days)", meanLos(p0).toFixed(2), meanLos(pA).toFixed(2)],
+    ["Mean clinically needed stay, emergency patients not sent home the same day (days, before ward round and delays)", meanLos(p0).toFixed(2), meanLos(pA).toFixed(2)],
     ["Mean delay (days)", p0.delayMeanDays.toFixed(2), pA.delayMeanDays.toFixed(2)],
     ["Ward round to discharge (hours)", p0.prepHours.toFixed(1), pA.prepHours.toFixed(1)],
     ...demandRows(),

@@ -32,7 +32,7 @@ night with seasonal and weekly patterns, and planned patients arriving on weekda
 random length of time, some stay longer because their discharge is delayed after they are medically fit, and
 discharges only happen during the day. If no bed is free, emergency patients wait (the model's equivalent of a
 "trolley wait" in A&amp;E after a decision to admit) and planned admissions are lost. Unknown quantities are tuned so
-that the model reproduces published 2024/25 figures, then you change the inputs and see what happens.</div>
+that the model reproduces published 2025/26 figures, then you change the inputs and see what happens.</div>
 
 <h2 id="why">Why a simulation rather than a formula?</h2>
 <p>A simple ratio, <em>occupancy = beds needed ÷ beds available</em>, gives the average occupancy but says nothing
@@ -164,11 +164,9 @@ a policy leads, not what happens the year it starts.</div>
 <h3 id="flow">Hospital flow</h3>
 <ul>
   <li><strong>Same day emergency care</strong>: share of emergency patients who leave within hours and never occupy a bed overnight.</li>
-  <li><strong>Delayed discharges</strong>: scales the average time medically fit patients wait to leave (calibrated to NHS England's
-    count of patients who no longer meet the criteria to reside). Represents social care, care home and community bed capacity.</li>
+  <li><strong>Delayed discharges</strong>: scales the average time medically fit patients wait to leave. The delay lengths are fitted to NHS England's Discharge Ready Date delay bands. The delays have many causes: in NHS England's discharge sitrep, of patients in hospital a week or more who were delayed, about a quarter were waiting for social care, a third for NHS community services and a fifth for the hospital's own processes. The setting changes all of them together.</li>
   <li><strong>7-day discharging</strong>: share of patients ready to leave at the weekend who leave then; the rest wait until Monday.</li>
-  <li><strong>Earlier discharge in the day</strong>: start of the daily discharge window (default 10:00; ends 20:00). Patients ready overnight leave
-    when the window opens.</li>
+  <li><strong>Time from ward round to leaving</strong>: average hours between being confirmed ready at the morning ward round and leaving (default 3, an assumption: discharge times are not published nationally). Patients still not ready to go by 20:00 leave the next day.</li>
   <li><strong>Virtual wards / hospital at home</strong>: shortens the bed stay of patients aged 75+ by the chosen share.</li>
   <li><strong>Community urgent response for older people</strong>: removes the chosen share of emergency admissions in people aged 75+.</li>
   <li><strong>Emergency readmissions within 30 days</strong>: starts at the measured rate. In 2024/25, 14.7% of eligible discharges were followed by
@@ -191,7 +189,7 @@ estimates and projections.</p>
 
 <h2 id="calibration">Calibration</h2>
 <p>Most inputs are measured directly (bed numbers, admissions, the age profile, delay lengths, the flu season's timing). The rest cannot be
-observed, so each is tuned until the model reproduces one measured 2025/26 figure. The fitted values and their targets are listed on the
+observed, so each is tuned until the model reproduces one measured figure: for 2025/26 where it is published, otherwise the latest available year, as shown in the table. The fitted values and their targets are listed on the
 <a href="data.html#calibration-values">Data &amp; sources</a> page.</p>
 <table>
 <thead><tr><th>Fitted quantity</th><th>Measured target</th></tr></thead>
@@ -227,13 +225,11 @@ in people aged 65+ (50%) and their length of stay come from HES.</li>
 <p>Each result is the average of many simulated years (30 for "today's system"; for the "more flexible system", whose pools are larger,
 enough years to simulate the same total number of beds). The baseline and your scenario use the same simulated patients. Arrivals are drawn at a fixed reference rate and thinned to the
 scenario's demand, and each patient has their own random numbers. A scenario with less demand removes some patients and leaves the rest
-unchanged, so differences reflect your changes rather than chance. Small differences (under about half a percentage point of occupancy) should not be over-interpreted. Long waits are much noisier
-than occupancy, because they depend on rare runs of busy days: the share of emergency patients waiting over 12 hours carries roughly
-&plusmn;1 percentage point of simulation noise (about &plusmn;15% of today's figure), so treat changes smaller than that as no change.</p>
+unchanged, so differences reflect your changes rather than chance. Long waits are much noisier than occupancy, because they depend on rare runs of busy days. The 95% range for the <em>level</em> of today's 12-hour waits is roughly &plusmn;2 percentage points of emergency admissions (the &plusmn; figure shown on the Model page). <em>Changes</em> are far more precise than that, because the baseline and the scenario share their random numbers: the Model page tests each change run by run and labels it &ldquo;no clear change&rdquo; when it is smaller than about two standard errors of the paired difference.</p>
 
 <h2 id="limitations">Main limitations</h2>
 <ul>
-  <li><strong>The pool-size abstraction.</strong> No single pool size reproduces both 2015/16 and 2024/25. Hospitals now generate far longer
+  <li><strong>The pool-size abstraction.</strong> No single pool size reproduces both the years before the pandemic and today. Hospitals now generate far longer
     waits at a given occupancy than a decade ago (see <a href="validation.html">Validation</a>), which is why two systems are shown. Occupancy
     results barely depend on this; wait results depend on it a lot. The pool size is a catch-all for whatever lengthens waits at a given
     occupancy, not a measured quantity. Two <a href="validation.html#flexibility">tests</a> found that discharge delays, stay variability,
@@ -260,7 +256,7 @@ than occupancy, because they depend on rare runs of busy days: the share of emer
     moving patients, flexing staff) that a plain queue lacks. Treat changes in waits as upper bounds and changes in occupancy as the firmer result.</li>
   <li><strong>Demand responds to supply in reality.</strong> With more beds, hospitals may admit patients they currently treat elsewhere,
     which would use some of the extra capacity. The model holds admission rates fixed unless you change them.</li>
-  <li><strong>National, not local.</strong> All trusts are treated as identical. Real pressure is uneven: some trusts are far fuller than average.</li>
+  <li><strong>National, not local.</strong> The simulator treats all trusts as identical. Real pressure is uneven: some trusts are far fuller than average, and fitting a pool size to each trust separately gives a wide spread (median about 70 beds in 2025/26, middle half 38 to 95). Each trust's own pool predicts the order of its later waits far better than the national pool, but not their level precisely (see <a href="validation.html#trust-pools">Validation</a>).</li>
   <li><strong>Simplified patient flow.</strong> No transfers between wards, no critical care, no outlying, no paediatric/adult split, no
     infection-control bed closures.</li>
   <li><strong>Timing of discharges within the day.</strong> There is no national data on what time patients leave hospital. The model
