@@ -172,6 +172,16 @@ SOURCES = [
                       "england-2018-19", "england-2017-18", "summary-page-and-dataset-for-eric-2018-19")],
            depth=0, files=r"(?i)site.*\.(csv|xlsx?)|\.(csv)",
            notes="ERIC estates returns via the public mirror: site-level data (site type, beds, single rooms)"),
+    Source("gp_workforce_mirror",
+           ["https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/general-and-personal-medical-services"],
+           follow=r"general-and-personal-medical-services/[^/?#]*march", depth=1,
+           files=r"(?i)(bulletin|table|annex|summary|time.?series).*\.(xlsx?|csv)",
+           notes="General practice workforce (GPs, nurses, FTE, registered patients), March editions, via the public mirror"),
+    Source("asc_finance_mirror",
+           ["https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/adult-social-care-activity-and-finance-report"],
+           follow=r"adult-social-care-activity-and-finance-report/20\d\d-\d\d", depth=1,
+           files=r"(?i)\.(xlsx?|csv|zip)",
+           notes="Adult social care activity and finance (ASC-FR): council spending and people supported, by council, via the public mirror"),
     Source("ons_projections",
            ["https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/tablea14principalprojectionenglandpopulationinagegroups",
             "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/z1zippedpopulationprojectionsdatafilesuk"],
@@ -375,8 +385,12 @@ FINGERTIPS_IDS = {
     "smoking_prevalence_aps": 92443, "obesity_prevalence_adj": 93881, "flu_vaccination": 30314,
     "deprivation_score": 93553, "alcohol_admissions_narrow": 93764, "inactivity": 93015,
     "falls_admissions": 22401, "dementia_admissions": 91281,
+    # general practice and social care (hypotheses page)
+    "gp_contact_good": 94126, "gp_experience_positive": 93438, "gp_needs_met": 94129, "gp_wait_acceptable": 94127,
+    "care_home_beds_per100_75": 92489, "asthma_admissions_adults": 93573, "copd_admissions_35": 92302,
+    "dementia_short_stay": 91745,
 }
-FINGERTIPS_AREA_TYPES = (15, 502, 402, 102, 501, 401, 101)
+FINGERTIPS_AREA_TYPES = (15, 502, 402, 102, 501, 401, 101, 66, 167, 221)  # + sub-ICB / CCG area types where published
 
 
 def fetch_fingertips(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
