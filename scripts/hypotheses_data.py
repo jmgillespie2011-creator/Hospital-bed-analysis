@@ -205,9 +205,12 @@ def demand() -> list[dict]:
 
 
 def main() -> int:
+    pop = {r["fy"]: r["population"] for r in json.loads((WEB / "blog_observed.json").read_text())["beds"]}
     td = trust_delays()
     print(f"trust delay reasons: {td.org.nunique()} trusts, {td.month.nunique()} months ({td.month.min():%Y-%m} to {td.month.max():%Y-%m})")
     out = {"delays": delays(), "dtocResp": dtoc_resp(), "acsc": acsc(), "demand": demand()}
+    for r in out["acsc"]:
+        r["acsc_per1000"] = 1000 * r["acsc_emergency"] / pop[r["fy"]] if r["fy"] in pop else None
     r = out["delays"]["reasons"]
     for base, v in r.items():
         print(f"delay reasons ({base}, {v['months'][0]} to {v['months'][1]}):", {k: round(x, 3) for k, x in v["byGroup"].items()})

@@ -441,6 +441,7 @@ function renderBlame(HM, HD, HT, C) {
   const pp = (x, d = 1) => signed(100 * x, (v) => v.toFixed(d)) + " pts";
   const ap = (x, d = 1) => Math.abs(100 * x).toFixed(d) + " points";             // unsigned, for sentences
   const r1k = (x) => int(1000 * Math.round(Math.abs(x) / 1000));
+  const r100 = (x) => int(100 * Math.round(Math.abs(x) / 100));
   const kk = (x) => signed(x / 1000, (v) => v.toFixed(0) + "k");
   const HYP = { "Social care": C.ORANGE, "Community health services": C.TEAL, "General practice": C.PURPLE, "Hospital flow and management": C.BLUE,
     "All discharge delays": C.GREY, Beds: C.GREY };
@@ -472,7 +473,7 @@ function renderBlame(HM, HD, HT, C) {
   fill("drMonths", `${R.months[0]} to ${R.months[1]}`);
   const nctr = HD.delays.nctrMonthly.slice(-12), nctrMean = nctr.reduce((a, r) => a + r.value, 0) / nctr.length;
   const dtoc = HD.dtocResp, d0 = dtoc[dtoc.length - 1];
-  $("scText1").innerHTML = `On an average day, about ${int(nctrMean)} patients in England's acute hospitals no longer need to be there but have not
+  $("scText1").innerHTML = `On an average day, about ${int(100 * Math.round(nctrMean / 100))} patients in England's acute hospitals no longer need to be there but have not
     left (acute discharge sitrep, last 12 months). That is about one bed in seven. The common story is that they are waiting for social care. Since
     2024 NHS England has published the reason for every patient delayed a week or more. Social care, meaning a care home place, home care or
     restarting a care package, accounts for <b>${pct(G["Social care"], 0)}</b> of them. NHS community services (rehabilitation, reablement,
@@ -513,7 +514,7 @@ function renderBlame(HM, HD, HT, C) {
       at the same occupancy (p ${T.betweenBeyondOcc.hp.p < 0.001 ? "< 0.001" : "= " + T.betweenBeyondOcc.hp.p.toFixed(3)}), against ${T.betweenBeyondOcc.sc.est.toFixed(0)}% for social care delays
       (p = ${T.betweenBeyondOcc.sc.p.toFixed(2)}). This is an association: a hospital under
       pressure may also be slower to process discharges. In the simulator, removing every delay caused by social care would free about
-      ${r1k(sc1.dBeds)} beds and cut 12-hour waits by about ${r1k(sc1.dWait12PerYear)} a year; adding the joint care-transfer-hub delays, about ${r1k(sc2.dBeds)} beds
+      ${r100(sc1.dBeds)} beds and cut 12-hour waits by about ${r1k(sc1.dWait12PerYear)} a year; adding the joint care-transfer-hub delays, about ${r100(sc2.dBeds)} beds
       and ${r1k(sc2.dWait12PerYear)}. That is worth having, but it would not undo the rise since ${HM.from}.`;
   }
 
@@ -530,7 +531,7 @@ function renderBlame(HM, HD, HT, C) {
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}` } } } }) });
   $("tDemand").innerHTML = table(["Year", "A&E attendances per 1,000", "Major A&E per 1,000", "Emergency admissions per 1,000", "Major A&E attendances admitted"],
     D.map((r) => [r.fy, r.attend_all_per1000.toFixed(0), r.attend_type1_per1000.toFixed(0), r.adm_emergency_per1000.toFixed(1), pct(r.type1_conversion)]), [1, 2, 3, 4]);
-  const AC = HD.acsc, a0 = AC[0], aN = AC[AC.length - 1];
+  const AC = HD.acsc, a0 = AC[0], aN = AC[AC.length - 1], a19 = AC.find((r) => r.fy === "2019/20"), aL = AC.filter((r) => r.acsc_per1000 != null).at(-1);
   legend("lAcsc", [["Share of emergency admissions", C.PURPLE], ["Share of emergency bed days", C.PURPLE, true]]);
   new Chart($("cAcsc"), { type: "line", data: { labels: AC.map((r) => r.fy), datasets: [
     { label: "Admissions", data: AC.map((r) => 100 * r.acsc_share_adm), borderColor: C.PURPLE, borderWidth: 2, pointRadius: 3, pointBackgroundColor: C.PURPLE },
@@ -544,13 +545,15 @@ function renderBlame(HM, HD, HT, C) {
     but emergency admissions per person have <i>fallen</i> ${pct(1 - dN.adm_emergency_per1000 / d19.adm_emergency_per1000, 0)}: hospitals now admit
     ${pct(dN.type1_conversion)} of major A&amp;E attendances, against ${pct(d19.type1_conversion)} in ${d19.fy}. More people turn up at A&amp;E; it is not
     more of them filling beds. Conditions that good primary care can often keep out of hospital (asthma, COPD, diabetes, heart failure and
-    others) are about ${pct(aN.acsc_share_adm, 0)} of emergency admissions and of emergency bed days, a share that has fallen since ${a0.fy} (${pct(a0.acsc_share_adm, 0)}).`;
+    others) are about ${pct(aN.acsc_share_adm, 0)} of emergency admissions and of emergency bed days, a share that has fallen since ${a0.fy} (${pct(a0.acsc_share_adm, 0)}). Per person, these admissions were
+    ${a19.acsc_per1000.toFixed(1)} per 1,000 people in ${a19.fy} and ${aL.acsc_per1000.toFixed(1)} in ${aL.fy}: they have not grown.`;
   const ga = HM.scenarios.find((x) => x.id === "acscAll"), gq = HM.scenarios.find((x) => x.id === "acscQuarter");
   const AG = HT && HT.areaGp;
   $("gpText2").innerHTML = `Even if general practice prevented every one of those admissions, which no health system manages, the simulator frees about
-    ${r1k(ga.dBeds)} beds and cuts 12-hour waits by about ${r1k(ga.dWait12PerYear)} a year. Preventing a quarter of them, a large improvement, frees about
-    ${r1k(gq.dBeds)} beds and cuts about ${r1k(gq.dWait12PerYear)} long waits. ${AG ? AG.summary : ""} Better general practice would help, and would help
-    patients most of all, but the timing does not fit: the break in long waits came while emergency admissions per person were flat or falling.`;
+    ${r100(ga.dBeds)} beds and cuts 12-hour waits by about ${r1k(ga.dWait12PerYear)} a year. Preventing a quarter of them, a large improvement, frees about
+    ${r100(gq.dBeds)} beds and cuts about ${r1k(gq.dWait12PerYear)} long waits. ${AG ? AG.summary : ""} Because hospitals are so full, any cut in admissions
+    cuts long waits sharply, so better general practice would help, and would help patients most of all. But it cannot explain the rise: the break
+    in long waits came while emergency admissions per person, and admissions for these conditions, were flat or falling.`;
 
   // flow
   const fl = HM.scenarios.find((x) => x.id === "flex"), sd = HM.scenarios.find((x) => x.id === "sevenDay"), hp = HM.scenarios.find((x) => x.id === "hospitalProcess");
@@ -575,12 +578,13 @@ function renderBlame(HM, HD, HT, C) {
   const ad = HM.scenarios.find((x) => x.id === "allDelays");
   $("verdictText").innerHTML = `<b>Is it social care?</b> Partly. It explains about ${pct(G["Social care"], 0)} of the patients stuck in hospital, more if
     joint arrangements are counted, and fixing it would free one to two thousand beds. But social care delays do not move with long waits from month to
-    month, and there is no comparable count from before the pandemic to show whether they grew. <b>Is it all the GPs' fault?</b> No. Emergency admissions per person have not risen since ${d19.fy}, and even
-    preventing every admission for conditions GPs can manage would leave most of the rise in waits in place. <b>Is it how hospitals run?</b> The
+    month, and there is no comparable count from before the pandemic to show whether they grew. <b>Is it all the GPs' fault?</b> No. Emergency admissions per person have not risen since ${d19.fy}, nor have
+    admissions for conditions GPs can manage. Preventing more of those admissions would help a full hospital a lot, but their growth is not what
+    broke the system. <b>Is it how hospitals run?</b> The
     largest single cause in the data is a loss of flexibility in how beds are used, and the delays that track waits most closely are the hospital's own. That
     points to flow inside hospitals as the predominant cause of the post-pandemic break, though not necessarily to poor management alone: staffing,
     infection-control rules and specialty ring-fencing sit behind flow too. And the underlying arithmetic still matters. Removing every discharge
-    delay of any kind would cut long waits by about ${r1k(ad.dWait12PerYear)} a year and free ${r1k(ad.dBeds)} beds; 5,000 more beds would cut them by about
+    delay of any kind would cut long waits by about ${r1k(ad.dWait12PerYear)} a year and free ${r100(ad.dBeds)} beds; 5,000 more beds would cut them by about
     ${r1k(HM.scenarios.find((x) => x.id === "beds5k").dWait12PerYear)}. Hospitals running above 90% full have no slack, so every one of these causes bites harder than it would
     in a hospital with room to spare.`;
   $("blameStats").innerHTML =
