@@ -514,8 +514,8 @@ def fetch_ods_api(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
     for status in ("Active", "Inactive"):
         offset = 0
         while True:
-            r = fx.s.get(base, params={"PrimaryRoleId": "RO198", "Status": status, "Limit": 1000, "Offset": offset},
-                         headers={"Accept": "application/json"}, timeout=120)
+            r = fx.s.get(base, params={"PrimaryRoleId": "RO198", "Status": status, "Limit": 1000, "Offset": offset,
+                                       "_format": "json"}, headers={"Accept": "*/*"}, timeout=120)
             if r.status_code != 200:
                 log(f"  ! ORD API HTTP {r.status_code} at offset {offset}")
                 break
