@@ -107,6 +107,11 @@ SOURCES = [
            follow=r"corridor-care", files=r"(?i)\.(xlsx|xls|csv|zip)",
            notes="Corridor care (experimental, monthly from May 2026): patients 45+ minutes in a clinically "
                  "inappropriate area of an emergency department or G&A ward, 08:00 snapshot"),
+    Source("eric_pages",
+           ["https://digital.nhs.uk/data-and-information/publications/statistical/estates-returns-information-collection"],
+           follow=r"estates-returns-information-collection/(summary-page-and-dataset-for-eric|england)-20(1[7-9]|2[2-5])",
+           files=r"(?i)(site|trust).*\.(csv|xlsx?)", depth=1,
+           notes="ERIC estates data (site and trust level), backup route via NHS England Digital pages"),
     Source("ons_projections",
            ["https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/tablea14principalprojectionenglandpopulationinagegroups",
             "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/datasets/z1zippedpopulationprojectionsdatafilesuk"],
@@ -411,6 +416,59 @@ def fetch_hes_files(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
         w.writerows(inv)
 
 
+ERIC_YEARS = r"(2017-?18|2018-?19|2019-?20|2022-?23|2023-?24|2024-?25|201718|201819|201920|202223|202324|202425)"
+
+
+def fetch_eric(fx: Fetcher, manifest: dict, stamp: str, log) -> None:
+    """ERIC (Estates Returns Information Collection): site- and trust-level estates data, including single
+    bedrooms and isolation rooms. Found through the data.gov.uk catalogue (CKAN)."""
+    out = RAW / "eric"
+    out.mkdir(parents=True, exist_ok=True)
+    urls = {}
+    for call, params in [("package_show", {"id": "eric-annual-returns"}),
+                         ("package_search", {"q": "estates returns information collection", "rows": 50}),
+                         ("package_search", {"q": "ERIC site data", "rows": 50})]:
+        try:
+            r = fx.s.get(f"{CKAN}/{call}", params=params, timeout=120)
+        except Exception as e:  # noqa: BLE001
+            log(f"  ! CKAN {call}: {e}")
+            continue
+        if r.status_code != 200:
+            log(f"  ! CKAN {call} HTTP {r.status_code}")
+            continue
+        res = r.json().get("result", {})
+        pkgs = [res] if call == "package_show" else res.get("results", [])
+        for pkg in pkgs:
+            for rs in pkg.get("resources", []):
+                u = rs.get("url") or ""
+                if DATA_EXT.search(urlparse(u).path):
+                    urls.setdefault(u, f"{pkg.get('name')}: {rs.get('name') or ''}")
+    log(f"  {len(urls)} ERIC file URLs found in data.gov.uk catalogue")
+    inv = []
+    for u, label in urls.items():
+        text = u + " " + label
+        wanted = re.search(ERIC_YEARS, text) and re.search(r"(?i)(site|trust)", text)
+        dest = out / safe_name(u)
+        status = "skipped (year/name filter)"
+        if wanted:
+            if u in manifest and dest.exists():
+                status = "already downloaded"
+            else:
+                res = fx.download(u, dest)
+                if isinstance(res, tuple):
+                    status = "downloaded"
+                    manifest[u] = dict(source="eric", url=u, page="data.gov.uk catalogue", link_text=label[:200],
+                                       path=str(dest.relative_to(ROOT)), bytes=res[0], sha256=res[1], fetched_at=stamp)
+                else:
+                    status = res
+            log(f"  {status}: {u}")
+        inv.append(dict(source="eric", page="data.gov.uk", url=u, link_text=label, wanted=bool(wanted), status=status))
+    with open(out / "_link_inventory.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["source", "page", "url", "link_text", "wanted", "status"])
+        w.writeheader()
+        w.writerows(inv)
+
+
 def write_manifest(manifest: dict) -> None:
     """Write one manifest per source (data/raw/<source>/_manifest.csv) and a combined one."""
     by_src: dict[str, list] = {}
@@ -473,6 +531,14 @@ def main() -> int:
             fetch_hes_files(s, manifest, stamp, log)
         except Exception as e:  # noqa: BLE001
             log(f"  ! hes_files failed: {e}")
+        write_manifest(manifest)
+
+    if not args.dry_run and args.only and "eric" in args.only:
+        log("[eric] Estates Returns Information Collection via data.gov.uk")
+        try:
+            fetch_eric(s, manifest, stamp, log)
+        except Exception as e:  # noqa: BLE001
+            log(f"  ! eric failed: {e}")
         write_manifest(manifest)
 
     for src in SOURCES:
