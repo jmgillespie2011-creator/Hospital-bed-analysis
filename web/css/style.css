@@ -189,3 +189,10 @@ details.sec > summary h2 { margin: 0 !important; }
   body { padding-bottom: 84px; }
 }
 @media (max-width: 520px) { .seg-label { display: none; } .seg button { padding: 6px 9px; } }
+
+/* blog narrative: summary box, bridging sentences between sections, folded secondary material */
+.callout.brief ul { margin: 6px 0 0; padding-left: 20px; }
+.callout.brief li { margin: 4px 0; }
+.blog .bridge { font-style: italic; color: var(--text-2); }
+details.more { margin: 12px 0; }
+details.more > summary { cursor: pointer; color: var(--accent); font-weight: 600; padding: 6px 0; }

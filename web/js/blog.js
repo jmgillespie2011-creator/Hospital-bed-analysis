@@ -7,6 +7,7 @@ const pct = (x, d = 1) => (100 * x).toFixed(d) + "%";
 const k = (x) => (x / 1000).toFixed(0) + "k";
 const signed = (x, f) => (x > 0 ? "+" : x < 0 ? "−" : "") + f(Math.abs(x));
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const NARR = {};   // figures gathered across sections for the "In brief" box
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function table(head, rows, num = []) {
@@ -73,7 +74,7 @@ async function main() {
   if (ck) {
     const y = ck.years.find((x) => x.fy === "2018/19");
     if (y) { fill("clkArr0", Math.round(y.arrival_over12).toLocaleString("en-GB")); fill("clkDta0", Math.round(y.dta_over12).toLocaleString("en-GB")); }
-    if (ck.rise_from_arrival) { fill("clkRiseA", ck.rise_from_arrival.toFixed(0)); fill("clkRiseD", (10 * Math.round(ck.rise_from_decision / 10)).toFixed(0)); }
+    if (ck.rise_from_arrival) { NARR.riseArrival = ck.rise_from_arrival; fill("clkRiseA", ck.rise_from_arrival.toFixed(0)); fill("clkRiseD", (10 * Math.round(ck.rise_from_decision / 10)).toFixed(0)); }
   }
   const [lt, lm] = await Promise.all(["data/longstay_tests.json", "data/longstay_mechanism.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
   if (lt) {
@@ -142,6 +143,7 @@ async function main() {
     const y0 = Y[0], yN = Y.at(-1);
     const bedsCh = yN.perThousand / y0.perThousand - 1, useCh = yN.occupied_per1000 / y0.occupied_per1000 - 1;
     const occNoCut = y0.occupancy * (1 + useCh); // beds per person held at the first year's level
+    NARR.perHead = { bedsCh, useCh, occNoCut, occ: yN.occupancy, from: y0.fy };
     $("perHeadStats").innerHTML =
       stat("Beds per 1,000 people", yN.perThousand.toFixed(2), `${signed(100 * bedsCh, (v) => v.toFixed(0) + "%")} since ${y0.fy} (${y0.perThousand.toFixed(2)})`) +
       stat("Beds in use per 1,000 people", yN.occupied_per1000.toFixed(2), `${signed(100 * useCh, (v) => v.toFixed(0) + "%")} since ${y0.fy} (${y0.occupied_per1000.toFixed(2)})`) +
@@ -201,15 +203,14 @@ async function main() {
         const h22 = f("2022/23");
         fill("hfEm19", nights(h19.hf_em_los)); fill("hfEm22", nights(h22.hf_em_los)); fill("hfAll19", nights(h19.bd_per_overnight));
         fill("hfAll22", nights(h22.bd_per_overnight)); fill("hfEl19", nights(h19.hf_el_los));
-        $("trendsText").innerHTML = `All of these are counted per admission (one per hospital stay), not per consultant episode, using the
-          Health Foundation's definitions. Before the pandemic, emergency patients who stayed overnight stayed about as long each year
+        $("trendsText").innerHTML = `Hospitals absorbed rising emergency demand mainly by sending more emergency patients home the same day, not by
+          shortening overnight stays. (Stays here are counted per admission, as the Health Foundation does, not per consultant episode.) Before the pandemic, emergency patients who stayed overnight stayed about as long each year
           (${z0.hf_em_los.toFixed(1)} nights in ${z0.fy}, ${h19.hf_em_los.toFixed(1)} in ${h19.fy}), while more emergency patients went home the
-          same day (${pct(z0.em_same_day_share, 0)} of emergency admissions in ${z0.fy}, ${pct(h19.em_same_day_share, 0)} in ${h19.fy}). So nights per
-          emergency admission fell, and hospitals absorbed rising admissions. After the pandemic, overnight emergency stays jumped:
+          same day (${pct(z0.em_same_day_share, 0)} of emergency admissions in ${z0.fy}, ${pct(h19.em_same_day_share, 0)} in ${h19.fy}). After the pandemic, overnight emergency stays jumped:
           ${h22.hf_em_los.toFixed(1)} nights in ${h22.fy}, ${ch(h19.hf_em_los, h22.hf_em_los)} more than in ${h19.fy} (the Health Foundation found 15%), and
           ${hN.hf_em_los.toFixed(1)} in ${hN.fy}. Nights spent in hospital after an emergency admission, per person, are now higher than in ${h0.fy}
           (${Math.round(hN.em_bed_days_per1000)} against ${Math.round(h0.em_bed_days_per1000)} per 1,000 people), part of which may be how stays are recorded
-          (see the note under that chart). The share of beds held by people in hospital for
+          (see "More trends" below). The share of beds held by people in hospital for
           three weeks or more has also crept up.`;
       }
     }
@@ -332,7 +333,7 @@ async function main() {
     ${int(cc.edMean)} patients received corridor care in emergency departments. The simulator gives wards corridor spaces equal to
     ${base.calibration.A.corridorPct}% of beds, used only when every proper bed is full, and fits that number to the ward count. Corridor care
     hides some of the shortage: a patient on a trolley on a ward is no longer counted as waiting in A&amp;E.
-    ${nc ? `Ending ward corridor care with no other change would raise 12-hour waits from ${int(A0.wait12PerYear)} to ${int(nc.A.wait12PerYear)} a year in the model.` : ""}
+    ${nc ? `Ending ward corridor care with no other change would raise 12-hour waits from about ${int(1000 * Math.round(A0.wait12PerYear / 1000))} to ${int(1000 * Math.round(nc.A.wait12PerYear / 1000))} a year in the model.` : ""}
     The <a href="validation.html#corridor">validation page</a> compares the model with both counts.` : "";
 
   // ---------------------------------------------------------------- 4. levers
@@ -361,8 +362,8 @@ async function main() {
     Public-health measures act slowly in reality, because people who quit smoking or lose weight do not stop needing hospital care overnight.
     The figures show the eventual effect once the change has worked through. Put together, the public-health package frees ${int(-(ph.A.occupiedBeds - A0.occupiedBeds))} beds
     and the hospital-flow package frees ${int(-(fl.A.occupiedBeds - A0.occupiedBeds))}. For comparison, 5,000 more beds cut 12-hour waits by
-    ${int(-dWait(by("beds5k")))} a year, against ${int(-(ph.A.wait12PerYear - A0.wait12PerYear))} for the public-health package and
-    ${int(-(fl.A.wait12PerYear - A0.wait12PerYear))} for the flow package. Patients ready to leave but still in hospital are the most direct target: halving
+    about ${int(-1000 * Math.round(dWait(by("beds5k")) / 1000))} a year, against ${int(-1000 * Math.round((ph.A.wait12PerYear - A0.wait12PerYear) / 1000))} for the public-health package and
+    ${int(-1000 * Math.round((fl.A.wait12PerYear - A0.wait12PerYear) / 1000))} for the flow package. Patients ready to leave but still in hospital are the most direct target: halving
     their delays frees ${int(-dBeds(by("delays")))} beds.`;
   const N = obs.nctr;
   new Chart($("cNctr"), { type: "line", data: { labels: N.map((x) => x.date), datasets: [{ label: "Patients ready to leave", data: N.map((x) => x.nctr), borderColor: BLUE, borderWidth: 2, pointRadius: 0 }] },
@@ -432,20 +433,20 @@ async function main() {
     Keeping occupancy at the simulator's present ${pct(F.target)} would need about ${int(F.noChange)} beds by 2035. With both the public-health and the hospital-flow packages
     in place it would need about ${int(F.withPackages)}, and the packages alone would leave occupancy at ${pct(both.A.occupancy)} with today's beds.`;
   $("futureStats").innerHTML =
-    stat("Beds for 85% occupancy today", int(F.at85), `${signed(F.at85 - sc.baseBeds, int)} on ${BY}`) +
-    stat("Beds to stand still by 2035", int(F.noChange), `${signed(F.noChange - sc.baseBeds, int)}, occupancy held at ${pct(F.target)}`) +
-    stat("…with both policy packages", int(F.withPackages), `${signed(F.withPackages - sc.baseBeds, int)} on ${BY}`) +
-    stat("Beds for 85% occupancy in 2035", int(F.at85in2035), `${signed(F.at85in2035 - sc.baseBeds, int)} on ${BY}`);
+    stat("Beds for 85% occupancy today", int(F.at85), `${signed(F.at85 - sc.baseBeds, (x) => int(100 * Math.round(x / 100)))} on ${BY}`) +
+    stat("Beds to stand still by 2035", int(F.noChange), `${signed(F.noChange - sc.baseBeds, (x) => int(100 * Math.round(x / 100)))}, occupancy held at ${pct(F.target)}`) +
+    stat("…with both policy packages", int(F.withPackages), `${signed(F.withPackages - sc.baseBeds, (x) => int(100 * Math.round(x / 100)))} on ${BY}`) +
+    stat("Beds for 85% occupancy in 2035", int(F.at85in2035), `${signed(F.at85in2035 - sc.baseBeds, (x) => int(100 * Math.round(x / 100)))} on ${BY}`);
 
   // ---------------------------------------------------------------- 3. who is to blame (scripts/hypotheses_*.{py,mjs})
-  const [HM, HD, HT] = await Promise.all(["data/hypotheses_model.json", "data/hypotheses_data.json", "data/hypotheses_tests.json"]
+  const [HM, HD, HT, TP] = await Promise.all(["data/hypotheses_model.json", "data/hypotheses_data.json", "data/hypotheses_tests.json", "data/trust_pools.json"]
     .map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
-  if (HM && HD) renderBlame(HM, HD, HT, { BLUE, ORANGE, GREY, TEAL: css("--series-c"), PURPLE: css("--series-d"), BY });
+  if (HM && HD) renderBlame(HM, HD, HT, TP, { BLUE, ORANGE, GREY, TEAL: css("--series-c"), PURPLE: css("--series-d"), BY });
 }
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const ym = (s) => `${MONTHS[+s.slice(5, 7) - 1]} ${s.slice(0, 4)}`;     // "2025-10" -> "October 2025"
-function renderBlame(HM, HD, HT, C) {
+function renderBlame(HM, HD, HT, TP, C) {
   const pp = (x, d = 1) => signed(100 * x, (v) => v.toFixed(d)) + " pts";
   const ap = (x, d = 1) => Math.abs(100 * x).toFixed(d) + " points";             // unsigned, for sentences
   const r1k = (x) => int(1000 * Math.round(Math.abs(x) / 1000));
@@ -612,12 +613,45 @@ function renderBlame(HM, HD, HT, C) {
     month, and there is no comparable count from before the pandemic to show whether they grew. <b>Is it all the GPs' fault?</b> No. Emergency admissions per person have not risen since ${d19.fy}, nor have
     admissions for conditions GPs can manage. Preventing more of those admissions would help a full hospital a lot, but their growth is not what
     broke the system. <b>Is it how hospitals run?</b> The
-    largest single cause in the data is a loss of flexibility in how beds are used, and the delays that track waits most closely are the hospital's own. That
+    largest single cause in the simulator is a loss of flexibility in how beds are used, and the delays that track waits most closely are the hospital's own. That
     points to flow inside hospitals as the predominant cause of the post-pandemic break, though not necessarily to poor management alone: staffing,
     infection-control rules and specialty ring-fencing sit behind flow too. And the underlying arithmetic still matters. Removing every discharge
     delay of any kind would cut long waits by about ${r1k(ad.dWait12PerYear)} a year and free ${r100(ad.dBeds)} beds; 5,000 more beds would cut them by about
     ${r1k(HM.scenarios.find((x) => x.id === "beds5k").dWait12PerYear)}. Hospitals running above 90% full have no slack, so every one of these causes bites harder than it would
     in a hospital with room to spare.`;
+  // each trust's own flexibility (scripts/trust_pools.mjs)
+  if (TP && $("poolText")) {
+    const s1 = TP.stability.find((x) => x.a === "2022/23" && x.b === "2023/24"), s2 = TP.stability.find((x) => x.a === "2023/24" && x.b === "2025/26");
+    const P = TP.prediction, J = TP.joint, n = TP.n["2025/26"];
+    $("poolText").innerHTML = `These differences are not random. Fitting the simulator to each trust in turn, with the trust's own beds,
+      admissions and occupancy, gives each trust its own flexibility: the pool size that reproduces its 12-hour waits. In ${"2025/26"} the median
+      trust behaved as if its beds were in pools of about ${int(n.medianPool)} (middle half ${int(n.q1)}–${int(n.q3)}). A trust's flexibility is a persistent
+      property: its pool in one year ranks closely with its pool the next (${s1.spearman.toFixed(2)}) and two years on (${s2.spearman.toFixed(2)}).
+      Using each trust's own 2023/24 flexibility ranks its 2025/26 waits far better than one national figure (rank correlation
+      ${P.ownPool.spearman.toFixed(2)} against ${P.nationalPool.spearman.toFixed(2)}), though it predicts their level only roughly. Less flexible trusts
+      are not the smaller ones, nor clearly those with more social care delays; they are the ones with more delays from their own discharge
+      processes (${signed(J.terms.hp_z.pct, (v) => v.toFixed(0))}% pool size per standard deviation, p=${J.terms.hp_z.p.toFixed(3)}), although that explains
+      only a small part of the differences.`;
+  }
+  {
+    const NH = NARR.perHead, fl = HM.scenarios.find((x) => x.id === "flex"), b5 = HM.scenarios.find((x) => x.id === "beds5k");
+    const items = [
+      NH ? `<b>No slack.</b> Since ${NH.from} beds per person have fallen ${pct(-NH.bedsCh, 0)}. Hospitals kept up by using ${pct(-NH.useCh, 0)} fewer beds per
+        person, mostly by cutting planned and other non-emergency stays, so they now run ${pct(NH.occ)} full.` : "",
+      `<b>The break.</b> After 2020 the same fullness began producing far longer waits${NARR.riseArrival ? `: counted from arrival, 12-hour waits in A&amp;E rose
+        about ${NARR.riseArrival.toFixed(0)}-fold` : ""}, while occupancy barely moved.`,
+      `<b>Mostly flow.</b> In the simulator, ${pct(sh("flex").wait12 / tot, 0)} of the rise in long waits since ${HM.from} comes from beds being used less flexibly,
+        not from more patients or fewer beds.`,
+      `<b>Not mainly social care or GPs.</b> Social care holds up ${pct(G["Social care"], 0)} of patients delayed a week or more; NHS community services
+        ${pct(G["Community health services"], 0)} and hospitals' own processes ${pct(G["Hospital processes"], 0)}. The delays that track long waits most closely
+        are hospitals' own. Emergency admissions per person have not risen since ${d19.fy}.`,
+      TP ? `<b>Hospital by hospital.</b> Each trust's flexibility is persistent from year to year, and the least flexible trusts are those with the most
+        delays in their own discharge processes.` : "",
+      `<b>What would help.</b> In the simulator, restoring pre-pandemic flexibility would cut 12-hour waits by about ${r1k(fl.dWait12PerYear)} a year;
+        5,000 more beds by about ${r1k(b5.dWait12PerYear)}. Both are upper bounds, and both matter.`,
+    ].filter(Boolean);
+    $("inBrief").innerHTML = `<strong>In brief.</strong><ul>${items.map((x) => `<li>${x}</li>`).join("")}</ul>`;
+  }
   $("blameStats").innerHTML =
     stat("Rise in long waits from less flexible beds", pct(sh("flex").wait12 / tot, 0), `simulated, ${HM.from} to ${C.BY}`) +
     stat("Long delays due to social care", pct(G["Social care"], 0), `NHS community services ${pct(G["Community health services"], 0)}, hospital processes ${pct(G["Hospital processes"], 0)}`) +

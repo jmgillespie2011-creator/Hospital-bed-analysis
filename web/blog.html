@@ -22,27 +22,24 @@
 <main class="wrap blog">
 <article>
 <p class="kicker">Analysis · <span id="genDate"></span></p>
-<h1>Where the beds went: England's hospitals at 92% full</h1>
-<p class="lede">England's hospitals have fewer general and acute beds than at almost any time on record. They also serve a population that is
-larger and much older than it was. We put three decades of published NHS data together with a simulation of every emergency and planned
-admission. The aim was to show what fullness costs, why that cost rose sharply after the pandemic, who is to blame (social care,
-GPs or the way hospitals run), and which policies would actually free up space.</p>
+<h1>Why England's hospitals are full, and why the waits exploded after 2020</h1>
+<p class="lede">England's hospitals run at about 92% full, with fewer general and acute beds per person than ever. Before the pandemic
+they coped. Since 2022 the same fullness has produced several times as many long waits for a bed. We put three decades of published NHS
+data together with a simulation of every emergency and planned admission to find out why, who is to blame, and what would help.</p>
 
+<div class="callout brief" id="inBrief"><strong>In brief.</strong></div>
 <div class="stats" id="heroStats"></div>
 
-<h2>1. Forty years of fewer beds</h2>
-<p>NHS England counts general &amp; acute (G&amp;A) beds open overnight in its KH03 return. The way beds were counted changed in 2010/11.
-We bridge the two series using the one year both methods cover. On that consistent basis, England had <b data-k="beds1987"></b> beds in
-1987/88 and has <b data-k="bedsNow"></b> today. Over the same period the number of people aged 75 and over grew from <b data-k="pop75_1987"></b> to <b data-k="pop75Now"></b>.</p>
+<h2 id="no-slack">1. A system with no slack</h2>
+<p>NHS England counts general &amp; acute (G&amp;A) beds open overnight in its KH03 return. On a consistent definition, England had
+<b data-k="beds1987"></b> such beds in 1987/88 and has <b data-k="bedsNow"></b> today. Over the same period the number of people aged 75
+and over, who account for nearly half of emergency bed days, grew from <b data-k="pop75_1987"></b> to <b data-k="pop75Now"></b>.</p>
 <div class="grid2">
   <figure class="chart-card"><h3>G&amp;A beds open overnight, England</h3><p class="cap">Dashed: years before 2010/11, converted to today's definition (× 0.895).</p><div class="chart-box"><canvas id="cBeds"></canvas></div><details><summary>Show as table</summary><div id="tBeds"></div></details></figure>
   <figure class="chart-card"><h3>Beds per 1,000 people aged 75+</h3><p class="cap">People aged 75+ account for <span data-k="share75bd"></span> of emergency bed days (HES 2023/24).</p><div class="chart-box"><canvas id="cBeds75"></canvas></div><details><summary>Show as table</summary><div id="tBeds75"></div></details></figure>
 </div>
-<p>Most of the fall in beds came before 2010. Since then the number of beds has changed little, but the population has kept growing,
-so beds per person have kept falling.</p>
-
-<h3 id="per-head">Fewer beds per person, and fewer beds used per person</h3>
-<p>Occupancy is beds in use divided by beds. So its rise since 2010/11 can be split exactly into two parts, using only published counts.</p>
+<p>Most of the fall in beds came before 2010. Since then the number of beds has barely changed while the population kept growing, so beds
+per person have kept falling. Occupancy is beds in use divided by beds, so its rise splits exactly into two parts:</p>
 <div class="stats" id="perHeadStats"></div>
 <figure class="chart-card"><h3>G&amp;A beds per 1,000 people: open and in use</h3><p class="cap">KH03 beds open overnight and occupied overnight
 (average for the year), ONS mid-year population, England. The gap between the lines is the empty beds.</p>
@@ -50,8 +47,8 @@ so beds per person have kept falling.</p>
   <details><summary>Show as table</summary><div id="tPerHead"></div></details></figure>
 <p id="perHeadText"></p>
 
-<h3 id="trends">How hospital use has changed</h3>
-<p id="trendsText">All of these are counted per admission (one per hospital stay), not per consultant episode.</p>
+<h3 id="trends">How hospitals stretched their beds</h3>
+<p id="trendsText"></p>
 <div class="grid2">
   <figure class="chart-card"><h3>Length of stay per admission</h3><p class="cap">Mean nights per admission among patients who stayed
   at least one night (day cases and same-day admissions left out), as defined by the Health Foundation. HES, England, general and acute
@@ -61,12 +58,15 @@ so beds per person have kept falling.</p>
   Same-day stays were first published in 2013/14.</p>
   <div class="legend" id="lLos"></div><div class="chart-box"><canvas id="cLos"></canvas></div>
   <details><summary>Show as table</summary><div id="tLos"></div></details></figure>
-  <figure class="chart-card"><h3>Emergency admissions per 1,000 people</h3><p class="cap">Finished admission episodes (one per admission) with an
-  emergency admission method (HES), ONS population. 2020/21 is the first pandemic year.</p><div class="chart-box"><canvas id="cEmerg"></canvas></div>
-  <details><summary>Show as table</summary><div id="tEmerg"></div></details></figure>
   <figure class="chart-card"><h3>Emergency admissions who go home the same day</h3><p class="cap">Share of emergency admissions with no night
   in hospital ("zero bed day cases", HES, general and acute care), e.g. same-day emergency care. Not published before 2013/14.</p>
   <div class="chart-box"><canvas id="cSame"></canvas></div><details><summary>Show as table</summary><div id="tSame"></div></details></figure>
+</div>
+<details class="more"><summary>More trends: admissions, age, bed days per person and long stays</summary>
+<div class="grid2">
+  <figure class="chart-card"><h3>Emergency admissions per 1,000 people</h3><p class="cap">Finished admission episodes (one per admission) with an
+  emergency admission method (HES), ONS population. 2020/21 is the first pandemic year.</p><div class="chart-box"><canvas id="cEmerg"></canvas></div>
+  <details><summary>Show as table</summary><div id="tEmerg"></div></details></figure>
   <figure class="chart-card"><h3>Emergency admissions aged 75 and over</h3><p class="cap">Share of emergency admissions, general and acute care (HES).
   HES gives age for all episodes of a diagnosis, not by admission method, so each diagnosis's emergency admissions are split by its age
   profile, as in the simulator.</p>
@@ -86,80 +86,46 @@ count stays per admission, not per consultant episode as HES's own "mean length 
 tables, emergency stays come out at <b data-k="hfEm19"></b> (2019/20) and <b data-k="hfEm22"></b> (2022/23), against their 7.9 and 9.1 days;
 all overnight admissions at <b data-k="hfAll19"></b> and <b data-k="hfAll22"></b>, against 7.3 and 8.3. Planned stays come out longer than
 theirs (<b data-k="hfEl19"></b> against 5.2), so that series is less reliable.</p>
+</details>
+<p class="bridge">By 2019 hospitals were running above 90% full with little room to absorb a bad week. That made them fragile. It does not
+explain what happened next.</p>
 
-<h2>2. Full hospitals, and the break after the pandemic</h2>
+<h2 id="break">2. After 2020: the same fullness, far longer waits</h2>
 <p>A full hospital makes patients wait. When no bed is free, the patient stays in A&amp;E, sometimes on a trolley in a corridor, until one
-is. NHS England publishes the number who wait more than 12 hours from the decision to admit them. Before 2020 that was a rare event.
-It happened to <b data-k="wait12Now"></b>. In <span data-k="baseYear"></span>, the year the simulator is set up for,
-it was <b data-k="wait12FY"></b> of emergency admissions.</p>
+is. NHS England publishes the number who wait more than 12 hours from the decision to admit them. Before 2020 that was rare.
+It happened to <b data-k="wait12Now"></b>. In <span data-k="baseYear"></span>, the year the simulator is set up for, it was
+<b data-k="wait12FY"></b> of emergency admissions.</p>
 <figure class="chart-card"><h3>Emergency admissions waiting over 12 hours for a bed, each month</h3><p class="cap">"Trolley waits": decision to admit to admission, all type 1 A&amp;E departments, England.</p><div class="chart-box tall"><canvas id="cWaits"></canvas></div><details><summary>Show as table</summary><div id="tWaits"></div></details></figure>
-<p>The striking thing is not that waits rise as hospitals fill. It is that the same occupancy now produces far longer waits than it did
-before the pandemic. Each dot below is one quarter. Before 2020, quarters at 90–93% occupancy had almost no 12-hour waits from the
+<p>Occupancy barely changed. Each dot below is one quarter. Before 2020, quarters at 90–93% occupancy had almost no 12-hour waits from the
 decision to admit (under 0.3% of admissions). Since 2022, quarters at the same occupancy have had 5–11%.</p>
 <figure class="chart-card"><h3>Occupancy and long waits, each quarter since 2010</h3><p class="cap" id="capBreak">x: G&amp;A occupancy (KH03). y: share of emergency admissions waiting over 12 hours for a bed.</p><div class="legend" id="lBreak"></div><div class="chart-box tall"><canvas id="cBreak"></canvas></div><details><summary>Show as table</summary><div id="tBreak"></div></details></figure>
-<p>That figure exaggerates the change, because the 12-hour clock starts when a doctor decides to admit, and before the pandemic that
+<p>That measure exaggerates the change, because the 12-hour clock starts when a doctor decides to admit, and before the pandemic that
 decision was often recorded late. Counted from arrival in A&amp;E, <b data-k="clkArr0"></b> patients spent over 12 hours there in 2018/19,
 against <b data-k="clkDta0"></b> counted from the decision to admit. From arrival, 12-hour waits have risen about <b data-k="clkRiseA"></b>-fold
 since then, not <b data-k="clkRiseD"></b>-fold. Four-hour waits and ambulance handover delays, which do not depend on when a decision is
-recorded, rose 2.5 to 4 times at the same occupancy. The real change is a several-fold rise in long waits at the same level of fullness,
-and the simulator's pre-pandemic setting is fitted to that, not to the decision-to-admit figure.</p>
-<p>Why did it happen? No published study has tested it. Patients are older and sicker, and more of them are waiting to be discharged.
-Beds may also be less interchangeable than before, through more single-specialty wards, ring-fenced planned-surgery beds and
-infection-control rules. The simulator reproduces today's waits only if hospitals behave as if their beds are split into small pools,
-about <b data-k="poolA"></b> beds each, that cannot lend to each other. It reproduces 2018/19's waits, counted from arrival, with pools of
-about <b data-k="poolB"></b>. We show both versions throughout, as "today's hospitals" and "pre-pandemic flexibility". The
-<a href="validation.html#pool-tests">validation page</a> has the tests behind both.</p>
-<p>Could something other than flexibility explain the change? Give the model 2018/19's own beds, admissions and occupancy, with today's
-flexibility. It predicts <b data-k="flexToday"></b> of emergency admissions waiting over 12 hours, against the <b data-k="flexTarget"></b>
-that 2018/19's arrival-based waits imply. At the same occupancy, removing discharge delays entirely makes almost no difference to waits (delays matter
-by making hospitals fuller, which section 3 tests), and nor does any other single change. Only with every favourable assumption at once (steadier lengths of stay, 7-day discharging, no flu
-season and double today's corridor spaces) does it come close, at <b data-k="flexFav"></b>.</p>
-<h3 id="long-stay">Trusts with many long-stay patients got worse</h3>
-<p>The rise in long waits was concentrated in trusts with many long-stay patients, but those patients seem to mark strain rather than cause
-it. We followed <b data-k="lsTrusts"></b> acute trusts through three years before the pandemic and three after, grouped into fifths by the
-share of their beds held by patients in hospital three weeks or more. Before the pandemic, every group had almost no 12-hour waits.
-Afterwards, the fifth with the fewest long-stay patients had <b data-k="lsLow"></b> of emergency admissions waiting over 12 hours and the
-fifth with the most had <b data-k="lsHigh"></b>, at about the same occupancy (<span data-k="lsOcc"></span>). Bigger trusts did not hold up better.</p>
-<figure class="chart-card"><h3>12-hour waits before and after the pandemic, by trusts' share of long-stay patients</h3>
-  <p class="cap">Acute trusts grouped into fifths by the share of G&amp;A beds held by patients in hospital 21 days or more (2025/26).
-  Before: 2017/18 to 2019/20. After: 2022/23, 2023/24 and 2025/26. Share of emergency admissions waiting over 12 hours from decision to admit.</p>
-  <div class="legend" id="lLongStay"></div>
-  <div class="chart-box"><canvas id="cLongStay"></canvas></div>
-  <details><summary>Show as table</summary><div id="tLongStay"></div></details></figure>
-<p>Comparing each trust with itself over time, and allowing for changes in its occupancy, each standard deviation of long-stay share went
-with <b data-k="flexLS"></b> more long waits after the pandemic, and with nothing before it (<span data-k="lsPlacebo"></span>). Four findings
-point to long stays as a marker rather than the mechanism:</p>
-<ul>
-<li><b>Long stays grew only a little.</b> The winter sitreps of 2017/18 to 2019/20 show <span data-k="lsPreMean"></span> of beds held by patients
-in hospital three weeks or more, against <span data-k="lsPostMean"></span> since, and the same trusts had high shares in both periods. Before the
-pandemic, long stays did not predict long waits (<span data-k="lsB1"></span>); after it, both a trust's earlier level (<span data-k="lsB2pre"></span>)
-and its rise since (<span data-k="lsB2rise"></span>) predict the increase in waits.</li>
-<li><b>The total number of patients fit to leave does not predict which trusts got worse</b> (<span data-k="lsNctr"></span>); section 3 shows which
-kinds of delay do track waits. The long-stay result holds when each region has its own change (<span data-k="lsRegion"></span>).</li>
-<li><b>Long stays and long waits move together, but neither leads.</b> Months with more long-stay patients have more long waits
-(<span data-k="lsMonth"></span> for each extra point of long-stay share), but last month's long stays do not predict this month's waits
-(<span data-k="lsLag"></span>), and earlier waits do not predict later long stays.</li>
-<li><b>Blocked beds are too small an effect.</b> In a separate simulation of a hospital split into 20 specialty wards, waits stay near zero
-when beds are fully shared (<span data-k="lsMechFull"></span>) and reach today's level when patients can rarely be placed outside their own ward. At
-today's level of sharing, raising long-stay patients from <span data-k="lsMechLo"></span>, whether they are spread out or concentrated on a few wards.</li>
-</ul>
-<p>A high long-stay share more likely marks hospitals whose patients or local services (older and frailer populations, weaker community
-and social care) struggle most once beds cannot be shared flexibly, or it shares a common cause with long waits. These are associations,
-and the trust-level result weakens when the ten trusts with the most long waits are left out (<span data-k="lsNoBig"></span>). The
-<a href="validation.html#flexibility">validation page</a> has the full tests.</p>
+recorded, rose 2.5 to 4 times at the same occupancy. The real change is a several-fold rise in long waits at the same level of fullness.</p>
+<p>The simulator captures this as a loss of flexibility. It reproduces today's waits only if hospitals behave as if their beds were split
+into small pools, about <b data-k="poolA"></b> beds each, that cannot lend to each other; it reproduces 2018/19's waits, counted from arrival,
+with pools of about <b data-k="poolB"></b>. "Flexibility" is not measured directly. It stands for whatever now makes a full hospital produce
+longer waits: beds that are less interchangeable, slower turnover, staffing, infection-control rules. We show both versions throughout, as
+"today's hospitals" and "pre-pandemic flexibility" (<a href="validation.html#pool-tests">tests</a>).</p>
+<p>Nothing else in the model closes the gap. Give it 2018/19's own beds, admissions and occupancy with today's flexibility, and it predicts
+<b data-k="flexToday"></b> of emergency admissions waiting over 12 hours, against the <b data-k="flexTarget"></b> that 2018/19's arrival-based waits
+imply. At the same occupancy, removing discharge delays makes almost no difference (delays matter by making hospitals fuller), and nor does
+any other single change. Only every favourable assumption at once (steadier stays, 7-day discharging, no flu season and double today's
+corridor spaces) comes close, at <b data-k="flexFav"></b>.</p>
+<p class="bridge">So something about how hospitals work changed. The next section tests the three usual suspects.</p>
 
-<h2 id="blame">3. Who is to blame? Social care, GPs, or how hospitals run</h2>
-<p>Three explanations dominate the debate. Social care cannot take patients who are ready to leave, so they block beds. GPs are
-too hard to see, so patients end up in A&amp;E and then in hospital. Or hospitals themselves manage the flow of patients badly. We
-tested each against published data, then asked the simulator how much each could matter. None of these tests proves cause on its
-own, and each has gaps we point out, but together they point one way.</p>
+<h2 id="blame">3. What broke? Social care, GPs, or how hospitals run</h2>
+<p>Three explanations dominate the debate. Social care cannot take patients who are ready to leave, so they block beds. GPs are too hard to
+see, so patients end up in A&amp;E and then in hospital. Or hospitals themselves manage the flow of patients badly. We tested each against
+published data, then asked the simulator how much each could matter. No single test proves cause, but together they point one way.</p>
 <div class="stats" id="blameStats"></div>
 
 <h3 id="what-changed">What changed between <span data-k="hmFrom"></span> and today</h3>
-<p>Start with what actually changed. The simulator can rerun <span data-k="hmFrom"></span> and switch its measured conditions to today's
-one at a time: how many patients arrive, how many beds there are, how long overnight patients stay (which includes waiting to be
-discharged), how many go home the same day, and how flexibly beds can be used. Averaging over every order of switching splits the
-change exactly between the five.</p>
+<p>Start with what actually changed. The simulator reruns <span data-k="hmFrom"></span> and switches its measured conditions to today's one
+at a time: how many patients arrive, how many beds there are, how long overnight patients stay (including waiting to be discharged), how
+many go home the same day, and how flexibly beds are used. Averaging over every order of switching splits the change exactly between the five.</p>
 <figure class="chart-card"><h3>What drove the rise in 12-hour waits, <span data-k="hmFrom"></span> to <span data-k="baseYear"></span></h3>
   <p class="cap">Simulated change in the share of emergency admissions waiting over 12 hours for a bed, split between five measured changes
   (Shapley values; they add up to the total). Positive bars pushed waits up. Waits here are the simulator's, counted from the decision to
@@ -168,7 +134,7 @@ change exactly between the five.</p>
   <details><summary>Show as table</summary><div id="tDecomp"></div></details></figure>
 <p id="decompText"></p>
 
-<h3 id="social-care">Social care</h3>
+<h3 id="social-care">Suspect 1: social care</h3>
 <p id="scText1"></p>
 <figure class="chart-card"><h3>Why patients who are ready to leave are still in hospital</h3>
   <p class="cap">Patients in hospital 7 days or more who no longer meet the criteria to reside, by the reason they are still there, grouped
@@ -185,7 +151,7 @@ change exactly between the five.</p>
   <details><summary>Show as table</summary><div id="tTd"></div></details></figure>
 <p id="scText3"></p>
 
-<h3 id="gps">General practice</h3>
+<h3 id="gps">Suspect 2: general practice</h3>
 <p id="gpText1"></p>
 <div class="grid2">
   <figure class="chart-card"><h3>A&amp;E attendances and emergency admissions per person</h3>
@@ -202,9 +168,47 @@ change exactly between the five.</p>
 </div>
 <p id="gpText2"></p>
 
-<h3 id="flow">How hospitals run</h3>
+<h3 id="flow">Suspect 3: how hospitals run</h3>
 <p id="flowText1"></p>
 <p id="flowText2"></p>
+
+<h3 id="trusts">Some hospitals lost far more flexibility than others</h3>
+<p>England's average hides a wide spread. Across <b data-k="nTrusts"></b> acute trusts in <span data-k="baseYear"></span>, trusts at the same
+occupancy had very different long waits.</p>
+<figure class="chart-card"><h3>Acute trusts: occupancy and long waits, <span data-k="baseYear"></span></h3><p class="cap">Each dot is a trust. x: average 08:00 G&amp;A occupancy. y: share of emergency admissions waiting over 12 hours.</p><div class="chart-box tall"><canvas id="cTrusts"></canvas></div><details><summary>Show as table</summary><div id="tTrusts"></div></details></figure>
+<p id="poolText"></p>
+<p>The rise was largest in trusts with many long-stay patients. We followed <b data-k="lsTrusts"></b> acute trusts through three years before
+the pandemic and three after, grouped into fifths by the share of their beds held by patients in hospital three weeks or more. Before the
+pandemic every group had almost no 12-hour waits. Afterwards the fifth with the fewest long-stay patients had <b data-k="lsLow"></b> of emergency
+admissions waiting over 12 hours and the fifth with the most had <b data-k="lsHigh"></b>, at about the same occupancy (<span data-k="lsOcc"></span>).
+Comparing each trust with itself, each standard deviation of long-stay share went with <b data-k="flexLS"></b> more long waits after the
+pandemic, and nothing before it (<span data-k="lsPlacebo"></span>).</p>
+<figure class="chart-card"><h3>12-hour waits before and after the pandemic, by trusts' share of long-stay patients</h3>
+  <p class="cap">Acute trusts grouped into fifths by the share of G&amp;A beds held by patients in hospital 21 days or more (2025/26).
+  Before: 2017/18 to 2019/20. After: 2022/23, 2023/24 and 2025/26. Share of emergency admissions waiting over 12 hours from decision to admit.</p>
+  <div class="legend" id="lLongStay"></div>
+  <div class="chart-box"><canvas id="cLongStay"></canvas></div>
+  <details><summary>Show as table</summary><div id="tLongStay"></div></details></figure>
+<p>Long-stay patients seem to mark strain rather than cause it: long stays grew only a little, they move with long waits but do not lead
+them, and in a simulation of a hospital split into specialty wards, blocked beds are too small an effect to matter. A high long-stay share
+more likely marks hospitals whose patients or local services struggle most once beds cannot be shared, or it shares a common cause with
+long waits. These are associations, and the result weakens when the ten trusts with the most long waits are left out (<span data-k="lsNoBig"></span>).</p>
+<details class="more"><summary>The four long-stay tests in detail</summary>
+<ul>
+<li><b>Long stays grew only a little.</b> The winter sitreps of 2017/18 to 2019/20 show <span data-k="lsPreMean"></span> of beds held by patients
+in hospital three weeks or more, against <span data-k="lsPostMean"></span> since, and the same trusts had high shares in both periods. Before the
+pandemic, long stays did not predict long waits (<span data-k="lsB1"></span>); after it, both a trust's earlier level (<span data-k="lsB2pre"></span>)
+and its rise since (<span data-k="lsB2rise"></span>) predict the increase in waits.</li>
+<li><b>The total number of patients fit to leave does not predict which trusts got worse</b> (<span data-k="lsNctr"></span>); the delay tests above show
+which kinds of delay do track waits. The long-stay result holds when each region has its own change (<span data-k="lsRegion"></span>).</li>
+<li><b>Long stays and long waits move together, but neither leads.</b> Months with more long-stay patients have more long waits
+(<span data-k="lsMonth"></span> for each extra point of long-stay share), but last month's long stays do not predict this month's waits
+(<span data-k="lsLag"></span>), and earlier waits do not predict later long stays.</li>
+<li><b>Blocked beds are too small an effect.</b> In a separate simulation of a hospital split into 20 specialty wards, waits stay near zero
+when beds are fully shared (<span data-k="lsMechFull"></span>) and reach today's level when patients can rarely be placed outside their own ward. At
+today's level of sharing, raising long-stay patients from <span data-k="lsMechLo"></span>, whether they are spread out or concentrated on a few wards.</li>
+</ul>
+</details>
 
 <h3 id="verdict">The verdict</h3>
 <figure class="chart-card"><h3>How much each fix would cut 12-hour waits today</h3>
@@ -214,83 +218,72 @@ change exactly between the five.</p>
   <div class="legend" id="lVerdict"></div><div class="chart-box bars tall"><canvas id="cVerdict"></canvas></div>
   <details><summary>Show as table</summary><div id="tVerdict"></div></details></figure>
 <p id="verdictText"></p>
+<p class="bridge">If the break is mostly about flow, the fixes are about flow too. But hospitals that run this full need room as well.</p>
 
-<h2>4. The arithmetic of a full hospital</h2>
-<p>The simulator runs a full year of patients through England's G&amp;A beds. That is every emergency admission, planned operation, flu
-case and delayed discharge, with numbers set from published data for <span data-k="baseYear"></span>. Changing only the number of beds
-gives the curves below.</p>
+<h2 id="help">4. What would help</h2>
+<p>There are two kinds of fix: more room, and better use of the room there is. The simulator runs a full year of patients through England's
+G&amp;A beds, with numbers set from published data for <span data-k="baseYear"></span>, so both can be compared on the same footing.</p>
+
+<h3 id="more-beds">More beds</h3>
 <div class="grid2">
   <figure class="chart-card"><h3>Simulated occupancy by number of beds</h3><p class="cap"><span data-k="baseYear"></span> demand. Vertical line: beds today.</p><div class="legend" id="lSweep"></div><div class="chart-box"><canvas id="cSweepOcc"></canvas></div><details><summary>Show as table</summary><div id="tSweep"></div></details></figure>
   <figure class="chart-card"><h3>Simulated waits over 12 hours by number of beds</h3><p class="cap">Thousands of emergency patients a year.</p><div class="legend" id="lSweep2"></div><div class="chart-box"><canvas id="cSweepWait"></canvas></div></figure>
 </div>
 <p id="sweepText"></p>
 <div class="callout" id="corridorBox"></div>
-
-<h3 id="kept-pace">What if beds had kept pace with population?</h3>
-<p>The simulator can answer the question directly: give today's patients the number of beds that would match an earlier year's beds per
-person. Everything else stays as it is today.</p>
+<p>The simulator can also give today's patients the number of beds that would match an earlier year's beds per person, with everything
+else as it is today.</p>
 <figure class="chart-card"><h3>Simulated waits over 12 hours if beds per person matched an earlier year</h3><p class="cap"><span data-k="baseYear"></span>
 demand. Thousands of emergency patients a year. Each pair of bars is one bed count; the label shows the year whose beds per person it matches.</p>
   <div class="legend" id="lPh"></div><div class="chart-box"><canvas id="cPh"></canvas></div>
   <details><summary>Show as table</summary><div id="tPh"></div></details></figure>
 <p id="phText"></p>
 
-<h2>5. Where else could the space come from?</h2>
-<p>Beds are not the only lever. Fewer people needing admission, shorter stays and faster discharges all free up space. We ran each policy at
-a size that has been proposed or achieved somewhere. The effect of each on admissions and length of stay comes from measured data, not
-assumption: OHID attributable-admission estimates for smoking, a large cohort study for obesity, a test-negative study for flu vaccine
-effectiveness, NHS England's discharge data for delays, and HES readmission counts for readmissions (<a href="data.html">sources</a>). Bars show the change from today.</p>
+<h3 id="levers">Needing fewer beds</h3>
+<p>Fewer people needing admission, shorter stays and faster discharges all free up space. We ran each policy at a size that has been proposed
+or achieved somewhere. The effect of each on admissions and length of stay comes from measured data, not assumption: OHID attributable-admission
+estimates for smoking, a large cohort study for obesity, a test-negative study for flu vaccine effectiveness, NHS England's discharge data
+for delays, and HES readmission counts for readmissions (<a href="data.html">sources</a>). Bars show the change from today. The biggest
+flow fix, restoring pre-pandemic flexibility, is in the verdict above and in every chart as the "more flexible" system.</p>
 <div class="grid2">
   <figure class="chart-card"><h3>Change in occupied beds</h3><p class="cap">Average beds in use. Negative means space freed. Capacity levers add beds rather than freeing them, so they are not shown.</p><div class="chart-box bars"><canvas id="cLevBeds"></canvas></div></figure>
   <figure class="chart-card"><h3>Change in waits over 12 hours</h3><p class="cap">Thousands of emergency patients a year, today's system.</p><div class="chart-box bars"><canvas id="cLevWait"></canvas></div></figure>
 </div>
 <details class="chart-card"><summary>Show all policy results as a table</summary><div id="tLevers"></div></details>
+<details class="chart-card"><summary>Show all policy results as a table</summary><div id="tLevers"></div></details>
 <p id="leverText"></p>
 <figure class="chart-card"><h3>Beds occupied by patients well enough to leave</h3><p class="cap">Patients no longer meeting the criteria to reside, England, 7-day average.</p><div class="chart-box"><canvas id="cNctr"></canvas></div><details><summary>Show as table</summary><div id="tNctr"></div></details></figure>
-
-<h3 id="readmissions">Readmissions: patients who come straight back</h3>
+<h4 id="readmissions">Readmissions: patients who come straight back</h4>
 <p id="readmText1"></p>
 <figure class="chart-card"><h3>Emergency readmissions within 30 days of discharge, England</h3><p class="cap">Share of eligible discharges followed by an emergency readmission within 30 days. Excludes day cases, maternity, cancer and deaths. The 2020/21 peak reflects the pandemic, with fewer and sicker admissions. OHID Fingertips 41101, from HES.</p><div class="chart-box"><canvas id="cReadm"></canvas></div><details><summary>Show as table</summary><div id="tReadm"></div></details></figure>
 <p id="readmText2"></p>
 
-<h2>6. Flu: the winter wild card</h2>
+<h3 id="flu">Flu: the winter wild card</h3>
 <p>Flu fills thousands of beds for a few weeks each winter, and no two seasons are alike. In 2024/25 a sharp early-January peak put
 <b data-k="flu2425"></b> flu patients in G&amp;A beds on a single day. In 2025/26 the peak came earlier and lower, at <b data-k="flu2526"></b>.</p>
 <figure class="chart-card"><h3>G&amp;A beds occupied by patients with flu, daily</h3><p class="cap">UEC daily situation reports, winters 2024/25 and 2025/26, aligned by date.</p><div class="legend" id="lFlu"></div><div class="chart-box"><canvas id="cFlu"></canvas></div><details><summary>Show as table</summary><div id="tFlu"></div></details></figure>
 <p id="fluText"></p>
 
-<h2>7. Not every hospital is the same</h2>
-<p>England's average hides a wide spread. Across <b data-k="nTrusts"></b> acute trusts in <span data-k="baseYear"></span>, trusts at the same
-occupancy had very different long waits. Occupancy explains only part of the difference, and the simulator, which treats every trust
-alike, cannot explain the rest (see the <a href="validation.html">validation page</a>). Section 3 tests which differences between trusts
-go with longer waits: delays from hospitals' own processes do; social care delays and resources do not.</p>
-<figure class="chart-card"><h3>Acute trusts: occupancy and long waits, <span data-k="baseYear"></span></h3><p class="cap">Each dot is a trust. x: average 08:00 G&amp;A occupancy. y: share of emergency admissions waiting over 12 hours.</p><div class="chart-box tall"><canvas id="cTrusts"></canvas></div><details><summary>Show as table</summary><div id="tTrusts"></div></details></figure>
-
-<h2>8. The next ten years</h2>
+<h2 id="future">5. The next ten years</h2>
 <p id="futureText"></p>
 <div class="stats" id="futureStats"></div>
 
 <h2>What this analysis can and cannot tell you</h2>
 <ul>
-  <li><strong>Occupancy is robust.</strong> It follows mostly from the arithmetic of admissions, length of stay and beds, and both versions of the model agree.</li>
-  <li><strong>Waits are uncertain.</strong> They depend on how flexibly beds can be used, which changed after the pandemic and is not directly
-    measured. Read the two systems as a range.</li>
+  <li><strong>Occupancy is the firmer result.</strong> It follows mostly from the arithmetic of admissions, length of stay and beds, and with each
+    year's own beds, admissions, overnight stays and same-day discharges the model reproduces past occupancy to within about 2 points.</li>
+  <li><strong>Effects on waits are probably upper bounds.</strong> They depend on how flexibly beds can be used, which is inferred, not measured,
+    and the simulator's waits rise and fall with occupancy several times more steeply than hospitals' do (<a href="validation.html#further">further
+    validation</a>). Read the two systems as a range, and the cuts in long waits as the most that could be expected.</li>
   <li><strong>Changes are more reliable than levels.</strong> Every scenario uses the same simulated patients as the baseline, so differences reflect the policy, not chance.</li>
   <li><strong>Demand responds to supply.</strong> More beds may let hospitals admit patients they now treat elsewhere, using up some of the gain.</li>
-  <li><strong>Effects on waits are probably upper bounds.</strong> The simulator's waits rise and fall with occupancy several times
-    more steeply than hospitals' do, and its winter peak in long waits is too sharp (<a href="validation.html#further">further validation</a>).
-    So the cuts in long waits it shows for more beds or shorter stays are likely too large. Its effects on occupancy are much better founded:
-    with each year's own beds, admissions, overnight stays and same-day discharges it reproduces past occupancy to within about 2 points.</li>
-  <li><strong>The blame tests are associations.</strong> The trust and area comparisons in section 3 compare hospitals and months, not
-    randomised changes, so a busier hospital can have both more delays and more waits for reasons of its own. The split of the rise in long
-    waits relies on the simulator, and "flexibility" is inferred from waits rather than measured.</li>
-  <li><strong>The model fails some tests.</strong> It does not reproduce the weekly pattern of occupancy, or why some trusts wait so much longer
-    than others. These failures are published on the <a href="validation.html">validation page</a>.</li>
+  <li><strong>The blame tests are associations.</strong> The trust and area comparisons compare hospitals and months, not randomised changes,
+    so a busier hospital can have both more delays and more waits for reasons of its own. The split of the rise in long waits relies on the simulator.</li>
+  <li><strong>The national model treats every trust alike.</strong> Fitting each trust its own flexibility ranks trusts' later waits well but
+    predicts their level only roughly. These and other failures are published on the <a href="validation.html">validation page</a>.</li>
 </ul>
 <p>Try your own scenario in the <a href="index.html">simulator</a>. Every input and its source is listed on <a href="data.html">Data &amp; sources</a>,
-and all code is on <a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis">GitHub</a>. The trend charts come from
-<code>scripts/blog_trends.py</code> (HES admitted patient care tables 2008/09–2024/25, KH03, ONS, winter daily sitreps) and the
-"kept pace" runs from <code>scripts/beds_per_head.mjs</code>.</p>
+and all code is on <a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis">GitHub</a>.</p>
 </article>
 </main>
 <script src="vendor/chart-4.4.1.umd.min.js"></script>
