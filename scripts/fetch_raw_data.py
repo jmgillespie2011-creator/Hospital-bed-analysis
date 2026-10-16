@@ -153,6 +153,14 @@ SOURCES = [
                       "hospital-episode-statistics-admitted-patient-care-england-2006-07")],
            depth=0, files=r"(?i)(summ|time|serie|tab).*\.(xlsx?|csv)|\.(xlsx?)$",
            notes="HES admitted patient care summary tables (admissions, length of stay, bed days, time series) via the public mirror"),
+    Source("hes_apc_diag_mirror",
+           [f"https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/{slug}"
+            for y in [f"20{a:02d}-{a + 1:02d}" for a in range(9, 25)]
+            for slug in (f"hospital-admitted-patient-care-activity/{y}", f"hospital-episode-statistics-admitted-patient-care-england-{y}",
+                         f"hospital-episode-statistics-admitted-patient-care-england-{y}-summary-reports")],
+           depth=0, files=r"(?i)(diag|summ|sum-rep)",
+           notes="HES admitted patient care primary-diagnosis and summary tables for every year 2009/10-2024/25 "
+                 "(total admissions, emergency admissions, mean and median length of stay) via the public mirror"),
     Source("eric_mirror",
            [f"https://nhsd-proxy.openprescribing.net/data-and-information/publications/statistical/estates-returns-information-collection/{p}"
             for p in ("summary-page-and-dataset-for-eric-2024-25", "summary-page-and-dataset-for-eric-2023-24",
