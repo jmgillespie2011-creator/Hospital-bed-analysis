@@ -99,6 +99,9 @@ async function renderValidation() {
   const badge = (p) => p === true ? '<span class="pass">✓ pass</span>' : p === false ? '<span class="fail">✗ fail</span>' : '<span class="na">reported</span>';
   $("validation").innerHTML = table(["", "Check", "Observed", "Today's system", "More flexible system", "Pass criterion", "Comment"],
     v.checks.map((c) => [badge(c.pass), `<strong>${esc(c.id)}</strong> ${esc(c.name)}`, esc(c.observed), esc(c.modelA), esc(c.modelB), esc(c.criterion), esc(c.note || "")]));
+  const get = (u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const [X, CK, TP, FC] = await Promise.all(["data/validation_extra.json", "data/clock_test.json", "data/trust_pools.json", "data/flexibility_check.json"].map(get));
+  narrative(v, X, CK, TP, FC, BASE0);
   if (!window.Chart) return;
   const css = (k) => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
   Chart.defaults.color = css("--text-2"); Chart.defaults.borderColor = css("--grid");
@@ -112,13 +115,25 @@ async function renderValidation() {
   ] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
     plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}%` } } },
     scales: { y: { title: { display: true, text: "Average G&A occupancy (%)" } } } } });
+  const eq = arrivalEquivalent(CK, BASE0);
   new Chart($("chartWaits"), { type: "line", data: { labels: yrs.map((y) => y.fy), datasets: [
-    { label: "Observed (A&E)", data: yrs.map((y) => 100 * y.wait12_obs), borderColor: css("--text"), borderWidth: 2, pointRadius: 4 },
-    { label: "Today's system", data: yrs.map((y) => 100 * y.wait12_A), borderColor: css("--series-scn"), borderWidth: 2, pointRadius: 4 },
-    { label: "More flexible system", data: yrs.map((y) => 100 * y.wait12_B), borderColor: css("--series-b"), borderWidth: 2, borderDash: [5, 3], pointRadius: 4 },
+    { label: "Published, from the decision to admit", data: yrs.map((y) => 100 * y.wait12_obs), borderColor: css("--text"), borderWidth: 2, pointRadius: 4 },
+    ...(eq ? [{ label: "Published from arrival, in the same units", data: yrs.map((y) => (eq[y.fy] != null ? 100 * eq[y.fy] : null)), borderColor: css("--text-3"), borderWidth: 2, borderDash: [4, 3], pointRadius: 4, spanGaps: true }] : []),
+    { label: "Simulated, today's flexibility", data: yrs.map((y) => 100 * y.wait12_A), borderColor: css("--series-scn"), borderWidth: 2, pointRadius: 4 },
+    { label: "Simulated, pre-pandemic flexibility", data: yrs.map((y) => 100 * y.wait12_B), borderColor: css("--series-b"), borderWidth: 2, borderDash: [5, 3], pointRadius: 4 },
   ] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
     plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)}%` } } },
-    scales: { y: { title: { display: true, text: "Emergency admissions waiting >12h (%)" }, beginAtZero: true } } } });
+    scales: { y: { title: { display: true, text: "% waiting over 12 hours" }, beginAtZero: true } } } });
+  if (CK && $("chartClock")) {
+    const Y = CK.years;
+    new Chart($("chartClock"), { type: "bar", data: { labels: Y.map((y) => y.fy), datasets: [
+      { label: "From arrival", data: Y.map((y) => y.arrival_over12 / 1000), backgroundColor: css("--series-base"), borderRadius: 4, borderSkipped: false },
+      { label: "From the decision to admit", data: Y.map((y) => y.dta_over12 / 1000), backgroundColor: css("--series-scn"), borderRadius: 4, borderSkipped: false }] },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+        plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${Math.round(1000 * c.parsed.y).toLocaleString("en-GB")}` } } },
+        scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: "Thousands a year" } } } } });
+    $("tClock").innerHTML = CK.html || "";
+  }
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   new Chart($("chartWeek"), { type: "line", data: { labels: days, datasets: [
     { label: "Observed (winter, 08:00)", data: v.winter.observed.weekday.map((x) => 100 * x), borderColor: css("--text"), borderWidth: 2, pointRadius: 4 },
@@ -145,8 +160,8 @@ async function renderValidation() {
     { label: "Acute trusts", data: v.trusts.map((t) => ({ x: 100 * t.wait12_model_matched, y: 100 * t.wait12_obs, name: t.name })),
       backgroundColor: css("--series-scn"), pointRadius: 4 },
   ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
-    tooltip: { callbacks: { label: (c) => `${c.raw.name}: model ${c.raw.x.toFixed(1)}%, observed ${c.raw.y.toFixed(1)}%` } } },
-    scales: { x: { title: { display: true, text: "Model: >12h share (given trust occupancy)" } }, y: { title: { display: true, text: "Observed >12h share" } } } } });
+    tooltip: { callbacks: { label: (c) => `${c.raw.name}: simulated ${c.raw.x.toFixed(1)}%, published ${c.raw.y.toFixed(1)}%` } } },
+    scales: { x: { title: { display: true, text: "Simulated: % waiting over 12 hours" } }, y: { title: { display: true, text: "Published: % waiting over 12 hours" } } } } });
   const [fc, tf] = await Promise.all(["data/flexibility_check.json", "data/trust_flexibility.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
   if (fc && $("flexCheck")) {
     const rows = [];
@@ -179,18 +194,17 @@ async function renderValidation() {
     const pn = y.poolNeeded.map((n) => n.pool), all = tf.models["all together"]?.terms || {};
     const ls = all["post:long_stay_z"], bd = all["post:log_beds_z"], pl = tf.models[Object.keys(tf.models).find((k) => k.startsWith("placebo"))]?.terms["post:long_stay_z"];
     const ft = BASE0?.calibration?.flexibleFit, g0 = (y.grid || []).find((g) => g.delayChangePct === 0 && g.corridorPct === fc.corridorToday);
-    $("flexSummary").innerHTML = `<strong>What the tests show.</strong> With ${esc(y.fy)}'s own beds, admissions and occupancy and today's flexibility,
+    $("flexSummary").innerHTML = `<strong>No.</strong> With ${esc(y.fy)}'s own beds, admissions and occupancy and today's flexibility,
       the model predicts ${g0 ? pct(g0.wait12, 1) : "far more"} of emergency admissions waiting over 12 hours${ft ? `, against the ${pct(ft.target, 1)} that ${esc(y.fy)}'s
       waits counted from arrival imply` : ""}. No single change closes the gap, including removing discharge delays; only every favourable assumption at once
       comes close${fav ? ` (${pct(fav.wait12, 1)})` : ""}. ${ft ? `Matching the arrival-based figure needs pools of about ${num(ft.pool)} beds against ${num(fc.poolToday)} today;
       matching the recorded decision-to-admit figure (${pct(y.wait12Observed, 2)}) without corridor spaces would need ${num(Math.min(...pn))}–${num(Math.max(...pn))}, but that figure was held down by when
-      decisions were recorded (pool-size test D).` : ""} Longer stays work through occupancy, which these runs hold at each year's observed level, so they cannot explain
-      longer waits at the same occupancy.
-      Across trusts, size made no clear difference${bd ? ` (${bd.pct >= 0 ? "+" : ""}${bd.pct.toFixed(0)}% per SD, p=${bd.p.toFixed(2)})` : ""}, which is not what simple pooling theory predicts.
+      decisions were recorded (see the next test).` : ""} Longer stays work through occupancy, which these runs hold at each year's observed level, so they cannot explain
+      longer waits at the same occupancy. So within the model, only a loss of flexibility closes the gap.`;
+    if ($("trustSummary")) $("trustSummary").innerHTML = `<strong>What the trust panel shows.</strong> Across trusts, size made no clear difference${bd ? ` (${bd.pct >= 0 ? "+" : ""}${bd.pct.toFixed(0)}% per SD, p=${bd.p.toFixed(2)})` : ""}, which is not what simple pooling theory predicts.
       Trusts with more long-stay patients saw much bigger rises${ls ? ` (${ls.pct >= 0 ? "+" : ""}${ls.pct.toFixed(0)}% per SD, p=${ls.p.toFixed(3)})` : ""},
       and the same pattern is absent before the pandemic${pl ? ` (placebo ${pl.pct >= 0 ? "+" : ""}${pl.pct.toFixed(0)}%, p=${pl.p.toFixed(2)})` : ""}.
-      This is an association across trusts, not proof of cause. The follow-up tests below ask what lies behind it, and the pool-size tests
-      look at how waits are recorded, escalation, infection control and hospital layout.`;
+      This is an association across trusts, not proof of cause. The follow-up tests below ask what lies behind it.`;
   }
   const [lt, lm] = await Promise.all(["data/longstay_tests.json", "data/longstay_mechanism.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
   const sgn = (x, d = 0) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(d)}`;
@@ -238,7 +252,7 @@ async function renderValidation() {
     const a1 = lt.A1.terms.ls_c, a5 = lt.A5.terms.ls_pts_lag1, b1 = lt.B1.terms.ls_pre_z, b2 = lt.B2.terms, c2 = lt.C2.terms["post:nctr_z"], c4 = lt.C4.terms["post:long_stay_z"];
     const at = (o, lf, cl) => lm.rows.find((r) => r.outlying === o && r.longFrac === lf && r.clustered === cl);
     const lo = at(lm.outlyingToday, 0.025, false), hi = at(lm.outlyingToday, 0.045, false), full = lm.calibration.find((c) => c.outlying === 1);
-    $("lsSummary").innerHTML = `<strong>What the follow-up tests show.</strong>
+    $("lsSummary").innerHTML = `<strong>Probably not because long-stay patients block beds.</strong>
       Before the pandemic, trusts with more long-stay patients did not have more long waits (B1: ${sgn(b1.pct)}% per SD, p=${b1.p.toFixed(2)}).
       Long stays themselves changed little: ${pct(lt.B_descriptive.mean_before)} of beds before, ${pct(lt.B_descriptive.mean_after)} after.
       After the pandemic, both the level of long stays before (${sgn(b2["post:ls_pre_z"].pct)}%, p=${b2["post:ls_pre_z"].p.toFixed(2)}) and the rise since
@@ -366,7 +380,7 @@ const poolDrop = () => {
   return `Fitted to 12-hour waits from the decision to admit, the pool shrinks from ${num(f.pre)} beds (${f.preFy}) to ${num(f.post)} (${f.postFy}), about
   ${(f.pre / f.post).toFixed(1)}-fold, and that drop is mostly a product of the measure it is fitted to.`;
 };
-const poolSummary = () => `<strong>What the pool tests show.</strong>
+const poolSummary = () => `<strong>Mostly real, but smaller than the recorded figures suggest.</strong>
   ${poolDrop()}
   Before the pandemic about 320,000 patients a year spent over 12 hours in A&amp;E from arrival, but only about 3,300 were counted
   as waiting 12 hours from the decision to admit (D). Measured from arrival, 12-hour waits rose about fivefold, not 140-fold.
@@ -405,7 +419,7 @@ async function renderTrustPools() {
     long-stay share ${sg(J.terms.ls_pts_z.pct)}% (p=${J.terms.ls_pts_z.p.toFixed(2)}), size ${sg(J.terms.log_beds_z.pct)}% (p=${J.terms.log_beds_z.p.toFixed(2)}).
     The positive link with occupancy is partly built in: a trust that runs very full with modest waits can only be fitted with a large pool.</p>`;
   const s1 = tp.stability.find((s) => s.a === "2022/23" && s.b === "2023/24"), s2 = tp.stability.find((s) => s.a === "2023/24" && s.b === "2025/26");
-  h += `<div class="callout"><strong>What this shows.</strong> Trusts' flexibility is a real, persistent property: a trust's fitted pool in one year
+  const callout = `<div class="callout"><strong>Yes.</strong> Trusts' flexibility is a real, persistent property: a trust's fitted pool in one year
     ranks closely with its pool the next (${s1 ? s1.spearman.toFixed(2) : ""}) and two years later (${s2 ? s2.spearman.toFixed(2) : ""}), and
     ${pct(tp.icc.betweenTrust, 0)} of the variation is between trusts. Using each trust's own earlier pool ranks its later waits far better than
     one national pool (${P.ownPool.spearman.toFixed(2)} against ${P.nationalPool.spearman.toFixed(2)}), but predicts their level only roughly
@@ -414,6 +428,7 @@ async function renderTrustPools() {
     from their own discharge processes, though that explains only a small part of the differences (R² ${J.r2.toFixed(2)}). This does not contradict the trust panel above, where trusts with
     more long-stay patients saw bigger <em>rises</em> in long waits after the pandemic: that test compares each trust with its own pre-pandemic waits,
     while a pool size describes how flexible a trust is now, including differences it already had before.</div>`;
+  if ($("trustPoolsSummary")) $("trustPoolsSummary").innerHTML = callout; else h += callout;
   $("trustPools").innerHTML = h;
 }
 
@@ -453,28 +468,130 @@ async function renderExtra() {
       with fewer simulation runs than the main results, so its central figures differ by a few percent from those quoted elsewhere on the site.</p>`;
   $("extraDetail").innerHTML = h;
   const g = (id) => x.tests.find((t) => t.id === id) || {};
-  const E1 = g("E1"), E2 = g("E2"), E4 = g("E4"), E5 = g("E5"), E6 = g("E6");
-  const amp = E2.perYear ? [E2.perYear.reduce((s, y) => s + y.ampObs, 0) / E2.perYear.length, E2.perYear.reduce((s, y) => s + y.ampModel, 0) / E2.perYear.length] : null;
+  const E4 = g("E4"), E5 = g("E5"), E6 = g("E6");
   const slope = E4.rows ? E4.rows.find((r) => r.measure.startsWith("Rise in 12-hour")) : null;
-  const V = await fetch("data/validation.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
-  const v2c = V ? V.checks.find((c) => c.id === "V2c") : null, v2cMae = v2c ? +((v2c.modelA.match(/error ([\d.]+) pts/) || [])[1]) : null;
-  const e1r = E1.rows || [], e1Occ = e1r.length ? Math.max(...e1r.map((r) => Math.abs(r.occ_model - r.occ_obs))) : null;
-  const e1Occ1 = e1r.length ? e1r.map((r) => r.occ_model - r.occ_obs).reduce((s, d) => s + d, 0) / e1r.length : 0;
-  const e1Wait = e1r.length ? e1r.map((r) => r.wait12_model / r.wait12_obs - 1) : [];
-  const v6 = V ? V.checks.find((c) => c.id === "V6") : null, v6b = V ? V.checks.find((c) => c.id === "V6b") : null;
-  $("extraTakeaway").innerHTML = `<strong>What the further tests show.</strong> Stays are measured per admission, as defined by the Health
-    Foundation (nights per overnight admission, with the same-day share separately). With each year's own beds, admissions, overnight stays
-    and same-day share, the model back-casts past occupancy within ${v2cMae != null ? v2cMae.toFixed(1) : "?"} points on average (V2c)
-    and forecasts later years from 2023/24 within ${(100 * e1Occ).toFixed(1)} points (E1). ${v6 && !v6.pass ? "The mix of stay lengths is less right: it has too few patients in hospital 7 to 13 days (V6), " : ""}${v6b && !v6b.pass ? `and its overnight emergency patients stay ${esc(v6b.modelA.split(" (")[0])} against ${esc(v6b.observed.split(" (")[0])} in HES (V6b): KH03 occupancy leaves room for fewer bed days than HES records. ` : ""}
-    ${e1Wait.length ? `Forecast 12-hour waits were within ${(100 * Math.max(...e1Wait.map(Math.abs))).toFixed(0)}% of the published figures (E1), ` : ""}but the model's waits respond to
-    occupancy far more steeply than hospitals' do:
-    ${slope ? `${(100 * slope.model).toFixed(0)}% more 12-hour waits per point of occupancy, against about ${(100 * slope.observed).toFixed(0)}% within trusts (E4)` : ""};
-    ${amp ? `a winter peak ${amp[1].toFixed(0)} times the summer trough, against about ${amp[0].toFixed(0)} times (E2)` : ""}; and too few 4-hour waits with too many of them
-    reaching 12 hours (E4). Real hospitals have buffers a plain queue lacks: escalation, moving patients, flexing staff. So <b>the simulator
-    probably overstates how much waits fall when beds are added or stays shortened</b>; treat its wait effects as upper bounds.
-    Discharge timing assumptions barely change the answers, but the size of the seasonal swing does (E6), and the model still cannot explain
-    why some trusts wait longer than others, even with each trust's own bed days per admission (E3).`;
+  const E5o = E5.observed;
+  $("extraTakeaway").innerHTML = `<strong>Trust the occupancy; treat the effects on waits as upper bounds.</strong>
+    The model's waits respond to occupancy far more steeply than hospitals' do:
+    ${slope ? `${(100 * slope.model).toFixed(0)}% more 12-hour waits per point of occupancy, against about ${(100 * slope.observed).toFixed(0)}% within trusts (E4)` : ""}.
+    So when a scenario frees beds or shortens stays, <b>the simulator probably overstates how much waits fall</b>.
+    ${E5o ? `Its assumption that discharge delays matter only by filling beds holds up: within trusts, months with more patients fit to leave
+    have no more long waits once occupancy is held fixed (${E5o.beyondOccupancy.pct.toFixed(1)}% per point, 95% CI ${E5o.beyondOccupancy.lo.toFixed(1)} to ${E5o.beyondOccupancy.hi.toFixed(1)}; E5).` : ""}
+    ${E6.summary ? `The answers are steady under uncertainty in the inputs: refitting the model under different assumptions moves the effect of
+    5,000 more beds or 10% shorter stays by less than a quarter (${esc(E6.summary.split("; ").slice(1).join("; "))}; E6).` : ""}`;
 }
 let BASE0 = null;
 const base0 = () => BASE0;
 
+
+// 12-hour waits counted from arrival, converted into the decision-to-admit units the model uses: each year's
+// arrival-based share relative to the reference year, times that year's decision-to-admit share (the same
+// translation the pre-pandemic setting is fitted with; see methods)
+function arrivalEquivalent(ck, base) {
+  const ref = base?.calibration?.flexibleFit;
+  if (!ck || !ref) return null;
+  const post = ck.years.find((y) => y.fy === ref.post);
+  if (!post) return null;
+  return Object.fromEntries(ck.years.map((y) => [y.fy, ref.dtaPost * y.arrival_share / post.arrival_share]));
+}
+
+// The narrative text of the validation page, written from the results so the words always match the numbers
+function narrative(v, X, CK, TP, FC, base) {
+  const chk = (id) => v.checks.find((c) => c.id === id) || {};
+  const ext = (id) => (X?.tests || []).find((t) => t.id === id) || {};
+  const commas = (str) => esc(str).replace(/\d{4,}/g, (n) => num(+n));
+  const grab = (str, re) => { const m = String(str || "").match(re); return m ? m[1] : null; };
+  const set = (id, html) => { if ($(id)) $(id).innerHTML = html; };
+  const cal = base?.calibration;
+  document.querySelectorAll("[data-k]").forEach((el) => {
+    const k = el.dataset.k;
+    if (k === "poolA" && cal) el.textContent = num(cal.A.poolSize);
+    if (k === "poolB" && cal?.B) el.textContent = num(cal.B.poolSize);
+  });
+
+  // occupancy
+  const v2 = grab(chk("V2").modelA, /error ([\d.]+) pts/), v2c = grab(chk("V2c").modelA, /error ([\d.]+) pts/);
+  const ys = v.years.filter((y) => y.occ_A_hesLos != null);
+  const worst = ys.reduce((a, y) => (Math.abs(y.occ_A_hesLos - y.occ_obs) > Math.abs(a.occ_A_hesLos - a.occ_obs) ? y : a), ys[0]);
+  const E1 = ext("E1"), E2 = ext("E2"), E4 = ext("E4"), E3 = ext("E3");
+  const e1r = E1.rows || [];
+  const e1Occ = e1r.length ? Math.max(...e1r.map((r) => Math.abs(r.occ_model - r.occ_obs))) : null;
+  const e1Wait = e1r.length ? Math.max(...e1r.map((r) => Math.abs(r.wait12_model / r.wait12_obs - 1))) : null;
+  const rOcc = grab(E2.summary, /occupancy r = ([\d.]+)/), rWait = grab(E2.summary, /12-hour waits r = ([\d.]+)/);
+  set("occText1", `The simulator is set up on 2025/26. Run backwards with only each year's own beds and emergency admissions, it misses
+    past occupancy by ${v2} points on average: stays have changed over the years, and it is not told. Given each year's measured overnight
+    stays and same-day share as well (HES, on the Health Foundation's definitions), the average error falls to ${v2c} points${worst ? `. The
+    worst year is ${esc(worst.fy)}, ${pct(worst.occ_A_hesLos)} simulated against ${pct(worst.occ_obs)} published${worst.fy < "2013/14" ? `, a year whose
+    stays have to be linked back from an older HES measure` : ""}` : ""}. Tuned to 2023/24 alone, it forecasts occupancy in the two following years within
+    ${e1Occ != null ? (100 * e1Occ).toFixed(1) : "?"} points (E1)${rOcc ? `, and month by month it follows the published series (correlation ${rOcc}; E2)` : ""}.`);
+  const w = v.winter, D = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const peak = (a) => D[a.indexOf(Math.max(...a))];
+  const v6b = chk("V6b");
+  set("occText2", `What it gets less right is the detail. Its day-to-day swings in occupancy are a little smaller than real ones
+    (${esc(chk("V3").modelA)} against ${esc(chk("V3").observed)}; V3). Its week peaks on ${peak(w.model.weekday)}, while real hospitals are
+    fullest on ${peak(w.observed.weekday)} and their weekly swing is half the size (V4). And its mix of stays is off: it has slightly too few
+    patients in hospital 7 to 13 days (V6), and its overnight emergency patients stay ${esc(String(v6b.modelA || "").split(" (")[0])} against
+    ${esc(String(v6b.observed || "").split(" (")[0])} in HES (V6b), because published occupancy leaves room for fewer bed days than HES records.`);
+
+  // long waits
+  const y0 = CK?.years.find((y) => y.fy === "2018/19");
+  const eq = arrivalEquivalent(CK, base);
+  if (CK && y0) set("waitText1", `Long waits are harder. NHS England's headline measure, 12-hour waits from the decision to admit, rose about
+    ${num(10 * Math.round(CK.rise_from_decision / 10))}-fold between 2018/19 and 2024/25. But before the pandemic that decision was often
+    recorded late, so the measure missed most long waits. Counted from arrival, ${num(y0.arrival_over12)} patients spent over 12 hours in
+    A&amp;E in 2018/19, against ${num(y0.dta_over12)} counted from the decision to admit, and the rise since then is about
+    ${num(CK.rise_from_arrival)}-fold. Any test of the model before 2020 has to use the arrival-based figure.`);
+  const f18 = FC?.years.find((y) => y.fy === "2018/19");
+  const g0 = f18 ? (f18.grid || []).find((g) => g.delayChangePct === 0 && g.corridorPct === FC.corridorToday) : null;
+  set("waitText2", `The model as set up on 2025/26 matches the years since the pandemic: tuned to 2023/24 alone, it forecasts 12-hour
+    waits in 2024/25 and 2025/26 within ${e1Wait != null ? (100 * e1Wait).toFixed(0) : "?"}% (E1). It does not match the years before. Given
+    2018/19's own beds, admissions and occupancy, it predicts ${g0 ? pct(g0.wait12, 1) : "far more"} of emergency admissions waiting over 12 hours,
+    against ${eq?.["2018/19"] != null ? pct(eq["2018/19"], 1) : "far fewer"} on the arrival-based measure. Hospitals then produced far fewer long
+    waits at the same fullness, so the simulator has a second version, with larger bed pools (more flexibility), fitted to that figure.
+    Section 3 tests what the change is.`);
+  const e4 = (m) => (E4.rows || []).find((r) => r.measure.startsWith(m)) || {};
+  const amp = E2.perYear ? [E2.perYear.reduce((s, y) => s + y.ampObs, 0) / E2.perYear.length, E2.perYear.reduce((s, y) => s + y.ampModel, 0) / E2.perYear.length] : null;
+  const w4 = e4("Emergency admissions waiting over 4"), w412 = e4("Of those waiting 4"), sl = e4("Rise in 12-hour");
+  set("waitText3", `The timing and shape of the waits are less right. Month by month the model follows the published waits
+    ${rWait ? `(correlation ${rWait})` : ""}, but its winter peak is ${amp ? amp[1].toFixed(0) : "?"} times its summer trough, against about
+    ${amp ? amp[0].toFixed(0) : "?"} times in reality (E2). It has too few 4-hour waits (${pct(w4.model, 0)} of emergency admissions against
+    ${pct(w4.observed, 0)}), too many of which go on to 12 hours (${pct(w412.model, 0)} against ${pct(w412.observed, 0)}),
+    and its 12-hour waits rise ${sl.model != null ? (100 * sl.model).toFixed(0) : "?"}% per point of occupancy against about
+    ${sl.observed != null ? (100 * sl.observed).toFixed(0) : "?"}% within trusts (E4). Real hospitals have buffers a plain queue lacks:
+    escalation beds, moving patients, extra staff. So the model is right about the level of waits today, but probably too sensitive to changes
+    in occupancy.`);
+
+  // corridor care
+  const C1 = chk("C1"), C2 = chk("C2"), C3 = chk("C3"), C4 = chk("C4");
+  set("corrText", `Fitted to the average ward count (${esc(C1.observed)}, May to September 2026), the model also matches the month-to-month
+    pattern it was not fitted to (${esc(C3.modelB || C3.modelA)}; C3), but not the weekly one: real ward corridor care is highest early in the week
+    and falls at weekends, while the model's peaks on ${peak(v.corridor?.ward?.weekdayModel || [0])} (${esc(C2.modelB)}; C2). In emergency departments NHS England counted
+    ${commas(C4.observed)}; in the model, ${commas(C4.modelA)}, a related but different measure (C4).`);
+
+  // trusts
+  const v7 = grab(chk("V7").modelA, /occupancy: correlation (-?[\d.]+)/), v7b = grab(chk("V7b").modelA, /rank correlation (-?[\d.]+)/);
+  const e3 = grab(E3.summary, /occupancy correlation (-?[\d.]+)/);
+  set("trustText", `The national model treats every trust alike. Given only each trust's beds and emergency admissions, it cannot tell which
+    trusts are fullest (correlation ${v7}; V7), and adding each trust's own length of stay does not help (${e3}; E3). Even given each trust's
+    own occupancy, it ranks their 12-hour waits only weakly (rank correlation ${v7b}; V7b and the chart below). Trusts at similar occupancy
+    have very different waits, so they must differ in something the national model leaves out.`);
+
+  // in brief
+  const scored = [...v.checks, ...(X?.tests || [])].filter((c) => c.pass === true || c.pass === false);
+  const passed = scored.filter((c) => c.pass).length;
+  const P = TP?.prediction;
+  const items = [
+    `<b>How full hospitals are: yes.</b> Given each year's beds, admissions and measured stays, the model reproduces occupancy back to
+      2010/11 within ${v2c} points on average, and forecasts later years within ${e1Occ != null ? (100 * e1Occ).toFixed(1) : "?"} points.`,
+    `<b>Long waits: only with a change after 2020.</b> At the same fullness, hospitals now produce about ${CK ? num(CK.rise_from_arrival) : "five"} times as
+      many 12-hour waits (counted from arrival) as in 2018/19. The model matches both periods only if beds became less flexible to use; nothing
+      else in it closes the gap.`,
+    `<b>Too sensitive.</b> The model's 12-hour waits rise ${sl.model && sl.observed ? `about ${Math.round(sl.model / sl.observed)} times` : "several times"}
+      more steeply with occupancy than hospitals' do, so treat its effects on waits as upper bounds. Occupancy is the firmer result.`,
+    `<b>Trusts differ.</b> One national model cannot say which trusts have the longest waits. Giving each trust its own flexibility ranks
+      them well${P ? ` (rank correlation ${P.ownPool.spearman.toFixed(2)}, against ${P.nationalPool.spearman.toFixed(2)} with one national setting)` : ""}.`,
+    `<b>Scorecard.</b> ${passed} of ${scored.length} scored checks pass. The failures are mostly about the shape of the waits, the weekly
+      pattern and differences between trusts; all are listed <a href="#scorecard">at the end</a>.`,
+  ];
+  set("vBrief", `<strong>In brief.</strong><ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`);
+}

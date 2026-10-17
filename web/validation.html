@@ -20,123 +20,115 @@
   </nav>
 </header>
 <main class="wrap doc" style="max-width:1150px">
-<h1>Validation</h1>
-<p>A model is only useful if it reproduces what actually happened. These checks compare the model with observed data,
-including years it was not calibrated to. Failures are shown as plainly as successes.</p>
+<h1>Does the simulator match reality?</h1>
+<p>The simulator is tuned to reproduce a handful of published figures for 2025/26. That proves little on its own: with enough settings, any
+model can hit its targets. The real test is everything it was <em>not</em> tuned to: other years, other months, individual trusts, and
+measures it never saw. This page runs those tests and reports the failures as plainly as the successes. The pass marks were set before the
+tests were run (<a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis/blob/ccr-c8062017-bkob0b/docs/validation-plan.md">validation plan</a>).</p>
 
-<div class="callout warn"><strong>The most important finding.</strong> Hospitals now produce far longer waits at the same occupancy
-than before the pandemic, and one version of the model cannot reproduce both periods. Counted from arrival in A&amp;E, 12-hour waits rose
-about fivefold between 2018/19 and 2024/25; 4-hour waits and ambulance handover delays rose 2.5 to 4 times at the same occupancy. (The
-recorded 12-hour waits from the decision to admit rose about 140-fold, but before the pandemic those decisions were often recorded late;
-see the <a href="#pool-tests">pool-size tests</a>.) The model represents the change as a loss of "bed flexibility": smaller pools of beds
-that cannot lend to each other. That setting absorbs anything that lengthens waits at a given occupancy, not only bed sharing; the
-<a href="#flexibility">tests below</a> look for what lies behind it, and find that delays, infection control, split sites and single rooms
-do not explain it, while a high share of long-stay patients goes with it. Occupancy results barely differ between the two versions; waits
-differ a lot, so the simulator shows both, and the truth for a future scenario is likely to lie between them.</div>
+<div class="callout brief" id="vBrief"><strong>In brief.</strong></div>
 
-<h2>Checks against data the model was not calibrated on</h2>
-<p>Pass criteria were set before running the checks (<a href="https://github.com/jmgillespie2011-creator/Hospital-bed-analysis/blob/ccr-c8062017-bkob0b/docs/validation-plan.md">validation plan</a>).
-All results are produced by <code>scripts/validate.mjs</code>.</p>
-<div id="validation"></div>
-
-<h2>Charts</h2>
+<h2 id="occupancy">1. How full hospitals are: the model gets this mostly right</h2>
+<p id="occText1"></p>
 <div class="grid2">
-  <div class="chart-card"><h3>Occupancy by year: observed and model</h3><p class="cap">Each year run with its own beds and emergency admissions: once with stays and delays held at 2025/26 values (V2), and once with each year's measured overnight stays and same-day share (V2c).</p><div class="chart-box"><canvas id="chartYears"></canvas></div></div>
-  <div class="chart-card"><h3>Long waits by year: observed and model</h3><p class="cap">Share of emergency admissions waiting over 12 hours from decision to admit.</p><div class="chart-box"><canvas id="chartWaits"></canvas></div></div>
-  <div class="chart-card"><h3>Weekly pattern, winter 2025/26</h3><p class="cap">Average 08:00 occupancy by day of the week.</p><div class="chart-box"><canvas id="chartWeek"></canvas></div></div>
-  <div class="chart-card"><h3>121 acute trusts: long waits</h3><p class="cap">Model run for each trust with its own beds, admissions and occupancy, against its observed share waiting over 12 hours.</p><div class="chart-box"><canvas id="chartTrusts"></canvas></div></div>
+  <figure class="chart-card"><h3>Occupancy by year: published and simulated</h3><p class="cap">Each year run with its own beds and emergency admissions, first with stays held at 2025/26 values, then with each year's measured overnight stays and same-day share.</p><div class="chart-box"><canvas id="chartYears"></canvas></div></figure>
+  <figure class="chart-card"><h3>Occupancy each month: published and simulated</h3><p class="cap">G&amp;A beds occupied at 08:00, April 2022 to March 2026, each year with its own beds, admissions, stays and flu wave.</p><div class="chart-box"><canvas id="chartE2occ"></canvas></div></figure>
 </div>
+<p id="occText2"></p>
+<figure class="chart-card"><h3>Weekly pattern, winter 2025/26</h3><p class="cap">Average 08:00 occupancy by day of the week.</p><div class="chart-box"><canvas id="chartWeek"></canvas></div></figure>
 
-<h2 id="corridor">Corridor care</h2>
+<h2 id="waits">2. Long waits: right today, but only with a change after 2020</h2>
+<p id="waitText1"></p>
+<figure class="chart-card"><h3>Patients spending over 12 hours in A&amp;E, counted two ways</h3><p class="cap">Type 1 A&amp;E departments, England. From arrival: all attendances, admitted or not (HES A&amp;E to 2019/20, ECDS from 2022/23). From the decision to admit: admitted patients only (A&amp;E monthly situation reports). Only years in NHS England Digital's comparison tables are shown.</p><div class="chart-box"><canvas id="chartClock"></canvas></div><details><summary>Show as table</summary><div id="tClock"></div></details></figure>
+<p id="waitText2"></p>
+<div class="grid2">
+  <figure class="chart-card"><h3>12-hour waits by year: published and simulated</h3><p class="cap">Share of emergency admissions waiting over 12 hours from the decision to admit. The dashed grey line converts each year's waits counted from arrival into the same units (scaled to 2024/25), which is what the pre-pandemic setting is fitted to. The simulated years hold stays at 2025/26 values, so 2022/23, when stays were longer, comes out emptier than it was and with too few waits.</p><div class="chart-box"><canvas id="chartWaits"></canvas></div></figure>
+  <figure class="chart-card"><h3>12-hour waits each month: published and simulated</h3><p class="cap">Share of emergency admissions waiting over 12 hours from the decision to admit, today's flexibility.</p><div class="chart-box"><canvas id="chartE2wait"></canvas></div></figure>
+</div>
+<p id="waitText3"></p>
+
+<h3 id="corridor">Corridor care</h3>
 <p>Since May 2026 NHS England has published two counts of corridor care, defined as care for 45 minutes or more in a clinically
 inappropriate place (<a href="https://www.england.nhs.uk/statistics/statistical-work-areas/corridor-care-urgent-and-emergency-care-daily-situation-reports/">source</a>;
-experimental statistics). The first is <strong>ward corridor care</strong>: patients on a general &amp; acute ward but outside a bed space, counted at 08:00.
-This corresponds to the model's temporary escalation spaces, which are used only when every proper bed in a pool is full. The number of
-those spaces is fitted so the model matches the average count. The pattern by day of week and by month was not fitted, which makes it a test.
-The second is <strong>corridor care in emergency departments</strong>: patients counted over each day. This includes people who are never
-admitted and leaves out those waiting in a proper cubicle. The model has no direct equivalent, so we report the number of admitted patients whose wait
-for a bed reached 45 minutes alongside it, without a pass mark.</p>
+experimental statistics). <strong>Ward corridor care</strong> counts patients on a G&amp;A ward but outside a bed space at 08:00. That matches the
+model's corridor spaces, used only when every proper bed is full, and their number is fitted to the average count. <strong>Corridor care in
+emergency departments</strong> counts patients over each day, including people never admitted, and has no exact equivalent in the model.</p>
+<p id="corrText"></p>
 <div class="grid2" id="corridorCharts">
-  <div class="chart-card"><h3>Ward corridor care by month</h3><p class="cap">Average patients in corridor care on G&amp;A wards at 08:00.</p><div class="chart-box"><canvas id="chartCorrMonth"></canvas></div></div>
-  <div class="chart-card"><h3>Ward corridor care by day of the week</h3><p class="cap">Average patients at 08:00, Monday to Sunday.</p><div class="chart-box"><canvas id="chartCorrWeek"></canvas></div></div>
+  <figure class="chart-card"><h3>Ward corridor care by month</h3><p class="cap">Average patients in corridor care on G&amp;A wards at 08:00.</p><div class="chart-box"><canvas id="chartCorrMonth"></canvas></div></figure>
+  <figure class="chart-card"><h3>Ward corridor care by day of the week</h3><p class="cap">Average patients at 08:00, Monday to Sunday.</p><div class="chart-box"><canvas id="chartCorrWeek"></canvas></div></figure>
 </div>
 
-<h2 id="flexibility">Is it really bed flexibility? Two tests</h2>
-<p>The model reproduces today's long waits only if beds behave as if split into small pools, and pre-pandemic waits only if the pools are
-large. "Bed flexibility" is the model's name for whatever lengthens waits at a given occupancy. These two tests ask whether something
-else could explain the change, and which trusts changed most.</p>
-<h3>1. Can pre-pandemic years be fitted with today's flexibility?</h3>
-<p>Each year is run with its own beds, emergency admissions and population, with length of stay re-fitted so occupancy matches that year's
-KH03 figure. Discharge delays and corridor spaces before 2020 were not measured on today's definitions, so they are varied over a wide range.
-Factors that matter at a fixed occupancy are also set as favourably as is plausible, one at a time and all together
-(<code>scripts/flexibility_check.mjs</code>).</p>
-<div id="flexCheck"></div>
-<h3>2. Which trusts saw the biggest rise in long waits at the same occupancy?</h3>
-<p>A panel of acute trusts for three years before the pandemic (2017/18 to 2019/20) and three after (2022/23, 2023/24, 2025/26). It uses each trust's
-KH03 occupancy and its A&amp;E counts of emergency admissions and 12-hour waits from decision to admit. A Poisson regression with
-trust and year fixed effects asks whether, at the same occupancy, long waits rose more after the pandemic in trusts with a given
-characteristic. Effects are per standard deviation of the characteristic, with 95% confidence intervals clustered by trust
-(<code>scripts/trust_flexibility.py</code>).</p>
-<div id="trustTest"></div>
+<h2 id="flexibility">3. What changed after 2020? Testing the flexibility explanation</h2>
+<p>The model can only reproduce today's waits if beds behave as if split into small pools that cannot lend to each other, about
+<b data-k="poolA"></b> beds each, and 2018/19's waits (counted from arrival) only with pools of about <b data-k="poolB"></b>. "Bed flexibility"
+is a name for whatever makes a full hospital produce longer waits. Four questions test whether that explanation holds up.</p>
+
+<h3>Could anything else in the model close the gap?</h3>
+<p>Each pre-pandemic year is run with its own beds, admissions and occupancy, but today's flexibility, while everything else is varied over a
+wide range: discharge delays, corridor spaces, steadier stays, 7-day discharging and no flu season (<code>scripts/flexibility_check.mjs</code>).</p>
 <div class="callout" id="flexSummary"></div>
-<h3>3. Why did long stays only matter after the pandemic?</h3>
-<p>Four follow-up tests (<code>scripts/longstay_tests.py</code> and <code>scripts/longstay_mechanism.mjs</code>).
-<b>A</b> uses the monthly bed sitrep (August 2023 onwards) to compare each trust with itself month by month.
-<b>B</b> measures long stays <i>before</i> the pandemic, from the winter daily sitreps of 2017/18 to 2019/20.
-<b>C</b> checks competing explanations: patients no longer meeting the criteria to reside, and regional differences.
-<b>D</b> is a separate simulation of a hospital split into 20 specialty wards, testing whether long-stay patients blocking
-particular beds can produce the pattern.</p>
-<div id="lsTests"></div>
-<div id="lsMech"></div>
-<div class="callout" id="lsSummary"></div>
-<h3 id="pool-tests">4. Is it really about bed pools?</h3>
-<p>The model explains the post-pandemic break as a loss of bed flexibility: smaller effective pools. A pool size is one
-number, but it makes several predictions that were never used to fit it. These tests check them
-(<code>scripts/pool_tests.mjs</code>, <code>deadline_test.mjs</code>, <code>pool_slopes.py</code>, <code>daily_tests.py</code>,
+<details class="more"><summary>Show the runs</summary><div id="flexCheck"></div></details>
+
+<h3 id="pool-tests">Is the change real, or an artefact of how waits are recorded?</h3>
+<p>A pool size is one number, but it makes several predictions it was never fitted to: how 4-hour and 12-hour waits relate, how waits rise
+with occupancy, and what happens on the busiest days. These tests check them against other measures that do not depend on when a decision
+to admit is recorded (<code>pool_tests.mjs</code>, <code>deadline_test.mjs</code>, <code>pool_slopes.py</code>, <code>daily_tests.py</code>,
 <code>infection_tests.py</code>, <code>site_tests.py</code>, <code>clock_test.py</code>).</p>
-<div id="poolTests"></div>
 <div class="callout" id="poolSummary"></div>
+<details class="more"><summary>Show the eight tests (A to H)</summary><div id="poolTests"></div></details>
 
-<h2 id="trust-pools">Does each trust have its own flexibility?</h2>
-<p>One national pool size predicts the national years after the pandemic well, but not which trusts struggle (V7, E3). Here every acute
-trust gets its own pool size in each post-pandemic year (2022/23, 2023/24, 2025/26). The model is scaled to the trust's beds and emergency
-admissions, its stays are set so it matches the trust's occupancy (KH03), and the pool size is fitted to the trust's share of emergency
-admissions waiting over 12 hours. The test is whether those pools are stable from year to year, whether a trust's pool from one year predicts
-its waits in a later year, and what they go with (<code>scripts/trust_pools.mjs</code>, <code>scripts/trust_pools_analysis.py</code>).</p>
-<div id="trustPools"></div>
+<h3>Which trusts saw the biggest rise in long waits?</h3>
+<p>A panel of acute trusts for three years before the pandemic (2017/18 to 2019/20) and three after (2022/23, 2023/24, 2025/26) asks
+whether, at the same occupancy, long waits rose more in trusts with a given characteristic (Poisson regression with trust and year fixed
+effects, 95% confidence intervals clustered by trust; <code>scripts/trust_flexibility.py</code>).</p>
+<div class="callout" id="trustSummary"></div>
+<details class="more"><summary>Show the trust panel</summary><div id="trustTest"></div></details>
 
-<h2 id="further">Further validation</h2>
-<p>Six more tests (<code>scripts/validate_extra.mjs</code>, inputs from <code>scripts/validation_data.py</code>). They ask whether the model
-forecasts years it was not fitted to, follows the month-to-month pattern, explains differences between trusts once each trust's own
-stays are used, gets the shape of waits right, responds to change the way hospitals do, and how much its answers move under uncertainty.</p>
-<div id="extraSummary"></div>
-<div id="extraE2"></div>
-<div class="grid2">
-  <figure class="chart-card"><h3>Occupancy each month: published and simulated</h3><p class="cap">G&amp;A beds occupied at 08:00, April 2022 to March 2026.</p>
-    <div class="chart-box"><canvas id="chartE2occ"></canvas></div></figure>
-  <figure class="chart-card"><h3>12-hour waits each month: published and simulated</h3><p class="cap">Share of emergency admissions waiting over 12 hours from decision to admit.</p>
-    <div class="chart-box"><canvas id="chartE2wait"></canvas></div></figure>
-</div>
-<div id="extraDetail"></div>
+<h3>Why did long stays only matter after the pandemic?</h3>
+<p>Four follow-up tests: trusts compared with themselves month by month (A), long stays measured before the pandemic (B), competing
+explanations (C), and a separate simulation of a hospital split into 20 specialty wards, testing whether long-stay patients blocking
+particular beds can produce the pattern (D) (<code>scripts/longstay_tests.py</code>, <code>scripts/longstay_mechanism.mjs</code>).</p>
+<div class="callout" id="lsSummary"></div>
+<details class="more"><summary>Show the four tests</summary><div id="lsTests"></div><div id="lsMech"></div></details>
+
+<h2 id="trusts">4. Trust by trust: one national model is not enough</h2>
+<p id="trustText"></p>
+<figure class="chart-card"><h3>Acute trusts: 12-hour waits, simulated and published</h3><p class="cap">Each trust run with its own beds, admissions and occupancy and the national flexibility, against its published share of emergency admissions waiting over 12 hours from the decision to admit (2025/26).</p><div class="chart-box"><canvas id="chartTrusts"></canvas></div></figure>
+<h3 id="trust-pools">Does each trust have its own flexibility?</h3>
+<p>Here every acute trust gets its own pool size in each post-pandemic year (2022/23, 2023/24, 2025/26), with the model scaled to the trust's
+beds and emergency admissions, its stays set to match the trust's occupancy, and the pool fitted to its 12-hour waits. Are those pools stable,
+do they predict later waits, and what do they go with (<code>scripts/trust_pools.mjs</code>, <code>scripts/trust_pools_analysis.py</code>)?</p>
+<div id="trustPoolsSummary"></div>
+<details class="more"><summary>Show the trust-pool tables</summary><div id="trustPools"></div></details>
+
+<h2 id="sensitivity">5. How far to trust the answers</h2>
 <div class="callout warn" id="extraTakeaway"></div>
+<details class="more"><summary>Show the detailed results</summary><div id="extraE2"></div><div id="extraDetail"></div></details>
 
-<h2>Can area data measure the effect of public-health policies?</h2>
-<p>Estimates from <code>scripts/effects_analysis.py</code>: how emergency admission rates vary with risk factors across ~150 local
-authorities (between areas, adjusted for deprivation) and within areas over time (area and year fixed effects). Placebo outcomes (falls, hip
-fracture) should show no effect of flu vaccination; they do, which shows these designs pick up confounding. The simulator therefore uses OHID's
-attributable-admission estimates and published studies by default (see <a href="data.html">Data &amp; sources</a>).</p>
-<div id="effects"></div>
+<h2 id="public-health">6. Can area data measure the effect of public-health policies?</h2>
+<p>This project also tried to estimate the effects of smoking, obesity and flu vaccination on emergency admissions by comparing ~150 local
+authorities, both between areas (adjusted for deprivation) and within areas over time (<code>scripts/effects_analysis.py</code>). A placebo
+test settles it: flu vaccination should not change falls or hip-fracture admissions, but in these data it appears to. The designs pick up
+confounding, so the simulator uses OHID's attributable-admission estimates and published studies instead (see <a href="data.html">Data &amp; sources</a>).</p>
+<details class="more"><summary>Show the area estimates</summary><div id="effects"></div></details>
 
-<h2>What this means for using the simulator</h2>
+<h2 id="using">What this means for using the simulator</h2>
 <ul>
-  <li><strong>Occupancy</strong> is the firmer result. With each year's own beds, admissions, overnight stays and same-day share the model
-    back-casts past occupancy within about 2 points (V2c), and both versions of the model agree. Its mix of stay lengths is less right (V6, V6b).</li>
-  <li><strong>Waits for a bed</strong> depend on how flexibly beds can be used, which is inferred rather than measured. Treat the two systems as a
-    range, and treat changes in waits as upper bounds: the model's waits respond to occupancy several times more steeply than hospitals' do (E2, E4).</li>
-  <li><strong>Direction and size of changes</strong> (scenario minus baseline) are more reliable than absolute levels, because most model
-    errors affect the baseline and the scenario alike.</li>
-  <li><strong>Differences between trusts</strong> are not reproduced (V7, E3): the model treats every trust alike.</li>
+  <li><strong>Occupancy</strong> is the firmer result, and both versions of the model agree on it.</li>
+  <li><strong>Waits for a bed</strong> depend on how flexibly beds are used, which is inferred rather than measured. Treat the two versions
+    (today's hospitals and pre-pandemic flexibility) as a range, and treat changes in waits as upper bounds: the model's waits respond to
+    occupancy several times more steeply than hospitals' do.</li>
+  <li><strong>Changes</strong> (scenario minus baseline) are more reliable than absolute levels, because most of the model's errors affect the
+    baseline and the scenario alike.</li>
+  <li><strong>Individual trusts</strong> differ in flexibility in ways the national model does not capture.</li>
 </ul>
+
+<h2 id="scorecard">Scorecard: every pre-set check</h2>
+<p>All results are produced by <code>scripts/validate.mjs</code> and <code>scripts/validate_extra.mjs</code>. "Reported" means a figure is
+shown without a pass mark, usually because it was used in calibration or is not the same measure.</p>
+<details class="more"><summary>Show the core checks (V, C and L)</summary><div id="validation"></div></details>
+<details class="more"><summary>Show the further tests (E1 to E6)</summary><div id="extraSummary"></div></details>
 </main>
 <script src="vendor/chart-4.4.1.umd.min.js"></script>
 <script type="module" src="js/pages.js"></script>
