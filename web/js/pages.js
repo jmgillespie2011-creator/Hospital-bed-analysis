@@ -322,7 +322,8 @@ async function renderPoolTests(base) {
     }
     h += `<h4>A. Two outcomes, one setting</h4>` + table(["Year", "Run", "Pool size", "Waiting over 4 hours", "Waiting over 12 hours"], rows, [2, 3, 4]) +
       `<p class="cap">Waits from decision to admit, share of emergency admissions. Each year with its own beds, admissions and occupancy.
-      A single pool size cannot match both outcomes before the pandemic: a plain queue cannot produce many 4-hour waits with almost no 12-hour ones.</p>`;
+      A single pool size cannot match both outcomes before the pandemic: a plain queue cannot produce many 4-hour waits with almost no 12-hour ones.
+      Both pre-pandemic figures are timed from the decision to admit, which was often recorded late (test D), so much of the mismatch is a recording artefact.</p>`;
   }
   const dl = J.deadline_test;
   if (dl) {
@@ -330,7 +331,8 @@ async function renderPoolTests(base) {
     h += `<h4>B. A deadline: escalation space for patients approaching 12 hours</h4>` +
       table(["Deadline", "Year", "Pool (fitted to 4h)", "Extra space, % of beds (fitted to 12h)", "Over 4h (observed)", "Over 12h (observed)", "In escalation spaces 08:00"], rows, [2, 3, 4, 5, 6]) +
       `<p class="cap">The model's research option <code>deadlineH</code>/<code>deadlinePct</code>: once a patient has waited the deadline, extra spaces can take them.
-      Two settings are fitted to two figures, so the fit itself proves nothing; the checks are the size of the settings and the 08:00 count, which was not fitted
+      Two settings are fitted to two figures, so the fit itself proves nothing, and the pre-pandemic figures are timed from the decision to admit (test D);
+      the checks are the size of the settings and the 08:00 count, which was not fitted
       (NHS England's ward corridor count for 2025/26: ${num(dl.corridorObserved8am)}).</p>`;
   }
   const sl = J.pool_slopes;
@@ -365,7 +367,7 @@ async function renderPoolTests(base) {
       `<p class="cap">Escalation beds open at 90% or more of the trust's 95th-percentile level that winter. Change in the effect p=${t5.change.p.toFixed(3)}.
       Escalation beds as a share of open beds: before ${pct(dt.periods.before.escalation_share, 1)}, after ${pct(dt.periods.after.escalation_share, 1)}.
       ${dt.test5_monthly_12h ? `Before the pandemic, ${pct(dt.test5_monthly_12h.share_of_12h_in_those_months, 0)} of 12-hour waits fell in the ${pct(dt.test5_monthly_12h.share_months_mostly_full, 0)} of trust-months with escalation used up on most days
-      (against ${pct(dt.test5_monthly_12h.share_of_4h_in_those_months, 0)} of 4-hour waits).` : ""}</p>`;
+      (against ${pct(dt.test5_monthly_12h.share_of_4h_in_those_months, 0)} of 4-hour waits), both timed from the decision to admit.` : ""}</p>`;
   }
   const it = J.infection_tests;
   if (it) {
@@ -402,9 +404,9 @@ const poolSummary = () => `<strong>Mostly real, but smaller than the recorded fi
   ${poolDrop()}
   Before the pandemic about 320,000 patients a year spent over 12 hours in A&amp;E from arrival, but only about 3,300 were counted
   as waiting 12 hours from the decision to admit (D). Measured from arrival, 12-hour waits rose about fivefold, not 140-fold.
-  Other measures that do not depend on when a decision is recorded tell the same story: 4-hour waits from the decision to admit rose
-  about 2.5-fold, and ambulance handover delays about fourfold at the same occupancy (E). Fitted to 4-hour waits, pools shrink by about
-  40% (B), far less than the 12-hour fit suggests. Part of what changed is the room to escalate: hospitals open fewer escalation beds at the same occupancy, and
+  Other measures that do not depend on when a decision is recorded tell the same story at the same occupancy: 4-hour waits counted from
+  arrival roughly doubled (see the blog), and ambulance handover delays rose about fourfold (E). Fitted to 4-hour waits from the decision
+  to admit, pools shrink by about 40% (B), far less than the 12-hour fit suggests, though that measure is also timed from the decision. Part of what changed is the room to escalate: hospitals open fewer escalation beds at the same occupancy, and
   running out of them now matters less, because delays are common on ordinary days too (F). But the handover curve moved up at every
   occupancy, including around 80%, rather than changing shape, which points to pressures outside the bed pool as well. Infection control (G), split sites and single rooms (H) do not explain which trusts got worse, on
   either measure. A high long-stay share goes with a bigger rise in 12-hour waits from the decision to admit (C, H), but not in 4-hour waits from

@@ -72,8 +72,8 @@ wide range: discharge delays, corridor spaces, steadier stays, 7-day discharging
 
 <h3 id="pool-tests">Is the change real, or an artefact of how waits are recorded?</h3>
 <p>A pool size is one number, but it makes several predictions it was never fitted to: how 4-hour and 12-hour waits relate, how waits rise
-with occupancy, and what happens on the busiest days. These tests check them against other measures that do not depend on when a decision
-to admit is recorded (<code>pool_tests.mjs</code>, <code>deadline_test.mjs</code>, <code>pool_slopes.py</code>, <code>daily_tests.py</code>,
+with occupancy, and what happens on the busiest days. These tests check them, and check how much of the change survives on measures that do not depend on
+when a decision to admit is recorded (<code>pool_tests.mjs</code>, <code>deadline_test.mjs</code>, <code>pool_slopes.py</code>, <code>daily_tests.py</code>,
 <code>infection_tests.py</code>, <code>site_tests.py</code>, <code>clock_test.py</code>).</p>
 <div class="callout" id="poolSummary"></div>
 <details class="more"><summary>Show the eight tests (A to H)</summary><div id="poolTests"></div></details>
