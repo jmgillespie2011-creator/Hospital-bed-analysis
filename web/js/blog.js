@@ -251,15 +251,17 @@ async function main() {
   }
 
   // ---------------------------------------------------------------- 2. waits and the break
-  const M = obs.monthly;
-  new Chart($("cWaits"), { type: "line", data: { labels: M.map((m) => m.month), datasets: [
-    { label: "Waits over 12 hours", data: M.map((m) => m.w12), borderColor: BLUE, borderWidth: 2, pointRadius: 0 }] },
-    options: lineOpts("Patients per month", {
-      plugins: { legend: { display: false }, tooltip: { callbacks: { title: (c) => { const m = M[c[0].dataIndex].month; return `${MON[+m.slice(5) - 1]} ${m.slice(0, 4)}`; },
-        label: (c) => `${int(c.parsed.y)} patients (${pct(M[c.dataIndex].share)} of emergency admissions)` } } },
-      scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, callback: (v, i) => (M[i].month.endsWith("-04") && +M[i].month.slice(0, 4) % 2 === 0 ? M[i].month.slice(0, 4) : null) } },
-        y: { title: { display: true, text: "Patients per month" } } } }) });
-  $("tWaits").innerHTML = table(["Month", "Waits over 12 hours", "Emergency admissions", "Share"], M.slice().reverse().map((m) => [m.month, int(m.w12), int(m.adm), pct(m.share, 2)]), [1, 2, 3]);
+  if (ck) {
+    const Y = ck.years;
+    legend("lClock", [["From arrival", BLUE], ["From the decision to admit", ORANGE]]);
+    new Chart($("cClock"), { type: "bar", data: { labels: Y.map((y) => y.fy), datasets: [
+      { label: "From arrival", data: Y.map((y) => y.arrival_over12 / 1000), backgroundColor: BLUE, borderRadius: 4, borderSkipped: false },
+      { label: "From the decision to admit", data: Y.map((y) => y.dta_over12 / 1000), backgroundColor: ORANGE, borderRadius: 4, borderSkipped: false }] },
+      options: lineOpts("Thousands a year", { interaction: { mode: "index", intersect: false }, scales: { x: { grid: { display: false } }, y: { min: 0, title: { display: true, text: "Patients over 12 hours, thousands a year" } } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${int(1000 * c.parsed.y)}` } } } }) });
+    $("tClock").innerHTML = table(["Year", "Over 12 hours from arrival", "% of type 1 attendances", "Over 12 hours from decision to admit", "% of emergency admissions"],
+      Y.map((y) => [y.fy, int(y.arrival_over12), pct(y.arrival_share), int(y.dta_over12), pct(y.dta_share, 2)]), [1, 2, 3, 4]);
+  }
 
   const Q = obs.quarters;
   const era = (q) => (q.fy < "2020/21" ? 0 : q.fy < "2022/23" ? 1 : 2);

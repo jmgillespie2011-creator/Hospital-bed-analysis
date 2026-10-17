@@ -92,18 +92,20 @@ explain what happened next.</p>
 
 <h2 id="break">2. After 2020: the same fullness, far longer waits</h2>
 <p>A full hospital makes patients wait. When no bed is free, the patient stays in A&amp;E, sometimes on a trolley in a corridor, until one
-is. NHS England publishes the number who wait more than 12 hours from the decision to admit them. Before 2020 that was rare.
-It happened to <b data-k="wait12Now"></b>. In <span data-k="baseYear"></span>, the year the simulator is set up for, it was
-<b data-k="wait12FY"></b> of emergency admissions.</p>
-<figure class="chart-card"><h3>Emergency admissions waiting over 12 hours for a bed, each month</h3><p class="cap">"Trolley waits": decision to admit to admission, all type 1 A&amp;E departments, England.</p><div class="chart-box tall"><canvas id="cWaits"></canvas></div><details><summary>Show as table</summary><div id="tWaits"></div></details></figure>
-<p>Occupancy barely changed. Each dot below is one quarter. Before 2020, quarters at 90–93% occupancy had almost no 12-hour waits from the
-decision to admit (under 0.3% of admissions). Since 2022, quarters at the same occupancy have had 5–11%.</p>
+is. NHS England counts these waits in two ways. Its monthly figures start the clock when a doctor decides to admit: on that measure
+12-hour waits happened to <b data-k="wait12Now"></b>, and to <b data-k="wait12FY"></b> in <span data-k="baseYear"></span>,
+the year the simulator is set up for. Before 2020 they were almost unheard of. But that measure exaggerates the change, because before the
+pandemic the decision to admit was often recorded late. Hospital records also time each patient's whole stay in A&amp;E from arrival, and on that
+clock long waits were common before the pandemic too.</p>
+<figure class="chart-card"><h3>Patients spending over 12 hours in A&amp;E, counted two ways</h3><p class="cap">Type 1 A&amp;E departments, England, each financial year with published data. From arrival: all attendances, admitted or not (HES A&amp;E to 2019/20, ECDS from 2022/23). From the decision to admit: admitted patients only (A&amp;E monthly situation reports). Only years in NHS England Digital's comparison tables are shown.</p><div class="legend" id="lClock"></div><div class="chart-box tall"><canvas id="cClock"></canvas></div><details><summary>Show as table</summary><div id="tClock"></div></details></figure>
+<p>Counted from arrival, <b data-k="clkArr0"></b> patients spent over 12 hours in A&amp;E in 2018/19, against <b data-k="clkDta0"></b> counted from
+the decision to admit. From arrival, 12-hour waits have risen about <b data-k="clkRiseA"></b>-fold since then, not <b data-k="clkRiseD"></b>-fold.
+Four-hour waits and ambulance handover delays, which do not depend on when a decision is recorded, rose 2.5 to 4 times at the same occupancy.
+The real change is a several-fold rise in long waits at the same level of fullness.</p>
+<p>Over the same years occupancy barely changed. Each dot below is one quarter, on the decision-to-admit measure, the only one published every quarter. Before 2020,
+quarters at 90–93% occupancy had almost no 12-hour waits on that measure (under 0.3% of admissions). Since 2022, quarters at the same occupancy
+have had 5–11%. The size of the jump is overstated, as above, but the direction is not.</p>
 <figure class="chart-card"><h3>Occupancy and long waits, each quarter since 2010</h3><p class="cap" id="capBreak">x: G&amp;A occupancy (KH03). y: share of emergency admissions waiting over 12 hours for a bed.</p><div class="legend" id="lBreak"></div><div class="chart-box tall"><canvas id="cBreak"></canvas></div><details><summary>Show as table</summary><div id="tBreak"></div></details></figure>
-<p>That measure exaggerates the change, because the 12-hour clock starts when a doctor decides to admit, and before the pandemic that
-decision was often recorded late. Counted from arrival in A&amp;E, <b data-k="clkArr0"></b> patients spent over 12 hours there in 2018/19,
-against <b data-k="clkDta0"></b> counted from the decision to admit. From arrival, 12-hour waits have risen about <b data-k="clkRiseA"></b>-fold
-since then, not <b data-k="clkRiseD"></b>-fold. Four-hour waits and ambulance handover delays, which do not depend on when a decision is
-recorded, rose 2.5 to 4 times at the same occupancy. The real change is a several-fold rise in long waits at the same level of fullness.</p>
 <p>The simulator captures this as a loss of flexibility. It reproduces today's waits only if hospitals behave as if their beds were split
 into small pools, about <b data-k="poolA"></b> beds each, that cannot lend to each other; it reproduces 2018/19's waits, counted from arrival,
 with pools of about <b data-k="poolB"></b>. "Flexibility" is not measured directly. It stands for whatever now makes a full hospital produce
