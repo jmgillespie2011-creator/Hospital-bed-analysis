@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#2a78d6"/><path d="M6 22V10M6 17h20v5M26 22v-3M11 14a2 2 0 1 0 0-.01M14 13h9a3 3 0 0 1 3 3v1H14z" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>NHS bed occupancy simulator</title>
+  <rect width="32" height="32" rx="7" fill="#2a78d6"/>
+  <!-- headboard, pillow, mattress and frame of a hospital bed, in solid shapes so it reads at 16px -->
+  <rect x="5" y="8" width="3.4" height="17" rx="1.2" fill="#fff"/>
+  <rect x="10" y="13" width="6" height="3.6" rx="1.8" fill="#fff"/>
+  <rect x="5" y="17.4" width="22" height="4.2" rx="1.2" fill="#fff"/>
+  <rect x="23.6" y="17.4" width="3.4" height="7.6" rx="1.2" fill="#fff"/>
+  <!-- waits curving up as beds fill: the simulator's queueing curve -->
+  <path d="M18.6 11.8 C21.8 11.6 24.4 10 26.6 5.4" stroke="#ff8a4c" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+</svg>
