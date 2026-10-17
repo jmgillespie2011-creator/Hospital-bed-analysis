@@ -295,6 +295,38 @@ async function main() {
       but after it the whole cloud of points moved up: the same fullness now goes with far longer waits.`;
   }
 
+  // ---------------------------------------------------------------- queueing explainer: waits by occupancy for different pool sizes
+  const PC = await fetch("data/pool_curves.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  if (PC) {
+    const near = (x, y) => Math.abs(x - y) < 0.5;
+    const cname = (c) => `${Math.round(c.pool)} beds${near(c.pool, PC.poolA) ? " (today)" : near(c.pool, PC.poolB) ? " (pre-pandemic)" : ""}`;
+    const col = (c) => (near(c.pool, PC.poolA) ? BLUE : near(c.pool, PC.poolB) ? ORANGE : c.pool < PC.poolA ? css("--series-d") : css("--series-c"));
+    const CV = PC.curves.map((c) => ({ ...c, points: c.points.slice().sort((a, b) => a.occupancy - b.occupancy) }));
+    legend("lPools", CV.map((c) => [`Pools of ${cname(c)}`, col(c)]));
+    new Chart($("cPools"), { type: "scatter", data: { datasets: CV.map((c) => ({ label: `Pools of ${cname(c)}`, data: c.points.map((q) => ({ x: 100 * q.occupancy, y: 100 * q.wait12 })),
+      showLine: true, borderColor: col(c), backgroundColor: col(c), borderWidth: 2, pointRadius: 3 })) },
+      options: { responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}% at ${c.parsed.x.toFixed(1)}% occupancy` } } },
+        scales: { x: { type: "linear", min: 78, max: 98, title: { display: true, text: "Occupancy (%)" } }, y: { min: 0, title: { display: true, text: "Waiting over 12 hours (%)" } } } } });
+    $("tPools").innerHTML = table(["Beds", ...CV.map((c) => `Pools of ${cname(c)}: occupancy, over 12h`)],
+      PC.curves[0].points.map((q, i) => [int(q.beds), ...PC.curves.map((c) => `${pct(c.points[i].occupancy)}, ${pct(c.points[i].wait12, 1)}`)]), CV.map((_, i) => i + 1));
+    // waits at a given occupancy, interpolated along each curve
+    const at = (c, occ) => { const P = c.points; for (let i = 1; i < P.length; i++) if (P[i - 1].occupancy <= occ && P[i].occupancy >= occ)
+      return P[i - 1].wait12 + (P[i].wait12 - P[i - 1].wait12) * (occ - P[i - 1].occupancy) / (P[i].occupancy - P[i - 1].occupancy); return null; };
+    const occNow = obs.beds.at(-1).occupancy, w = (c, o) => { const v = at(c, o); return v == null ? null : v < 0.0005 ? "almost none" : `about ${pct(v, v < 0.1 ? 1 : 0)}`; };
+    const list = (o) => CV.map((c) => [cname(c), w(c, o)]).filter(([, v]) => v).map(([n, v]) => `pools of ${n.replace(/ \(.*\)/, "")}, ${v}`).join("; ");
+    const big = CV.at(-1), small = CV.find((c) => near(c.pool, PC.poolA));
+    const d = (c, lo, hi) => { const a = at(c, lo), b = at(c, hi); return a != null && b != null ? b - a : null; };
+    const d1 = d(small, 0.85, 0.86), d2 = d(small, 0.91, 0.92);
+    $("poolCurveText").innerHTML = `At today's occupancy (${pct(occNow)}), the simulator gives these shares of emergency admissions waiting over
+      12 hours: ${list(occNow)}. Two things follow. First, the curves bend: with today's pools, going from 85% to 86% full adds about
+      ${d1 != null ? (100 * d1).toFixed(1) : "?"} points of 12-hour waits, and going from 91% to 92% adds about ${d2 != null ? (100 * d2).toFixed(1) : "?"}. As a hospital
+      fills, each extra point costs more than the last. Second, there is no single safe level of occupancy. At 85% full, the shares are: ${list(0.85)}. The 85% often
+      quoted as safe is a rule of thumb for hospitals of a particular flexibility; with large, fully shared pools${w(big, 0.92) === "almost none" ? " even 92% produces almost no 12-hour waits" : ""}. The simulator's
+      waits respond to occupancy more steeply than real hospitals' do (see the <a href="validation.html#sensitivity">validation</a>), so read the
+      curves for their shape rather than their exact levels.`;
+  }
+
   // ---------------------------------------------------------------- long-stay clue (trust panel)
   const LF = tf?.long_stay_fifths || [];
   if (LF.length) {
@@ -344,7 +376,7 @@ async function main() {
   const A0 = sc.baseline.A;
   $("sweepText").innerHTML = `With ${BY} demand, the simulator puts today's ${int(sc.baseBeds)} beds at ${pct(A0.occupancy)} occupancy,
     with about ${int(1000 * Math.round(A0.wait12PerYear / 1000))} emergency patients a year waiting over 12 hours for a bed. The published figure for ${BY} is ${int(obs.monthly.filter((m) => m.month >= `${BY.slice(0, 4)}-04` && m.month < `${+BY.slice(0, 4) + 1}-04`).reduce((s, m) => s + m.w12, 0))}, so the model somewhat understates long waits.
-    Waits do not rise in a straight line. Each bed removed costs more than the last, because a nearly full hospital has no slack to absorb a busy day.
+    Waits do not rise in a straight line. As the queueing curves in section 2 showed, each bed removed costs more than the last, because a nearly full hospital has no slack to absorb a busy day.
     Going back to the ${int(h2010.beds)} beds of 2010/11 would bring occupancy to about ${pct(interp(h2010.beds, (s) => s.A.occupancy))} and cut 12-hour waits
     to about ${int(1000 * Math.round(interp(h2010.beds, (s) => s.A.wait12PerYear) / 1000))} a year. Getting to the 85% often quoted as safe would take about
     ${int(sc.bedsNeeded2035.at85)} beds, roughly ${int(100 * Math.round((sc.bedsNeeded2035.at85 - sc.baseBeds) / 100))} more than today.

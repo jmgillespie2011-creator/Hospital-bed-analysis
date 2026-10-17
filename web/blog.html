@@ -107,11 +107,25 @@ The real change is a several-fold rise in long waits at the same level of fullne
 patients in major (type 1) A&amp;E departments who spend over 4 hours there, and it shows the same break against occupancy. Each dot below is one quarter.
 <span id="breakText"></span></p>
 <figure class="chart-card"><h3>Occupancy and 4-hour waits in A&amp;E, each quarter since 2010</h3><p class="cap" id="capBreak">x: G&amp;A occupancy (KH03). y: share of type 1 A&amp;E attendances spending over 4 hours in A&amp;E, counted from arrival (A&amp;E attendances and emergency admissions time series). Includes patients who are not admitted.</p><div class="legend" id="lBreak"></div><div class="chart-box tall"><canvas id="cBreak"></canvas></div><details><summary>Show as table</summary><div id="tBreak"></div></details></figure>
-<p>The simulator captures this as a loss of flexibility. It reproduces today's waits only if hospitals behave as if their beds were split
-into small pools, about <b data-k="poolA"></b> beds each, that cannot lend to each other; it reproduces 2018/19's waits, counted from arrival,
-with pools of about <b data-k="poolB"></b>. "Flexibility" is not measured directly. It stands for whatever now makes a full hospital produce
-longer waits. The tests point to patients being harder to place on other wards, not to infection control or hospital layout. We show both versions throughout, as
-"today's hospitals" and "pre-pandemic flexibility" (<a href="validation.html#pool-tests">tests</a>).</p>
+<h3 id="pools">Why the same fullness can mean far longer waits</h3>
+<p>Queueing theory explains how. Picture 600 beds running 92% full. On an average night about 48 are empty, and even on a busy night a
+few are free somewhere, so a patient coming up from A&amp;E rarely waits long. Now split the same 600 beds into ten wards of 60 that cannot
+take each other's patients, each also 92% full. Each ward has about five empty beds on an average night, but arrivals and discharges bunch
+together, so on any night some wards are full while others have beds they cannot lend. Same beds, same patients, same average occupancy,
+far more waiting. The smaller and less interchangeable the groups of beds, the more often a patient arrives to find their group full.</p>
+<figure class="chart-card"><h3>Simulated 12-hour waits by occupancy, with beds shared in pools of different sizes</h3>
+  <p class="cap">Today's patients run with between 98,000 and 122,000 beds; everything else as in today's simulator. A pool is a group of
+  beds whose patients can use any bed in the group. Share of emergency admissions waiting over 12 hours for a bed.</p>
+  <div class="legend" id="lPools"></div><div class="chart-box tall"><canvas id="cPools"></canvas></div>
+  <details><summary>Show as table</summary><div id="tPools"></div></details></figure>
+<p id="poolCurveText"></p>
+<p>That is how the simulator represents the break. It reproduces today's waits only if England's beds behave as if split into pools of
+about <b data-k="poolA"></b> beds, and 2018/19's waits (counted from arrival) only with pools of about <b data-k="poolB"></b>. On the chart,
+the system jumped from one curve to a steeper one while occupancy barely moved. "Pool size" is not something anyone counts: real beds are
+split by hospital, ward, specialty and single-sex bay, and how easily a patient can be placed elsewhere varies from day to day. In the
+simulator it stands for whatever now makes a full hospital produce longer waits. The tests point to patients being harder to place on other
+wards, not to infection control or hospital layout, and bigger trusts did only slightly better, so it is not simply a matter of hospital size
+(<a href="validation.html#pool-tests">tests</a>). We show both versions throughout, as "today's hospitals" and "pre-pandemic flexibility".</p>
 <p>Nothing else in the model closes the gap. Give it 2018/19's own beds, admissions and occupancy with today's flexibility, and it predicts
 <b data-k="flexToday"></b> of emergency admissions waiting over 12 hours, against the <b data-k="flexTarget"></b> that 2018/19's arrival-based waits
 imply. At the same occupancy, removing discharge delays makes almost no difference (delays matter by making hospitals fuller), and nor does
