@@ -61,6 +61,16 @@ def main() -> int:
         out["models"][name] = {k: {"pct": 100 * (np.exp(b[k]) - 1), "lo": 100 * (np.exp(b[k] - 1.96 * se[k]) - 1),
                                    "hi": 100 * (np.exp(b[k] + 1.96 * se[k]) - 1), "p": float(pv[k])} for k in b.index if k.startswith("post_")}
         print(name, {k: f"{v['pct']:+.0f}% ({v['lo']:+.0f} to {v['hi']:+.0f}) p={v['p']:.3f}" for k, v in out["models"][name].items()})
+    # the same with waits counted from arrival (type 1 attendances over 4 hours)
+    qa = q.dropna(subset=["type1_att"]).copy()
+    qa["_off"] = np.log(qa.type1_att)
+    out["arrival_models"] = {}
+    for name, rhs in specs.items():
+        m = pf.fepois(f"type1_over4 ~ occ_pts + {rhs} | org + fy", data=qa, vcov={"CRV1": "org"}, offset="_off")
+        b, se, pv = m.coef(), m.se(), m.pvalue()
+        out["arrival_models"][name] = {k: {"pct": 100 * (np.exp(b[k]) - 1), "lo": 100 * (np.exp(b[k] - 1.96 * se[k]) - 1),
+                                           "hi": 100 * (np.exp(b[k] + 1.96 * se[k]) - 1), "p": float(pv[k])} for k in b.index if k.startswith("post_")}
+        print("arrival", name, {k: f"{v['pct']:+.0f}% ({v['lo']:+.0f} to {v['hi']:+.0f}) p={v['p']:.3f}" for k, v in out["arrival_models"][name].items()})
     print("sites per trust:", out["sites"])
     (WEB / "site_tests.json").write_text(json.dumps(out, indent=1, default=float))
     print("wrote web/data/site_tests.json")

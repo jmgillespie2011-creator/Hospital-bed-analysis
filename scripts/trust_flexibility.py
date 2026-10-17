@@ -118,14 +118,19 @@ def ae_trusts() -> pd.DataFrame:
         body = d.iloc[hdr + 1:]
         body = body[body[col(r"^Code$")].astype(str).str.match(r"^[A-Z0-9]{3,5}$")]
         q = re.search(r"Quarter-(\d|One|Two|Three|Four)", f.name)
+        # type 1 columns appear three times: attendances, within 4 hours, over 4 hours (both counted from arrival)
+        t1 = [i for i, v in enumerate(h) if v.startswith("Type 1 Departments")]
         rows.append(pd.DataFrame({"fy": fy, "quarter": q.group(1) if q else f.name,
                                   "org": body[col(r"^Code$")].astype(str).str.strip(),
                                   "emergency_admissions": pd.to_numeric(body[col(r"^Total Emergency Admissions$")], errors="coerce"),
-                                  "waits12": pd.to_numeric(body[col(r">\s?12 hours")], errors="coerce")}))
-    a = pd.concat(rows).dropna()
+                                  "waits12": pd.to_numeric(body[col(r">\s?12 hours")], errors="coerce"),
+                                  "type1_att": pd.to_numeric(body[t1[0]], errors="coerce") if len(t1) >= 3 else np.nan,
+                                  "type1_over4": pd.to_numeric(body[t1[2]], errors="coerce") if len(t1) >= 3 else np.nan}))
+    a = pd.concat(rows).dropna(subset=["emergency_admissions", "waits12"])
     a = a.drop_duplicates(["fy", "quarter", "org"], keep="last")
     return a.groupby(["org", "fy"]).agg(ae_quarters=("quarter", "nunique"), emergency_admissions=("emergency_admissions", "sum"),
-                                        waits12=("waits12", "sum")).reset_index()
+                                        waits12=("waits12", "sum"), type1_att=("type1_att", "sum"),
+                                        type1_over4=("type1_over4", "sum"), t1_quarters=("type1_att", "count")).reset_index()
 
 
 # ------------------------------------------------------------------ ERIC single rooms (if fetched)
@@ -157,6 +162,8 @@ def main() -> None:
     p["scale"] = 4 / p.ae_quarters
     p["emergency_admissions"] *= p.scale
     p["waits12"] *= p.scale
+    # arrival-based outcome: only where every A&E quarter has type 1 data (trusts without a type 1 department drop out)
+    p.loc[(p.t1_quarters < p.ae_quarters) | (p.type1_att <= 0), ["type1_att", "type1_over4"]] = np.nan
     p["occupancy"] = p.ga_occupied / p.ga_available
     p = p[(p.ga_available > 150) & (p.emergency_admissions > 10000) & p.occupancy.between(0.5, 1.05)]
     # balanced enough: trusts with at least two years in each period
@@ -191,14 +198,16 @@ def main() -> None:
         terms.append("single_rooms_z")
 
     results = {}
-    def fit(name, extra, data=None, ols=False):
-        d = (p if data is None else data).dropna(subset=["waits12", "emergency_admissions", "occ_pts", *extra]).copy()
+    def fit(name, extra, data=None, ols=False, y="waits12", expo="emergency_admissions", store=None):
+        store = results if store is None else store
+        d = (p if data is None else data).dropna(subset=[y, expo, "occ_pts", *extra]).copy()
+        d = d.rename(columns={y: "_y", expo: "_n"})
         f = "C(org) + C(fy) + occ_pts + post:occ_pts" + "".join(f" + post:{t}" for t in extra)
         if ols:  # robustness: log rate with a small continuity correction
-            d["log_rate"] = np.log((d.waits12 + 0.5) / d.emergency_admissions)
+            d["log_rate"] = np.log((d._y + 0.5) / d._n)
             m = smf.ols("log_rate ~ " + f, data=d).fit(cov_type="cluster", cov_kwds={"groups": pd.factorize(d.org)[0]})
         else:
-            m = smf.glm("waits12 ~ " + f, data=d, family=sm.families.Poisson(), offset=np.log(d.emergency_admissions)).fit(
+            m = smf.glm("_y ~ " + f, data=d, family=sm.families.Poisson(), offset=np.log(d._n)).fit(
                 cov_type="cluster", cov_kwds={"groups": pd.factorize(d.org)[0]}, maxiter=200)
         keys = ["occ_pts", "post:occ_pts", *[f"post:{t}" for t in extra]]
         res = {kk: dict(coef=float(m.params[kk]), se=float(m.bse[kk]), p=float(m.pvalues[kk]),
@@ -206,7 +215,7 @@ def main() -> None:
                         lo=float(100 * (np.exp(m.params[kk] - 1.96 * m.bse[kk]) - 1)),
                         hi=float(100 * (np.exp(m.params[kk] + 1.96 * m.bse[kk]) - 1))) for kk in keys}
         yfe = {fy: float(100 * (np.exp(m.params.get(f"C(fy)[T.{fy}]", 0.0)) - 1)) for fy in YEARS}
-        results[name] = dict(n_obs=int(m.nobs), n_trusts=int(d.org.nunique()), terms=res, year_effects=yfe)
+        store[name] = dict(n_obs=int(m.nobs), n_trusts=int(d.org.nunique()), terms=res, year_effects=yfe)
         print(f"\n== {name}: {int(m.nobs)} trust-years, {d.org.nunique()} trusts")
         for kk, r in res.items():
             print(f"  {kk:22s} {r['pct']:+7.1f}% per unit  (95% CI {r['lo']:+.1f} to {r['hi']:+.1f}; p={r['p']:.3f})")
@@ -226,6 +235,20 @@ def main() -> None:
     pl["post"] = (pl.fy == "2019/20").astype(int)
     fit("placebo: 2019/20 vs 2017/18 (no pandemic)", terms, data=pl)
 
+    # the same tests with waits counted from arrival: type 1 attendances over 4 hours. The decision-to-admit 12-hour
+    # count was held down before the pandemic by when decisions were recorded, so a pre/post comparison on it
+    # mostly measures that change; this measure does not depend on it.
+    arrival = {}
+    A = dict(y="type1_over4", expo="type1_att", store=arrival)
+    fit("each characteristic alone: size", ["log_beds_z"], **A)
+    if "long_stay_z" in terms:
+        fit("each characteristic alone: long stays", ["long_stay_z"], **A)
+    if "single_rooms_z" in terms:
+        fit("each characteristic alone: single rooms", ["single_rooms_z"], **A)
+    fit("all together", terms, **A)
+    fit("robustness: log-rate least squares", terms, ols=True, **A)
+    fit("placebo: 2019/20 vs 2017/18 (no pandemic)", terms, data=pl, **A)
+
     # descriptive: national pre/post at similar occupancy
     desc = p.groupby("post").apply(lambda g: pd.Series({"trust_years": len(g), "occupancy": g.ga_occupied.sum() / g.ga_available.sum(),
                                                          "wait12_share": g.waits12.sum() / g.emergency_admissions.sum()})).to_dict()
@@ -241,8 +264,10 @@ def main() -> None:
                 e = d[d.post == flag]
                 row[f"occupancy_{per}"] = float(e.ga_occupied.sum() / e.ga_available.sum())
                 row[f"wait12_{per}"] = float(e.waits12.sum() / e.emergency_admissions.sum())
+                t = e.dropna(subset=["type1_att"])
+                row[f"arrival4_{per}"] = float(t.type1_over4.sum() / t.type1_att.sum()) if len(t) else None
             fifths.append(row)
-    out = dict(pre=PRE, post=POST, long_stay_fifths=fifths, n_trusts=int(p.org.nunique()), n_trust_years=int(len(p)), descriptive=desc, models=results,
+    out = dict(pre=PRE, post=POST, long_stay_fifths=fifths, n_trusts=int(p.org.nunique()), n_trust_years=int(len(p)), descriptive=desc, models=results, arrival_models=arrival,
                characteristics=dict(log_beds_z="log of pre-pandemic G&A beds, standardised",
                                     long_stay_z="share of G&A beds occupied by patients in hospital 21+ days (2025/26), standardised",
                                     single_rooms_z="single bedrooms (ERIC) per pre-pandemic G&A bed, standardised"),

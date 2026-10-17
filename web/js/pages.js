@@ -178,11 +178,12 @@ async function renderValidation() {
   if (tf && $("trustTest")) {
     const NAMES = { "post:log_beds_z": "Trust size (log beds)", "post:long_stay_z": "Long-stay share (patients in hospital 21+ days)", "post:single_rooms_z": "Single rooms per bed (ERIC)", "post:occ_pts": "Change in the occupancy slope (per point)" };
     const rows = [];
-    for (const [name, m] of Object.entries(tf.models)) {
+    const blocks = [["12-hour waits from the decision to admit", tf.models], ["4-hour waits from arrival (type 1 A&E)", tf.arrival_models || {}]];
+    for (const [title, models] of blocks) for (const [name, m] of Object.entries(models)) {
       for (const [k, r] of Object.entries(m.terms)) {
         if (!NAMES[k] || k === "post:occ_pts") continue;
         const sig = r.p < 0.05;
-        rows.push([esc(name), NAMES[k], `${r.pct >= 0 ? "+" : ""}${r.pct.toFixed(0)}%`, `${r.lo.toFixed(0)}% to ${r.hi.toFixed(0)}%`, sig ? `<b>${r.p.toFixed(3)}</b>` : `<span class="na">${r.p.toFixed(3)}</span>`, `${m.n_trusts} trusts`]);
+        rows.push([`${esc(name)}<br><span class="na">${title}</span>`, NAMES[k], `${r.pct >= 0 ? "+" : ""}${r.pct.toFixed(0)}%`, `${r.lo.toFixed(0)}% to ${r.hi.toFixed(0)}%`, sig ? `<b>${r.p.toFixed(3)}</b>` : `<span class="na">${r.p.toFixed(3)}</span>`, `${m.n_trusts} trusts`]);
       }
     }
     $("trustTest").innerHTML = table(["Model", "Characteristic (after the pandemic ×)", "Change in long waits per SD", "95% CI", "p", "Sample"], rows, [2, 3, 4]) +
@@ -201,10 +202,16 @@ async function renderValidation() {
       matching the recorded decision-to-admit figure (${pct(y.wait12Observed, 2)}) without corridor spaces would need ${num(Math.min(...pn))}–${num(Math.max(...pn))}, but that figure was held down by when
       decisions were recorded (see the next test).` : ""} Longer stays work through occupancy, which these runs hold at each year's observed level, so they cannot explain
       longer waits at the same occupancy. So within the model, only a loss of flexibility closes the gap.`;
-    if ($("trustSummary")) $("trustSummary").innerHTML = `<strong>What the trust panel shows.</strong> Across trusts, size made no clear difference${bd ? ` (${bd.pct >= 0 ? "+" : ""}${bd.pct.toFixed(0)}% per SD, p=${bd.p.toFixed(2)})` : ""}, which is not what simple pooling theory predicts.
-      Trusts with more long-stay patients saw much bigger rises${ls ? ` (${ls.pct >= 0 ? "+" : ""}${ls.pct.toFixed(0)}% per SD, p=${ls.p.toFixed(3)})` : ""},
-      and the same pattern is absent before the pandemic${pl ? ` (placebo ${pl.pct >= 0 ? "+" : ""}${pl.pct.toFixed(0)}%, p=${pl.p.toFixed(2)})` : ""}.
-      This is an association across trusts, not proof of cause. The follow-up tests below ask what lies behind it.`;
+    const aa = tf.arrival_models?.["all together"]?.terms || {}, lsa = aa["post:long_stay_z"], bda = aa["post:log_beds_z"];
+    const fx = (r, d = 2) => `${r.pct >= 0 ? "+" : "−"}${Math.abs(r.pct).toFixed(0)}% per SD, p=${r.p.toFixed(d)}`;
+    if ($("trustSummary")) $("trustSummary").innerHTML = `<strong>No characteristic clearly stands out.</strong> On 12-hour waits from the decision
+      to admit, trusts with more long-stay patients saw much bigger rises${ls ? ` (${fx(ls, 3)})` : ""}, with no such pattern before the pandemic${pl ? ` (placebo ${fx(pl)})` : ""}.
+      But that measure was near zero everywhere before 2020 because of when decisions were recorded, so a trust's "rise" on it mostly compares
+      today's waits with a recording artefact. On 4-hour waits counted from arrival, which do not have that problem, the long-stay pattern
+      disappears${lsa ? ` (${fx(lsa)})` : ""}: every group of trusts roughly doubled. Size made no clear difference on the first measure${bd ? ` (${fx(bd)})` : ""}
+      and, if anything, bigger trusts did slightly better on the second${bda ? ` (${fx(bda)})` : ""}, the opposite of what simple pooling theory predicts.
+      The arrival measure mostly covers patients who are never admitted, so it is a blunt test of anything that blocks beds; the follow-up tests
+      below look further.`;
   }
   const [lt, lm] = await Promise.all(["data/longstay_tests.json", "data/longstay_mechanism.json"].map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
   const sgn = (x, d = 0) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(d)}`;
@@ -233,6 +240,12 @@ async function renderValidation() {
         }
       }
     }
+    if (lt.arrival) {
+      rows.push([`<b>Same tests, 4-hour waits from arrival (type 1 A&amp;E)</b>`, "", "", "", "", ""]);
+      for (const [key, m] of Object.entries(lt.arrival)) for (const [k, r] of Object.entries(m.terms))
+        rows.push([`${key}. ${esc(m.label)}`, LAB[k] || esc(k), `${sgn(r.pct, 1)}%`, `${r.lo.toFixed(1)}% to ${r.hi.toFixed(1)}%`, pv(r.p),
+          m.trusts ? `${num(m.n)} obs, ${m.trusts} trusts` : `${num(m.n)} obs`]);
+    }
     const bd = lt.B_descriptive;
     $("lsTests").innerHTML = table(["Test", "Term", "Change in long waits", "95% CI", "p", "Sample"], rows, [2, 3, 4]) +
       `<p class="cap">Poisson regressions of 12-hour waits with emergency admissions as exposure, trust and period fixed effects, errors clustered by trust.
@@ -252,19 +265,21 @@ async function renderValidation() {
     const a1 = lt.A1.terms.ls_c, a5 = lt.A5.terms.ls_pts_lag1, b1 = lt.B1.terms.ls_pre_z, b2 = lt.B2.terms, c2 = lt.C2.terms["post:nctr_z"], c4 = lt.C4.terms["post:long_stay_z"];
     const at = (o, lf, cl) => lm.rows.find((r) => r.outlying === o && r.longFrac === lf && r.clustered === cl);
     const lo = at(lm.outlyingToday, 0.025, false), hi = at(lm.outlyingToday, 0.045, false), full = lm.calibration.find((c) => c.outlying === 1);
-    $("lsSummary").innerHTML = `<strong>Probably not because long-stay patients block beds.</strong>
-      Before the pandemic, trusts with more long-stay patients did not have more long waits (B1: ${sgn(b1.pct)}% per SD, p=${b1.p.toFixed(2)}).
-      Long stays themselves changed little: ${pct(lt.B_descriptive.mean_before)} of beds before, ${pct(lt.B_descriptive.mean_after)} after.
-      After the pandemic, both the level of long stays before (${sgn(b2["post:ls_pre_z"].pct)}%, p=${b2["post:ls_pre_z"].p.toFixed(2)}) and the rise since
-      (${sgn(b2["post:ls_rise_z"].pct)}%, p=${b2["post:ls_rise_z"].p.toFixed(3)}) predict the increase in long waits.
-      Within trusts, months with more long-stay patients have more long waits (A1: ${sgn(a1.pct, 1)}% per point, p=${a1.p.toFixed(3)}), but last month's long stays do not predict this month's waits
-      (A5: ${sgn(a5.pct, 1)}%, p=${a5.p.toFixed(2)}) and earlier waits do not predict long stays (A6). The link is same-month only, so neither clearly drives the other.
-      Patients fit to leave do not explain it (C2: ${sgn(c2.pct)}%, p=${c2.p.toFixed(2)}), and the long-stay effect survives regional differences (C4: ${sgn(c4.pct)}%, ${c4.p < 0.001 ? "p<0.001" : "p=" + c4.p.toFixed(3)}).
+    const A = lt.arrival || {}, ab2 = A.B2?.terms, ac1 = A.C1?.terms?.["post:long_stay_z"];
+    const e2 = (r, d = 2) => `${sgn(r.pct)}%, p${r.p < 0.001 ? "&lt;0.001" : "=" + r.p.toFixed(d)}`;
+    $("lsSummary").innerHTML = `<strong>Probably not.</strong>
+      Long stays themselves changed little: ${pct(lt.B_descriptive.mean_before)} of beds before the pandemic, ${pct(lt.B_descriptive.mean_after)} after.
+      Before the pandemic, trusts with more long-stay patients did not have more long waits on either measure (B1: ${e2(b1)} from the decision to admit${A.B1 ? `; ${e2(A.B1.terms.ls_pre_z)} from arrival` : ""}).
+      After it, both the level of long stays before (${e2(b2["post:ls_pre_z"])}) and the rise since (${e2(b2["post:ls_rise_z"], 3)}) predict the increase in
+      12-hour waits from the decision to admit${ab2 ? `, but not the increase in 4-hour waits from arrival (${e2(ab2["post:ls_pre_z"])}; ${e2(ab2["post:ls_rise_z"])})` : ""}; the first of these
+      measures was held down before 2020 by when decisions were recorded. On the decision-to-admit measure, patients fit to leave do not explain the
+      long-stay pattern (C2: ${e2(c2)}) and it survives regional differences (C4: ${e2(c4, 3)})${ac1 ? `; on the arrival measure there is no pattern to explain (C1: ${e2(ac1)})` : ""}.
+      Since the pandemic, within trusts, months with more long-stay patients have more 12-hour waits (A1: ${sgn(a1.pct, 1)}% per point, p=${a1.p.toFixed(3)}), but last month's long stays do not predict this month's waits
+      (A5: ${sgn(a5.pct, 1)}%, p=${a5.p.toFixed(2)}) and earlier waits do not predict long stays (A6), so neither clearly drives the other.
       The ward simulation can reproduce the national break: with fully shared beds, waits over 12 hours are ${pct(full.wait12, 2)}; when patients can rarely be placed outside their own ward
-      they reach today's level. But in that simulation, raising long stays from ${pct(lo.longShare, 0)} to ${pct(hi.longShare, 0)} of beds only moves waits from ${pct(lo.wait12, 1)} to ${pct(hi.wait12, 1)},
-      and concentrating long-stay patients on some wards makes no difference. So beds blocked by long-stay patients are probably not the mechanism.
-      More likely, a high long-stay share marks trusts whose patients or local services (older, frailer populations; weaker community and social care)
-      suffer most once flexibility is lost, or it shares a common cause with long waits.`;
+      they reach today's level. But raising long stays from ${pct(lo.longShare, 0)} to ${pct(hi.longShare, 0)} of beds only moves waits from ${pct(lo.wait12, 1)} to ${pct(hi.wait12, 1)},
+      and concentrating long-stay patients on some wards makes no difference. So long-stay patients go with longer waits for a bed today, but beds
+      blocked by them are probably not what broke the system.`;
   }
   await renderPoolTests(BASE0);
   await renderTrustPools();
@@ -321,13 +336,15 @@ async function renderPoolTests(base) {
   const sl = J.pool_slopes;
   if (sl) {
     const rows = [];
-    for (const [k, r] of Object.entries(sl.slopes)) rows.push([k === "waits4" ? "Over 4 hours" : "Over 12 hours", `${ef(r.before, 1)} (${ci(r.before, 1)})`, `${ef(r.after, 1)} (${ci(r.after, 1)})`, pv(r.change_p)]);
+    const SL = { waits4: "Over 4 hours from the decision to admit", waits12: "Over 12 hours from the decision to admit", arrival4: "Over 4 hours from arrival (type 1 A&amp;E)" };
+    for (const [k, r] of Object.entries(sl.slopes)) rows.push([SL[k] || esc(k), `${ef(r.before, 1)} (${ci(r.before, 1)})`, `${ef(r.after, 1)} (${ci(r.after, 1)})`, pv(r.change_p)]);
     const t = sl.tail_by_trust.terms;
-    h += `<h4>C. Slopes and which trusts lost the cap</h4>` + table(["Waits from decision to admit", "Per point of occupancy, before", "After", "p (change)"], rows, [1, 2, 3]) +
+    h += `<h4>C. Slopes and which trusts lost the cap</h4>` + table(["Waits", "Per point of occupancy, before", "After", "p (change)"], rows, [1, 2, 3]) +
       `<p class="cap">${sl.n_trusts} trusts, trust-years 2017/18–2019/20 and 2022/23–2025/26, trust and year fixed effects. Smaller pools predict a flatter proportional slope.
       Share of 4-hour waiters reaching 12 hours: before ${pct(sl.ratio.before.share_of_4h_reaching_12h, 1)}, after ${pct(sl.ratio.after.share_of_4h_reaching_12h, 1)}.
       That share rose more in trusts with more long-stay patients (${ef(t["post:long_stay_z"])} per SD, p=${t["post:long_stay_z"].p.toFixed(3)})
-      than in smaller trusts (bigger trusts ${ef(t["post:log_beds_z"])}, p=${t["post:log_beds_z"].p.toFixed(2)}).</p>`;
+      than in smaller trusts (bigger trusts ${ef(t["post:log_beds_z"])}, p=${t["post:log_beds_z"].p.toFixed(2)}), but the "before" share is held down by when decisions
+      to admit were recorded (test D), so these comparisons rest on that artefact. The slope from arrival does not: it flattened too.</p>`;
   }
   const ck = J.clock_test;
   if (ck) h += `<h4>D. When does the clock start?</h4>${ck.html || ""}`;
@@ -361,8 +378,9 @@ async function renderPoolTests(base) {
   if (st) {
     const NM = { post_sites_z: "Hospital sites (log, per SD)", post_log_beds_z: "Trust size (per SD)", post_long_stay_z: "Long-stay share (per SD)", post_beds_per_site_z: "Beds per site (per SD)", post_single_z: "Single bedrooms per bed (per SD)" };
     const rows = [];
-    for (const [m, terms] of Object.entries(st.models)) for (const [k, r] of Object.entries(terms)) rows.push([esc(m), NM[k] || esc(k), ef(r), ci(r), pv(r.p)]);
-    h += `<h4>H. Split sites and single rooms</h4>` + table(["Model", "After the pandemic ×", "Change in 12-hour waits", "95% CI", "p"], rows, [2, 3, 4]) +
+    for (const [title, models] of [["12-hour waits from the decision to admit", st.models], ["4-hour waits from arrival (type 1 A&amp;E)", st.arrival_models || {}]])
+      for (const [m, terms] of Object.entries(models)) for (const [k, r] of Object.entries(terms)) rows.push([`${esc(m)}<br><span class="na">${title}</span>`, NM[k] || esc(k), ef(r), ci(r), pv(r.p)]);
+    h += `<h4>H. Split sites and single rooms</h4>` + table(["Model", "After the pandemic ×", "Change in waits", "95% CI", "p"], rows, [2, 3, 4]) +
       `<p class="cap">${st.n_trusts} trusts. General acute and mixed-service hospital sites per trust and single bedrooms, from ERIC 2018/19 site data (median ${st.sites.median} sites,
       ${pct(st.sites.share_multi_site, 0)} of trusts have more than one; median ${st.sites.single_per_bed_median.toFixed(2)} single bedrooms per G&amp;A bed).</p>`;
   }
@@ -388,8 +406,9 @@ const poolSummary = () => `<strong>Mostly real, but smaller than the recorded fi
   about 2.5-fold, and ambulance handover delays about fourfold at the same occupancy (E). Fitted to 4-hour waits, pools shrink by about
   40% (B), far less than the 12-hour fit suggests. Part of what changed is the room to escalate: hospitals open fewer escalation beds at the same occupancy, and
   running out of them now matters less, because delays are common on ordinary days too (F). But the handover curve moved up at every
-  occupancy, including around 80%, rather than changing shape, which points to pressures outside the bed pool as well. Infection control (G), split sites and single rooms (H) do not explain which trusts got worse; a high
-  long-stay share does (C, H). For this reason the simulator's "pre-pandemic flexibility" setting is fitted to 12-hour waits counted from
+  occupancy, including around 80%, rather than changing shape, which points to pressures outside the bed pool as well. Infection control (G), split sites and single rooms (H) do not explain which trusts got worse, on
+  either measure. A high long-stay share goes with a bigger rise in 12-hour waits from the decision to admit (C, H), but not in 4-hour waits from
+  arrival, so that result may rest on the recording artefact. For this reason the simulator's "pre-pandemic flexibility" setting is fitted to 12-hour waits counted from
   arrival, not from the decision to admit: pools of about ${Math.round(POOL_B)} beds (see the methods page).`;
 
 async function renderTrustPools() {
@@ -425,9 +444,7 @@ async function renderTrustPools() {
     one national pool (${P.ownPool.spearman.toFixed(2)} against ${P.nationalPool.spearman.toFixed(2)}), but predicts their level only roughly
     (median error ${(100 * P.ownPool.medae).toFixed(1)} points), because the model's waits respond too steeply to occupancy (E4). Less flexible
     trusts are not the smaller ones, nor clearly those with more long-stay patients or social care delays; they are the ones with more delays
-    from their own discharge processes, though that explains only a small part of the differences (R² ${J.r2.toFixed(2)}). This does not contradict the trust panel above, where trusts with
-    more long-stay patients saw bigger <em>rises</em> in long waits after the pandemic: that test compares each trust with its own pre-pandemic waits,
-    while a pool size describes how flexible a trust is now, including differences it already had before.</div>`;
+    from their own discharge processes, though that explains only a small part of the differences (R² ${J.r2.toFixed(2)}).</div>`;
   if ($("trustPoolsSummary")) $("trustPoolsSummary").innerHTML = callout; else h += callout;
   $("trustPools").innerHTML = h;
 }

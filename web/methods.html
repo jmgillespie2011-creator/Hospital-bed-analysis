@@ -201,7 +201,7 @@ observed, so each is tuned until the model reproduces one measured figure: for 2
 <tr><td>Weekend discharging</td><td>Weekend/weekday discharge-rate ratio (discharge sitrep)</td></tr>
 <tr><td>Weekday spread of planned admissions</td><td>Weekly pattern of winter occupancy (daily sitrep)</td></tr>
 <tr><td>Size of the flu wave</td><td>Peak flu patients in G&amp;A beds (winter daily sitrep)</td></tr>
-<tr><td>Effective bed pool size</td><td>Share of emergency admissions waiting &gt;12 hours from decision to admit (A&amp;E)</td></tr>
+<tr><td>Effective bed pool size</td><td>Today's system: share of emergency admissions waiting &gt;12 hours from decision to admit, 2025/26 (A&amp;E). Pre-pandemic flexibility: 2018/19 12-hour waits counted from arrival, converted to the same units (see limitations)</td></tr>
 <tr><td>Corridor care spaces on wards</td><td>Patients in corridor care on G&amp;A wards at 08:00, May to September 2026 (NHS England, experimental)</td></tr>
 </tbody></table>
 <p>Parameters are fitted one at a time by bisection, cycling until all targets are met together (<code>scripts/calibrate.mjs</code>, using the
@@ -233,9 +233,9 @@ unchanged, so differences reflect your changes rather than chance. Long waits ar
     waits at a given occupancy than a decade ago (see <a href="validation.html">Validation</a>), which is why two systems are shown. Occupancy
     results barely depend on this; wait results depend on it a lot. The pool size is a catch-all for whatever lengthens waits at a given
     occupancy, not a measured quantity. Two <a href="validation.html#flexibility">tests</a> found that discharge delays, stay variability,
-    weekend discharging, flu and corridor spaces cannot explain the change on their own, and that the rise was largest in trusts with
-    more long-stay patients. A ward-level simulation shows that losing the ability to place patients on other wards can produce the
-    change on its own, but that beds blocked by long-stay patients cannot explain the differences between trusts. Further
+    weekend discharging, flu and corridor spaces cannot explain the change on their own. A ward-level simulation shows that losing the ability to place patients on other wards
+    can produce the change on its own, but that beds blocked by long-stay patients are too small an effect. Trusts with more long-stay
+    patients saw bigger rises in 12-hour waits from the decision to admit, but not in 4-hour waits from arrival. Further
     <a href="validation.html#pool-tests">tests</a> found that the pre-pandemic level of 12-hour waits from the decision to admit was held down
     by when decisions were recorded: counted from arrival, 12-hour waits rose about fivefold, not 140-fold. The "more flexible" setting is
     fitted to 12-hour waits counted from arrival. Its pool size reproduces, in 2018/19's conditions, a 12-hour share (from the

@@ -55,6 +55,9 @@ def main() -> int:
     p = p[p.org.isin(n[n.map(lambda t: t[0] >= 2 and t[1] >= 2)].index)].copy()
     p["post"] = p.fy.isin(T.POST).astype(int)
     p["occ_pts"] = 100 * p.occupancy
+    t1 = T.ae_trusts()
+    t1 = t1[(t1.t1_quarters == t1.ae_quarters) & (t1.type1_att > 0)]
+    p = p.merge(t1[["org", "fy", "type1_att", "type1_over4"]], on=["org", "fy"], how="left")
     out = {"n_trusts": int(p.org.nunique()), "n_trust_years": int(len(p)), "slopes": {}, "ratio": {}}
     for y in ["waits4", "waits12"]:
         # 4-hour waits include the 12-hour waits, so both are "at least" counts
@@ -69,10 +72,22 @@ def main() -> int:
         s = out["slopes"][y]
         print(f"{y}: per occupancy point before {s['before']['pct']:+.1f}% ({s['before']['lo']:+.1f} to {s['before']['hi']:+.1f}), "
               f"after {s['after']['pct']:+.1f}% ({s['after']['lo']:+.1f} to {s['after']['hi']:+.1f}); change p={s['change_p']:.3f}")
+    # the same slope with waits counted from arrival (type 1 attendances over 4 hours), which does not depend on
+    # when the decision to admit was recorded
+    pa = p.dropna(subset=["type1_att"])
+    m = smf.glm("type1_over4 ~ occ_pts + occ_pts:post + C(org) + C(fy)", data=pa, family=sm.families.Poisson(),
+                offset=np.log(pa.type1_att)).fit(cov_type="cluster", cov_kwds={"groups": pd.factorize(pa.org)[0]})
+    b, V = m.params, m.cov_params()
+    pre, ch = b["occ_pts"], b["occ_pts:post"]
+    se_post = float(np.sqrt(V.loc["occ_pts", "occ_pts"] + V.loc["occ_pts:post", "occ_pts:post"] + 2 * V.loc["occ_pts", "occ_pts:post"]))
+    out["slopes"]["arrival4"] = {"before": r(pre, m.bse["occ_pts"]), "after": r(pre + ch, se_post), "change_p": float(m.pvalues["occ_pts:post"])}
+    s = out["slopes"]["arrival4"]
+    print(f"arrival4: per occupancy point before {s['before']['pct']:+.1f}%, after {s['after']['pct']:+.1f}%; change p={s['change_p']:.3f}")
     for per, g in p.groupby("post"):
         out["ratio"]["after" if per else "before"] = {"wait4": float(g.waits4.sum() / g.emergency_admissions.sum()),
                                                       "wait12": float(g.waits12.sum() / g.emergency_admissions.sum()),
-                                                      "share_of_4h_reaching_12h": float(g.waits12.sum() / g.waits4.sum())}
+                                                      "share_of_4h_reaching_12h": float(g.waits12.sum() / g.waits4.sum()),
+                                                      "arrival4": float(g.dropna(subset=["type1_att"]).type1_over4.sum() / g.dropna(subset=["type1_att"]).type1_att.sum())}
     print("ratio", out["ratio"])
     # which trusts lost the cap? 12-hour waits with 4-hour waits as exposure: did the share of 4-hour waiters
     # reaching 12 hours rise more in bigger trusts or in trusts with more long-stay patients?

@@ -64,11 +64,13 @@ async function main() {
     if (g0) fill("flexToday", pct(g0.wait12, 1));
   }
   const lsT = tf?.models?.["all together"]?.terms?.["post:long_stay_z"];
-  if (lsT) fill("flexLS", `+${lsT.pct.toFixed(0)}% (95% interval +${lsT.lo.toFixed(0)}% to +${lsT.hi.toFixed(0)}%)`);
+  if (lsT) fill("flexLS", `+${lsT.pct.toFixed(0)}%, 95% interval +${lsT.lo.toFixed(0)}% to +${lsT.hi.toFixed(0)}%`);
   const fmtEff = (t) => `${t.pct >= 0 ? "+" : "−"}${Math.abs(t.pct).toFixed(0)}%, p = ${t.p.toFixed(2)}`;
   const mName = (pre) => tf && Object.keys(tf.models).find((k) => k.startsWith(pre));
   const plT = tf?.models?.[mName("placebo")]?.terms?.["post:long_stay_z"], nbT = tf?.models?.[mName("robustness: without")]?.terms?.["post:long_stay_z"];
   if (plT) fill("lsPlacebo", fmtEff(plT));
+  const lsA = tf?.arrival_models?.["all together"]?.terms?.["post:long_stay_z"];
+  if (lsA) fill("flexLSarr", `${lsA.pct >= 0 ? "+" : "−"}${Math.abs(lsA.pct).toFixed(0)}%, 95% interval ${lsA.lo.toFixed(0)}% to +${lsA.hi.toFixed(0)}%`);
   if (nbT) fill("lsNoBig", fmtEff(nbT));
   const ck = await fetch("data/clock_test.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
   if (ck) {
@@ -86,6 +88,11 @@ async function main() {
     fill("lsB2rise", e(lt.B2.terms["post:ls_rise_z"]));
     fill("lsNctr", e(lt.C2.terms["post:nctr_z"]));
     fill("lsRegion", e(lt.C4.terms["post:long_stay_z"]));
+    if (lt.arrival) {
+      fill("lsB1a", e(lt.arrival.B1.terms.ls_pre_z));
+      fill("lsB2prea", e(lt.arrival.B2.terms["post:ls_pre_z"]));
+      fill("lsB2risea", e(lt.arrival.B2.terms["post:ls_rise_z"]));
+    }
     const a1 = lt.A1.terms.ls_c, a5 = lt.A5.terms.ls_pts_lag1;
     fill("lsMonth", `${a1.pct >= 0 ? "+" : "−"}${Math.abs(a1.pct).toFixed(1)}%`);
     fill("lsLag", `${a5.pct >= 0 ? "+" : "−"}${Math.abs(a5.pct).toFixed(1)}%, p = ${a5.p.toFixed(2)}`);
@@ -294,22 +301,25 @@ async function main() {
     const lo = LF[0], hiF = LF.at(-1);
     fill("lsTrusts", int(LF.reduce((t, f) => t + f.trusts, 0)));
     fill("lsLow", pct(lo.wait12_after, 1)); fill("lsHigh", pct(hiF.wait12_after, 1));
-    const occs = LF.map((f) => f.occupancy_after);
+    const occs = LF.map((f) => f.occupancy_after), rg = (k) => `${(100 * Math.min(...LF.map((f) => f[k]))).toFixed(0)}–${pct(Math.max(...LF.map((f) => f[k])), 0)}`;
+    fill("lsArrBefore", rg("arrival4_before")); fill("lsArrAfter", rg("arrival4_after"));
     fill("lsOcc", `${pct(Math.min(...occs), 1)} to ${pct(Math.max(...occs), 1)} across the five groups`);
     const names = LF.map((f, i) => `${i === 0 ? "Fewest long-stay" : i === LF.length - 1 ? "Most long-stay" : `Fifth ${f.fifth}`} (${pct(f.long_stay, 0)} of beds)`);
     const labels = LF.map((f) => pct(f.long_stay, 0));
     legend("lLongStay", [["Before the pandemic", GREY], ["After the pandemic", BLUE]]);
     new Chart($("cLongStay"), { type: "bar", data: { labels, datasets: [
-      { label: "Before the pandemic", data: LF.map((f) => 100 * f.wait12_before), backgroundColor: GREY, borderRadius: 4, borderSkipped: false, barPercentage: 0.85, categoryPercentage: 0.7 },
-      { label: "After the pandemic", data: LF.map((f) => 100 * f.wait12_after), backgroundColor: BLUE, borderRadius: 4, borderSkipped: false, barPercentage: 0.85, categoryPercentage: 0.7 }] },
+      { label: "Before the pandemic", data: LF.map((f) => 100 * f.arrival4_before), backgroundColor: GREY, borderRadius: 4, borderSkipped: false, barPercentage: 0.85, categoryPercentage: 0.7 },
+      { label: "After the pandemic", data: LF.map((f) => 100 * f.arrival4_after), backgroundColor: BLUE, borderRadius: 4, borderSkipped: false, barPercentage: 0.85, categoryPercentage: 0.7 }] },
       options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: "index", intersect: false },
         plugins: { legend: { display: false }, tooltip: { callbacks: { title: (c) => names[c[0].dataIndex],
-          label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(2)}% waited over 12 hours (occupancy ${pct(LF[c.dataIndex][c.datasetIndex ? "occupancy_after" : "occupancy_before"], 1)})` } } },
+          label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}% over 4 hours in A&E (occupancy ${pct(LF[c.dataIndex][c.datasetIndex ? "occupancy_after" : "occupancy_before"], 1)})` } } },
         scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0 },
           title: { display: true, text: "Share of beds held by long-stay patients (one bar pair per fifth of trusts)" } },
-          y: { min: 0, title: { display: true, text: "Waiting over 12 hours (%)" } } } } });
-    $("tLongStay").innerHTML = table(["Group", "Trusts", "Long-stay share", "Occupancy before", "Occupancy after", "12h waits before", "12h waits after"],
-      LF.map((f, i) => [names[i], f.trusts, pct(f.long_stay), pct(f.occupancy_before), pct(f.occupancy_after), pct(f.wait12_before, 2), pct(f.wait12_after, 1)]), [1, 2, 3, 4, 5, 6]);
+          y: { min: 0, title: { display: true, text: "Over 4 hours in A&E (%)" } } } } });
+    $("tLongStay").innerHTML = table(["Group", "Trusts", "Long-stay share", "Occupancy before", "Occupancy after", "Over 4h from arrival, before", "After",
+      "Over 12h from decision to admit, before", "After"],
+      LF.map((f, i) => [names[i], f.trusts, pct(f.long_stay), pct(f.occupancy_before), pct(f.occupancy_after), pct(f.arrival4_before), pct(f.arrival4_after),
+        pct(f.wait12_before, 2), pct(f.wait12_after, 1)]), [1, 2, 3, 4, 5, 6, 7, 8]);
   }
 
   // ---------------------------------------------------------------- 3. bed sweep
@@ -333,7 +343,7 @@ async function main() {
   const h2010 = sc.history.find((h) => h.year === "2010/11"), h2005 = sc.history.find((h) => h.year === "2005/06");
   const A0 = sc.baseline.A;
   $("sweepText").innerHTML = `With ${BY} demand, the simulator puts today's ${int(sc.baseBeds)} beds at ${pct(A0.occupancy)} occupancy,
-    with about ${int(1000 * Math.round(A0.wait12PerYear / 1000))} emergency patients a year waiting over 12 hours for a bed. The published figure for ${BY} is ${int(M.filter((m) => m.month >= "2025-04" && m.month < "2026-04").reduce((s, m) => s + m.w12, 0))}, so the model somewhat understates long waits.
+    with about ${int(1000 * Math.round(A0.wait12PerYear / 1000))} emergency patients a year waiting over 12 hours for a bed. The published figure for ${BY} is ${int(obs.monthly.filter((m) => m.month >= `${BY.slice(0, 4)}-04` && m.month < `${+BY.slice(0, 4) + 1}-04`).reduce((s, m) => s + m.w12, 0))}, so the model somewhat understates long waits.
     Waits do not rise in a straight line. Each bed removed costs more than the last, because a nearly full hospital has no slack to absorb a busy day.
     Going back to the ${int(h2010.beds)} beds of 2010/11 would bring occupancy to about ${pct(interp(h2010.beds, (s) => s.A.occupancy))} and cut 12-hour waits
     to about ${int(1000 * Math.round(interp(h2010.beds, (s) => s.A.wait12PerYear) / 1000))} a year. Getting to the 85% often quoted as safe would take about

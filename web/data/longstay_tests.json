@@ -225,6 +225,119 @@
    }
   }
  },
+ "arrival": {
+  "C1": {
+   "label": "Long stays (as before)",
+   "n": 683,
+   "trusts": 114,
+   "terms": {
+    "post:long_stay_z": {
+     "pct": 3.4604892843409507,
+     "lo": -3.2211124959494075,
+     "hi": 10.603387980743427,
+     "p": 0.31790888259469596,
+     "unit": "SD of long-stay share"
+    },
+    "post:log_beds_z": {
+     "pct": -5.024320453600972,
+     "lo": -9.706535179138221,
+     "hi": -0.09930704069988083,
+     "p": 0.04566036330810739,
+     "unit": "SD of trust size"
+    }
+   }
+  },
+  "C2": {
+   "label": "Patients fit to leave instead of long stays",
+   "n": 683,
+   "trusts": 114,
+   "terms": {
+    "post:nctr_z": {
+     "pct": 2.246063637323914,
+     "lo": -4.030120878198407,
+     "hi": 8.932694559920362,
+     "p": 0.4919263605088052,
+     "unit": "SD of fit-to-leave share"
+    },
+    "post:log_beds_z": {
+     "pct": -3.960736960080846,
+     "lo": -8.878635141036884,
+     "hi": 1.2225844018787235,
+     "p": 0.13183748424778516,
+     "unit": "SD of trust size"
+    }
+   }
+  },
+  "C4": {
+   "label": "Plus region x after",
+   "n": 683,
+   "trusts": 114,
+   "terms": {
+    "post:long_stay_z": {
+     "pct": 5.127638623808384,
+     "lo": -2.551010491051142,
+     "hi": 13.411339186879356,
+     "p": 0.1962812599017707,
+     "unit": "SD of long-stay share"
+    },
+    "post:nctr_z": {
+     "pct": 2.1894971607628433,
+     "lo": -4.367672700514225,
+     "hi": 9.19626892762766,
+     "p": 0.5220983397816934,
+     "unit": "SD of fit-to-leave share"
+    },
+    "post:log_beds_z": {
+     "pct": -4.2514372269774725,
+     "lo": -9.7561603889462,
+     "hi": 1.5890648338115598,
+     "p": 0.15040066532522398,
+     "unit": "SD of trust size"
+    }
+   }
+  },
+  "B1": {
+   "label": "Before only: long stays then vs waits then",
+   "n": 344,
+   "terms": {
+    "ls_pre_z": {
+     "pct": -1.0706510867744323,
+     "lo": -7.173906750649694,
+     "hi": 5.433889694191407,
+     "p": 0.7404021340093722,
+     "unit": "SD of long-stay share before"
+    }
+   }
+  },
+  "B2": {
+   "label": "After the pandemic: long-stay level before vs rise since",
+   "n": 689,
+   "trusts": 115,
+   "terms": {
+    "post:ls_pre_z": {
+     "pct": 2.004166462417034,
+     "lo": -4.272610507436259,
+     "hi": 8.692507242148828,
+     "p": 0.5402713233480212,
+     "unit": "SD of long-stay share before"
+    },
+    "post:ls_rise_z": {
+     "pct": 2.9561699234198047,
+     "lo": -4.224182597752135,
+     "hi": 10.674836433724998,
+     "p": 0.4296130159067617,
+     "unit": "SD of rise in long-stay share"
+    },
+    "post:log_beds_z": {
+     "pct": -4.761581075979837,
+     "lo": -9.75960371566228,
+     "hi": 0.5132602761123817,
+     "p": 0.07608650978601376,
+     "unit": "SD of trust size"
+    }
+   }
+  }
+ },
  "B_descriptive": {
   "trusts": 117,
   "mean_before": 0.17420510664456337,

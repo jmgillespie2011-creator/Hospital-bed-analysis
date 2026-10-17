@@ -122,7 +122,7 @@ def winter_pre() -> pd.DataFrame:
 
 
 def poisson(f, d, cluster="org"):
-    return smf.glm(f, data=d, family=sm.families.Poisson(), offset=np.log(d.emergency_admissions)).fit(
+    return smf.glm(f, data=d, family=sm.families.Poisson(), offset=np.log(d["_n"] if "_n" in d else d.emergency_admissions)).fit(
         cov_type="cluster", cov_kwds={"groups": pd.factorize(d[cluster])[0]}, maxiter=300)
 
 
@@ -219,6 +219,17 @@ def main() -> None:
         mod = poisson(f, p)
         res[key] = dict(label=label, n=int(len(p)), trusts=int(p.org.nunique()),
                         terms=summarise(mod, [k for k in ["post:long_stay_z", "post:nctr_z", "post:log_beds_z"] if k in mod.params], UC))
+    # the same with waits counted from arrival (type 1 attendances over 4 hours), which do not depend on when the
+    # decision to admit was recorded; the decision-to-admit 12-hour count was held down before the pandemic
+    arr = res.setdefault("arrival", {})
+    pa = p.dropna(subset=["type1_att"]).assign(_n=lambda x: x.type1_att)
+    for key, f, label in [("C1", base + " + post:long_stay_z", "Long stays (as before)"),
+                          ("C2", base + " + post:nctr_z", "Patients fit to leave instead of long stays"),
+                          ("C4", base + " + post:long_stay_z + post:nctr_z + post:C(region)", "Plus region x after")]:
+        print(f" {key} (arrival, 4 hours) {label}:")
+        mod = poisson(f.replace("waits12 ~", "type1_over4 ~"), pa)
+        arr[key] = dict(label=label, n=int(len(pa)), trusts=int(pa.org.nunique()),
+                        terms=summarise(mod, [k for k in ["post:long_stay_z", "post:nctr_z", "post:log_beds_z"] if k in mod.params], UC))
     # ---------------------------------------------------------------- B: long stays measured before the pandemic
     w = winter_pre()
     if len(w):
@@ -246,6 +257,14 @@ def main() -> None:
         mod = poisson("waits12 ~ C(org) + C(fy) + occ_pts + post:occ_pts + post:log_beds_z + post:ls_pre_z + post:ls_rise_z", q)
         res["B2"] = dict(label="After the pandemic: long-stay level before vs rise since", n=int(len(q)), trusts=int(q.org.nunique()),
                          terms=summarise(mod, ["post:ls_pre_z", "post:ls_rise_z", "post:log_beds_z"], UB))
+        qa = q.dropna(subset=["type1_att"]).assign(_n=lambda x: x.type1_att)
+        pa0 = qa[qa.post == 0]
+        print(" B1/B2 with waits counted from arrival (type 1, over 4 hours):")
+        res["arrival"]["B1"] = dict(label="Before only: long stays then vs waits then", n=int(len(pa0)),
+                                    terms=summarise(poisson("type1_over4 ~ C(fy) + occ_pts + ls_pre_z", pa0), ["ls_pre_z"], UB))
+        mod = poisson("type1_over4 ~ C(org) + C(fy) + occ_pts + post:occ_pts + post:log_beds_z + post:ls_pre_z + post:ls_rise_z", qa)
+        res["arrival"]["B2"] = dict(label="After the pandemic: long-stay level before vs rise since", n=int(len(qa)), trusts=int(qa.org.nunique()),
+                                    terms=summarise(mod, ["post:ls_pre_z", "post:ls_rise_z", "post:log_beds_z"], UB))
 
     (WEB / "longstay_tests.json").write_text(json.dumps(res, default=float, indent=1))
     print("\nwrote web/data/longstay_tests.json")

@@ -184,30 +184,37 @@ many go home the same day, and how flexibly beds are used. Averaging over every 
 occupancy had very different long waits.</p>
 <figure class="chart-card"><h3>Acute trusts: occupancy and long waits, <span data-k="baseYear"></span></h3><p class="cap">Each dot is a trust. x: average 08:00 G&amp;A occupancy. y: share of emergency admissions waiting over 12 hours.</p><div class="chart-box tall"><canvas id="cTrusts"></canvas></div><details><summary>Show as table</summary><div id="tTrusts"></div></details></figure>
 <p id="poolText"></p>
-<p>The rise was largest in trusts with many long-stay patients. We followed <b data-k="lsTrusts"></b> acute trusts through three years before
-the pandemic and three after, grouped into fifths by the share of their beds held by patients in hospital three weeks or more. Before the
-pandemic every group had almost no 12-hour waits. Afterwards the fifth with the fewest long-stay patients had <b data-k="lsLow"></b> of emergency
-admissions waiting over 12 hours and the fifth with the most had <b data-k="lsHigh"></b>, at about the same occupancy (<span data-k="lsOcc"></span>).
-Comparing each trust with itself, each standard deviation of long-stay share went with <b data-k="flexLS"></b> more long waits after the
-pandemic, and nothing before it (<span data-k="lsPlacebo"></span>).</p>
-<figure class="chart-card"><h3>12-hour waits before and after the pandemic, by trusts' share of long-stay patients</h3>
+<p>Are those differences new? One clue looked strong. Group <b data-k="lsTrusts"></b> acute trusts into fifths by the share of their beds
+held by patients in hospital three weeks or more. Since the pandemic, the fifth with the fewest long-stay patients has had <b data-k="lsLow"></b>
+of emergency admissions waiting over 12 hours for a bed, and the fifth with the most <b data-k="lsHigh"></b>, at about the same occupancy
+(<span data-k="lsOcc"></span>). On that measure the gap looks new, because before the pandemic every group had almost no 12-hour waits. But
+that is the recording problem from section 2 again: the decision-to-admit measure was near zero everywhere before 2020. On the arrival clock,
+waits rose about equally in every group, from <span data-k="lsArrBefore"></span> of patients over 4 hours in A&amp;E before the pandemic to
+<span data-k="lsArrAfter"></span> after, whatever the long-stay share. Comparing each trust with itself, each standard deviation of long-stay share
+predicts a bigger rise in 12-hour waits from the decision to admit (<span data-k="flexLS"></span>) but not in 4-hour waits from arrival
+(<span data-k="flexLSarr"></span>).</p>
+<figure class="chart-card"><h3>4-hour waits in A&amp;E before and after the pandemic, by trusts' share of long-stay patients</h3>
   <p class="cap">Acute trusts grouped into fifths by the share of G&amp;A beds held by patients in hospital 21 days or more (2025/26).
-  Before: 2017/18 to 2019/20. After: 2022/23, 2023/24 and 2025/26. Share of emergency admissions waiting over 12 hours from decision to admit.</p>
+  Before: 2017/18 to 2019/20. After: 2022/23, 2023/24 and 2025/26. Share of type 1 A&amp;E attendances spending over 4 hours in A&amp;E,
+  counted from arrival. The table also shows 12-hour waits from the decision to admit.</p>
   <div class="legend" id="lLongStay"></div>
   <div class="chart-box"><canvas id="cLongStay"></canvas></div>
   <details><summary>Show as table</summary><div id="tLongStay"></div></details></figure>
-<p>Long-stay patients seem to mark strain rather than cause it: long stays grew only a little, they move with long waits but do not lead
-them, and in a simulation of a hospital split into specialty wards, blocked beds are too small an effect to matter. A high long-stay share
-more likely marks hospitals whose patients or local services struggle most once beds cannot be shared, or it shares a common cause with
-long waits. These are associations, and the result weakens when the ten trusts with the most long waits are left out (<span data-k="lsNoBig"></span>).</p>
+<p>So long-stay patients go with longer waits for a bed today, but there is no sign that they explain why waits broke. The 4-hour measure
+mostly covers patients who are never admitted, so it is a blunt test of anything that blocks beds. But the other long-stay evidence points
+the same way: long stays grew only a little, they move with long waits but do not lead them, and in a simulation of a hospital split into
+specialty wards, blocked beds are too small an effect to matter.</p>
 <details class="more"><summary>The four long-stay tests in detail</summary>
 <ul>
 <li><b>Long stays grew only a little.</b> The winter sitreps of 2017/18 to 2019/20 show <span data-k="lsPreMean"></span> of beds held by patients
 in hospital three weeks or more, against <span data-k="lsPostMean"></span> since, and the same trusts had high shares in both periods. Before the
-pandemic, long stays did not predict long waits (<span data-k="lsB1"></span>); after it, both a trust's earlier level (<span data-k="lsB2pre"></span>)
-and its rise since (<span data-k="lsB2rise"></span>) predict the increase in waits.</li>
+pandemic, long stays did not predict long waits on either measure (12 hours from the decision to admit: <span data-k="lsB1"></span>; 4 hours
+from arrival: <span data-k="lsB1a"></span>). After it, both a trust's earlier level (<span data-k="lsB2pre"></span>) and its rise since
+(<span data-k="lsB2rise"></span>) predict the increase in 12-hour waits from the decision to admit, but neither predicts the increase in 4-hour
+waits from arrival (<span data-k="lsB2prea"></span>; <span data-k="lsB2risea"></span>).</li>
 <li><b>The total number of patients fit to leave does not predict which trusts got worse</b> (<span data-k="lsNctr"></span>); the delay tests above show
-which kinds of delay do track waits. The long-stay result holds when each region has its own change (<span data-k="lsRegion"></span>).</li>
+which kinds of delay do track waits. On the decision-to-admit measure, the long-stay result holds when each region has its own change
+(<span data-k="lsRegion"></span>).</li>
 <li><b>Long stays and long waits move together, but neither leads.</b> Months with more long-stay patients have more long waits
 (<span data-k="lsMonth"></span> for each extra point of long-stay share), but last month's long stays do not predict this month's waits
 (<span data-k="lsLag"></span>), and earlier waits do not predict later long stays.</li>
