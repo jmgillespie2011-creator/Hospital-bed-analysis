@@ -102,10 +102,10 @@ clock long waits were common before the pandemic too.</p>
 the decision to admit. From arrival, 12-hour waits have risen about <b data-k="clkRiseA"></b>-fold since then, not <b data-k="clkRiseD"></b>-fold.
 Four-hour waits and ambulance handover delays, which do not depend on when a decision is recorded, rose 2.5 to 4 times at the same occupancy.
 The real change is a several-fold rise in long waits at the same level of fullness.</p>
-<p>Over the same years occupancy barely changed. Each dot below is one quarter, on the decision-to-admit measure, the only one published every quarter. Before 2020,
-quarters at 90–93% occupancy had almost no 12-hour waits on that measure (under 0.3% of admissions). Since 2022, quarters at the same occupancy
-have had 5–11%. The size of the jump is overstated, as above, but the direction is not.</p>
-<figure class="chart-card"><h3>Occupancy and long waits, each quarter since 2010</h3><p class="cap" id="capBreak">x: G&amp;A occupancy (KH03). y: share of emergency admissions waiting over 12 hours for a bed.</p><div class="legend" id="lBreak"></div><div class="chart-box tall"><canvas id="cBreak"></canvas></div><details><summary>Show as table</summary><div id="tBreak"></div></details></figure>
+<p>The arrival-based 12-hour count is published only once a year. The arrival-based measure published every month is the share of
+patients in major (type 1) A&amp;E departments who spend over 4 hours there, and it shows the same break against occupancy. Each dot below is one quarter.
+<span id="breakText"></span></p>
+<figure class="chart-card"><h3>Occupancy and 4-hour waits in A&amp;E, each quarter since 2010</h3><p class="cap" id="capBreak">x: G&amp;A occupancy (KH03). y: share of type 1 A&amp;E attendances spending over 4 hours in A&amp;E, counted from arrival (A&amp;E attendances and emergency admissions time series). Includes patients who are not admitted.</p><div class="legend" id="lBreak"></div><div class="chart-box tall"><canvas id="cBreak"></canvas></div><details><summary>Show as table</summary><div id="tBreak"></div></details></figure>
 <p>The simulator captures this as a loss of flexibility. It reproduces today's waits only if hospitals behave as if their beds were split
 into small pools, about <b data-k="poolA"></b> beds each, that cannot lend to each other; it reproduces 2018/19's waits, counted from arrival,
 with pools of about <b data-k="poolB"></b>. "Flexibility" is not measured directly. It stands for whatever now makes a full hospital produce

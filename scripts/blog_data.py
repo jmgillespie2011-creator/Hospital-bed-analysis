@@ -18,6 +18,19 @@ def fy_start(fy: str) -> int:
     return int(fy[:4])
 
 
+def ae_arrival_4h() -> pd.DataFrame:
+    f = next((ROOT / "data" / "raw" / "ae_attendances").glob("Monthly-AE-Time-Series-*.xls"))
+    d = pd.read_excel(f, sheet_name="Performance", header=None)
+    hdr = d.index[d[1].astype(str).str.strip().eq("Period")][0]
+    rows = d.iloc[hdr + 1:]
+    rows = rows[pd.to_datetime(rows[1], errors="coerce").notna()]
+    # columns: 2 = type 1 within 4 hours, 6 = type 1 over 4 hours
+    a = pd.DataFrame({"month": pd.to_datetime(rows[1]), "type1_under4": pd.to_numeric(rows[2]), "type1_over4": pd.to_numeric(rows[6])})
+    a["type1_att"] = a.type1_under4 + a.type1_over4
+    a["fy"] = a.month.map(lambda t: f"{t.year}/{str(t.year + 1)[2:]}" if t.month >= 4 else f"{t.year - 1}/{str(t.year)[2:]}")
+    return a
+
+
 def main() -> None:
     out: dict = {}
 
@@ -47,8 +60,15 @@ def main() -> None:
                                            w4=("dta_over_4h", "sum"), n=("month", "count")).reset_index()
     m = q.merge(aq, left_on=["year", "quarter"], right_on=["fy", "quarter"])
     m = m[m.n == 3]
+    # type 1 A&E attendances spending over 4 hours in A&E, counted from arrival (A&E time series, Performance sheet).
+    # Unlike the decision-to-admit measures, this does not depend on when the decision to admit was recorded.
+    arr = ae_arrival_4h()
+    arr["quarter"] = arr.month.dt.month.map(qmap)
+    arq = arr.groupby(["fy", "quarter"]).agg(att=("type1_att", "sum"), over4=("type1_over4", "sum"), n4=("month", "count")).reset_index()
+    m = m.merge(arq, on=["fy", "quarter"], how="left")
     out["quarters"] = [dict(fy=r.year, q=r.quarter, occupancy=round(r.ga_occupancy, 4), wait12=round(r.w12 / r.adm, 5),
-                            wait4=round(r.w4 / r.adm, 4)) for _, r in m.iterrows()]
+                            wait4=round(r.w4 / r.adm, 4),
+                            arrival4=None if pd.isna(r.att) or r.n4 != 3 else round(r.over4 / r.att, 4)) for _, r in m.iterrows()]
 
     # 3. Monthly waits over 12 hours from decision to admit
     out["monthly"] = [dict(month=r.month.strftime("%Y-%m"), w12=int(r.dta_over_12h), adm=int(r.emergency_admissions),

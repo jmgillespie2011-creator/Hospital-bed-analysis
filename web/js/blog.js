@@ -263,19 +263,30 @@ async function main() {
       Y.map((y) => [y.fy, int(y.arrival_over12), pct(y.arrival_share), int(y.dta_over12), pct(y.dta_share, 2)]), [1, 2, 3, 4]);
   }
 
-  const Q = obs.quarters;
+  const Q = obs.quarters.filter((q) => q.arrival4 != null);
   const era = (q) => (q.fy < "2020/21" ? 0 : q.fy < "2022/23" ? 1 : 2);
   const ERAS = [["2010/11 to 2019/20", GREY], ["2020/21 to 2021/22 (pandemic)", ORANGE], ["2022/23 onwards", BLUE]];
   legend("lBreak", ERAS.map(([l, c]) => [l, c]));
   new Chart($("cBreak"), { type: "scatter", data: { datasets: ERAS.map(([label, color], e) => ({
-    label, data: Q.filter((q) => era(q) === e).map((q) => ({ x: 100 * q.occupancy, y: 100 * q.wait12, q })),
+    label, data: Q.filter((q) => era(q) === e).map((q) => ({ x: 100 * q.occupancy, y: 100 * q.arrival4, q })),
     backgroundColor: color, borderColor: css("--surface"), borderWidth: 1.5, pointRadius: 5, pointHoverRadius: 7 })) },
     options: { responsive: true, maintainAspectRatio: false, animation: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw.q.fy} ${c.raw.q.q}: occupancy ${c.parsed.x.toFixed(1)}%, ${c.parsed.y.toFixed(2)}% waited >12h` } } },
-      scales: { x: { min: 80, title: { display: true, text: "G&A occupancy (%)" } }, y: { title: { display: true, text: "Waiting over 12 hours (%)" }, min: 0 } } } });
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw.q.fy} ${c.raw.q.q}: occupancy ${c.parsed.x.toFixed(1)}%, ${c.parsed.y.toFixed(1)}% over 4 hours` } } },
+      scales: { x: { min: 80, title: { display: true, text: "G&A occupancy (%)" } }, y: { title: { display: true, text: "Over 4 hours in A&E (%)" }, min: 0 } } } });
   const off = Q.filter((q) => 100 * q.occupancy < 80);
   if (off.length) $("capBreak").textContent += ` Not shown: ${off.map((q) => `${q.fy} ${q.q}`).join(" and ")}, when occupancy fell below 80% during the pandemic.`;
-  $("tBreak").innerHTML = table(["Quarter", "Occupancy", "Waiting >12h", "Waiting >4h"], Q.map((q) => [`${q.fy} ${q.q}`, pct(q.occupancy), pct(q.wait12, 2), pct(q.wait4)]), [1, 2, 3]);
+  $("tBreak").innerHTML = table(["Quarter", "Occupancy", "Over 4 hours in A&E, from arrival (type 1)", "Over 12 hours from decision to admit"],
+    Q.map((q) => [`${q.fy} ${q.q}`, pct(q.occupancy), pct(q.arrival4), pct(q.wait12, 2)]), [1, 2, 3]);
+  {
+    // same fullness, before and after: quarters at 90-93% occupancy
+    const band = (e, from) => Q.filter((q) => era(q) === e && q.fy >= from && q.occupancy >= 0.9 && q.occupancy < 0.93).map((q) => q.arrival4);
+    const pre = band(0, "2017/18"), post = band(2, "2022/23"), rng = (a) => `${(100 * Math.min(...a)).toFixed(0)}–${pct(Math.max(...a), 0)}`, yr = (fy) => Q.filter((q) => q.fy === fy), avg = (a) => a.reduce((s, q) => s + q.arrival4, 0) / a.length;
+    const first = Q.find((q) => yr(q.fy).length === 4)?.fy;
+    if (pre.length && post.length) $("breakText").innerHTML = `In the three years before the pandemic, quarters at 90–93% occupancy had ${rng(pre)}
+      of patients there over 4 hours; since 2022, quarters at the same occupancy have had ${rng(post)}.
+      Waits were already lengthening before the pandemic (${pct(avg(yr(first)), 0)} over 4 hours across ${first}, ${pct(avg(yr("2019/20")), 0)} across 2019/20),
+      but after it the whole cloud of points moved up: the same fullness now goes with far longer waits.`;
+  }
 
   // ---------------------------------------------------------------- long-stay clue (trust panel)
   const LF = tf?.long_stay_fifths || [];
